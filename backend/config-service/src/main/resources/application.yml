@@ -28,7 +28,6 @@ spring:
         default-application-name: application
         default-profile: default
 
-
 # 액추에이터 설정
 management:
   endpoints:
