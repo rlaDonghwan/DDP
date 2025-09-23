@@ -1,0 +1,47 @@
+# DDP 프로젝트 공통 설정 (포트폴리오용)
+# 모든 마이크로서비스에 적용되는 기본 설정
+
+# Eureka 공통 설정
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# 로깅 공통 설정 (개발 친화적)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.ddp: DEBUG
+    org.springframework.web: INFO
+
+# 액추에이터 공통 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,refresh
+  endpoint:
+    health:
+      show-details: always
+
+# Spring Boot 공통 설정
+spring:
+  # JPA 공통 설정 (개발용)
+  jpa:
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  
+  # Jackson 공통 설정
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss

@@ -1,0 +1,65 @@
+# Auth Service Config Client 설정
+# Config Server에서 설정을 로드하기 위한 최소 설정
+
+spring:
+  application:
+    name: auth-service # Config Server에서 auth-service.yml을 찾기 위한 이름
+  
+  # Config Server 연결 설정
+  config:
+    import: "configserver:http://localhost:8888" # Config Server URL
+    # import: "configserver:http://config-service:8888" # Docker 환경용
+  
+  # Config Client 설정
+  cloud:
+    config:
+      enabled: true # Config Client 활성화
+      fail-fast: true # Config Server 연결 실패시 애플리케이션 시작 실패
+      retry:
+        initial-interval: 1000 # 재시도 초기 간격 (ms)
+        max-attempts: 6 # 최대 재시도 횟수
+        max-interval: 2000 # 최대 재시도 간격 (ms)
+
+# 로컬 개발용 설정 (Config Server 비활성화)
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+    import: "optional:configserver:http://localhost:8888" # Config Server 연결 실패해도 계속 진행
+  
+  # 로컬 개발용 기본 설정 (Config Server 없이도 실행 가능)
+  application:
+    name: auth-service
+  
+  datasource:
+    url: jdbc:h2:mem:authdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: myLocalDevelopmentSecretKey32Characters
+  access-token-expiration: 3600
+  refresh-token-expiration: 604800

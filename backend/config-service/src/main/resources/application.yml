@@ -1,0 +1,48 @@
+server:
+  port: 8888
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+
+spring:
+  application:
+    name: config-service
+
+  # =================================
+  # Spring Cloud Config Server 설정 (Git 방식)
+  # =================================
+  cloud:
+    config:
+      server:
+        # Git 저장소에서 설정 읽기
+        git:
+          uri: ${GIT_URL}
+          username: ${GIT_ID}
+          password: ${GIT_TOKEN}
+          clone-on-start: true
+          timeout: 10
+          refresh-rate: 60
+
+        # 기본 설정
+        default-application-name: application
+        default-profile: default
+
+# 로깅 설정
+logging:
+  level:
+    org.springframework.cloud.config: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 액추에이터 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,refresh # refresh 엔드포인트 포함
+  endpoint:
+    health:
+      show-details: always
+
