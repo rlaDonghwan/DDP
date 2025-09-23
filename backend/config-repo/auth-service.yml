@@ -45,6 +45,8 @@ jwt:
 
 # Auth Service 로깅 설정
 logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"
   level:
     com.ddp.auth: DEBUG
     org.springframework.security: INFO

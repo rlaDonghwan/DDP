@@ -20,6 +20,7 @@ spring:
           uri: ${GIT_URL}
           username: ${GIT_ID}
           password: ${GIT_TOKEN}
+          search-paths: ${GIT_SEARCH_PATHS:backend/config-repo}
           clone-on-start: true
           timeout: 10
           refresh-rate: 60

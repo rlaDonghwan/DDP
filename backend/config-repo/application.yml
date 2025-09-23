@@ -14,7 +14,7 @@ eureka:
 # 로깅 공통 설정 (개발 친화적)
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"
   level:
     root: INFO
     com.ddp: DEBUG

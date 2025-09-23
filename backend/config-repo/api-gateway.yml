@@ -48,6 +48,8 @@ spring:
 
 # API Gateway 로깅 설정 (개발용)
 logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"
   level:
     org.springframework.cloud.gateway: DEBUG
     reactor.netty: INFO
