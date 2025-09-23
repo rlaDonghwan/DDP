@@ -27,7 +27,7 @@ spring:
   # Redis 설정 (URL 방식)
   data:
     redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+      url: ${REDIS_URL:redis://:1234@localhost:6379}
       timeout: ${REDIS_TIMEOUT:2000ms}
       database: ${REDIS_DATABASE:0}
 
