@@ -24,12 +24,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   
-  # Redis 설정 (환경변수 지원)
+  # Redis 설정 (URL 방식)
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      url: ${REDIS_URL:redis://localhost:6379}
       timeout: ${REDIS_TIMEOUT:2000ms}
       database: ${REDIS_DATABASE:0}
 
