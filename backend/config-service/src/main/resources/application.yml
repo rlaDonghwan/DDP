@@ -28,13 +28,6 @@ spring:
         default-application-name: application
         default-profile: default
 
-# 로깅 설정
-logging:
-  level:
-    org.springframework.cloud.config: INFO
-    org.springframework.web: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # 액추에이터 설정
 management:

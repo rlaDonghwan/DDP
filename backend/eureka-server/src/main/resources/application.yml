@@ -1,5 +1,9 @@
-# Eureka Server Config Client 설정
-# Config Server에서 설정을 로드하기 위한 최소 설정
+server:
+  port: 8761
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
 
 spring:
   application:
