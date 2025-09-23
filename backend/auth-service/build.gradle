@@ -35,7 +35,6 @@ dependencies {
     
     // Database
     runtimeOnly 'org.postgresql:postgresql'
-    implementation 'com.h2database:h2' // 개발용 인메모리 DB
     
     // JWT 처리
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
