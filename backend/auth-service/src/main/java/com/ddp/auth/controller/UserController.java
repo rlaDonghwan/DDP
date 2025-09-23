@@ -1,9 +1,9 @@
-package com.ddp.auth.user.controller;
+package com.ddp.auth.controller;
 
-import com.ddp.auth.user.dto.UserRegistrationRequest;
-import com.ddp.auth.user.dto.UserResponse;
-import com.ddp.auth.user.service.UserService;
-import com.ddp.auth.jwt.service.JwtService;
+import com.ddp.auth.dto.UserRegistrationRequest;
+import com.ddp.auth.dto.UserResponse;
+import com.ddp.auth.service.UserService;
+import com.ddp.auth.service.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

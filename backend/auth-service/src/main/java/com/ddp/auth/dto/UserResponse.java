@@ -1,6 +1,6 @@
-package com.ddp.auth.user.dto;
+package com.ddp.auth.dto;
 
-import com.ddp.auth.user.entity.User;
+import com.ddp.auth.entity.User;
 
 import java.time.LocalDateTime;
 

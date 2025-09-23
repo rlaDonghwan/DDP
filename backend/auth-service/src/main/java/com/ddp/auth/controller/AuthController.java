@@ -1,8 +1,8 @@
-package com.ddp.auth.jwt.controller;
+package com.ddp.auth.controller;
 
 import com.ddp.auth.dto.TokenRequest;
 import com.ddp.auth.dto.TokenResponse;
-import com.ddp.auth.jwt.service.JwtService;
+import com.ddp.auth.service.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

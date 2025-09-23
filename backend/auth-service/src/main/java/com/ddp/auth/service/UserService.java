@@ -1,9 +1,9 @@
-package com.ddp.auth.user.service;
+package com.ddp.auth.service;
 
-import com.ddp.auth.user.dto.UserRegistrationRequest;
-import com.ddp.auth.user.dto.UserResponse;
-import com.ddp.auth.user.entity.User;
-import com.ddp.auth.user.repository.UserRepository;
+import com.ddp.auth.dto.UserRegistrationRequest;
+import com.ddp.auth.dto.UserResponse;
+import com.ddp.auth.entity.User;
+import com.ddp.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

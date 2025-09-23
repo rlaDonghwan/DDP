@@ -1,4 +1,4 @@
-package com.ddp.auth.user.entity;
+package com.ddp.auth.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

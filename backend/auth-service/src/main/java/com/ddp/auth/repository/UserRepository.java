@@ -1,6 +1,6 @@
-package com.ddp.auth.user.repository;
+package com.ddp.auth.repository;
 
-import com.ddp.auth.user.entity.User;
+import com.ddp.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
