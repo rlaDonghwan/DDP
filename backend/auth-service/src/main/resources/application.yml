@@ -19,3 +19,9 @@ spring:
         initial-interval: 1000 # 재시도 초기 간격 (ms)
         max-attempts: 6 # 최대 재시도 횟수
         max-interval: 2000 # 최대 재시도 간격 (ms)
+
+# TCS Mock API 설정
+tcs:
+  api:
+    base-url: http://localhost:8085 # TCS Mock Service URL
+    # base-url: http://tcs-mock-service:8085 # Docker 환경용
