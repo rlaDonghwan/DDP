@@ -30,6 +30,9 @@ public class LicenseVerifyResponse {
     // 주소
     private String address;
 
+    // 전화번호
+    private String phoneNumber;
+
     // 면허 발급일
     private LocalDate issueDate;
 
@@ -53,7 +56,7 @@ public class LicenseVerifyResponse {
 
     // 성공 응답 생성
     public static LicenseVerifyResponse success(String licenseNumber, String name, 
-                                              LocalDate birthDate, String address,
+                                              LocalDate birthDate, String address, String phoneNumber,
                                               LocalDate issueDate, LocalDate expiryDate,
                                               String licenseType, LicenseStatus status,
                                               boolean isDuiViolator, int violationCount) {
@@ -63,6 +66,7 @@ public class LicenseVerifyResponse {
                 .name(name)
                 .birthDate(birthDate)
                 .address(address)
+                .phoneNumber(phoneNumber)
                 .issueDate(issueDate)
                 .expiryDate(expiryDate)
                 .licenseType(licenseType)

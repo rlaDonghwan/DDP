@@ -45,6 +45,9 @@ public class DuiSubjectResponse {
         // 주소
         private String address;
         
+        // 전화번호
+        private String phoneNumber;
+        
         // 위반 횟수
         private int violationCount;
         

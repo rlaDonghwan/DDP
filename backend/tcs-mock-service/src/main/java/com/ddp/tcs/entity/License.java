@@ -35,6 +35,10 @@ public class License {
     @Column(nullable = false, length = 200)
     private String address;
 
+    // 전화번호
+    @Column(nullable = false, length = 20)
+    private String phoneNumber;
+
     // 면허 발급일
     @Column(nullable = false)
     private LocalDate issueDate;

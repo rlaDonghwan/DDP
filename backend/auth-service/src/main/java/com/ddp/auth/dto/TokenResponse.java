@@ -1,66 +1,77 @@
 package com.ddp.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// JWT 토큰 응답 DTO - 토큰 발급 및 갱신 응답용
+// JWT 토큰 응답 DTO - 인증 응답용
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "JWT 토큰 응답 정보")
 public class TokenResponse {
     
+    // 성공 여부
+    @Schema(description = "요청 성공 여부", example = "true", required = true)
+    private boolean success;
+    
+    // 응답 메시지
+    @Schema(description = "응답 메시지", example = "로그인 성공")
+    private String message;
+    
     // 액세스 토큰
-    @NotBlank(message = "액세스 토큰은 필수입니다")
-    @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", required = true)
+    @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
     
-    // 리프레시 토큰
-    @NotBlank(message = "리프레시 토큰은 필수입니다")
-    @Schema(description = "JWT 리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", required = true)
-    private String refreshToken;
-    
     // 토큰 타입 (Bearer)
-    @NotBlank(message = "토큰 타입은 필수입니다")
-    @Schema(description = "토큰 타입", example = "Bearer", required = true)
+    @Schema(description = "토큰 타입", example = "Bearer")
     private String tokenType;
     
     // 만료 시간 (초)
-    @NotNull(message = "만료 시간은 필수입니다")
-    @Positive(message = "만료 시간은 양수여야 합니다")
-    @Schema(description = "액세스 토큰 만료 시간 (초)", example = "3600", required = true)
+    @Schema(description = "액세스 토큰 만료 시간 (초)", example = "86400")
     private Long expiresIn;
     
-    // 모든 필드를 포함하는 생성자
-    public TokenResponse(String accessToken, String refreshToken, String tokenType, Long expiresIn) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.tokenType = tokenType;
-        this.expiresIn = expiresIn;
+    // 사용자 정보
+    @Schema(description = "사용자 ID")
+    private Long userId;
+    
+    @Schema(description = "사용자 이메일")
+    private String email;
+    
+    @Schema(description = "사용자 이름")
+    private String name;
+    
+    @Schema(description = "사용자 역할")
+    private String role;
+    
+    // 성공 응답 생성 (로그인 성공)
+    public static TokenResponse success(String accessToken, Long userId, String email, String name, String role) {
+        TokenResponse response = new TokenResponse();
+        response.success = true;
+        response.message = "로그인 성공";
+        response.accessToken = accessToken;
+        response.tokenType = "Bearer";
+        response.expiresIn = 86400L; // 24시간
+        response.userId = userId;
+        response.email = email;
+        response.name = name;
+        response.role = role;
+        return response;
     }
     
-    // 기본 토큰 타입을 Bearer로 설정하는 팩토리 메서드
-    public static TokenResponse createBearerToken(String accessToken, String refreshToken, Long expiresIn) {
-        return new TokenResponse(accessToken, refreshToken, "Bearer", expiresIn);
+    // 성공 응답 생성 (토큰 검증 성공)
+    public static TokenResponse success(String accessToken, Long userId, String email, String name, String role, String message) {
+        TokenResponse response = success(accessToken, userId, email, name, role);
+        response.message = message;
+        return response;
     }
     
-    // 액세스 토큰만 갱신하는 팩토리 메서드
-    public static TokenResponse createAccessTokenOnly(String accessToken, Long expiresIn) {
-        return new TokenResponse(accessToken, null, "Bearer", expiresIn);
-    }
-    
-    // 토큰 유효성 검증 메서드
-    public boolean isValid() {
-        return accessToken != null && !accessToken.trim().isEmpty() &&
-               tokenType != null && !tokenType.trim().isEmpty() &&
-               expiresIn != null && expiresIn > 0;
-    }
-    
-    // 리프레시 토큰 포함 여부 확인
-    public boolean hasRefreshToken() {
-        return refreshToken != null && !refreshToken.trim().isEmpty();
+    // 실패 응답 생성
+    public static TokenResponse failure(String message) {
+        TokenResponse response = new TokenResponse();
+        response.success = false;
+        response.message = message;
+        return response;
     }
 }

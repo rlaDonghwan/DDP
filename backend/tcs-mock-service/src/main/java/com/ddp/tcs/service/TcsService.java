@@ -72,6 +72,7 @@ public class TcsService {
                     license.getName(),
                     license.getBirthDate(),
                     license.getAddress(),
+                    license.getPhoneNumber(),
                     license.getIssueDate(),
                     license.getExpiryDate(),
                     license.getLicenseType(),
@@ -106,6 +107,7 @@ public class TcsService {
                             .name(license.getName())
                             .birthDate(license.getBirthDate())
                             .address(license.getAddress())
+                            .phoneNumber(license.getPhoneNumber())
                             .violationCount(license.getViolationCount())
                             .lastViolationDate(LocalDate.now().minusDays((long) (Math.random() * 365))) // 임의의 최근 위반일
                             .build())
