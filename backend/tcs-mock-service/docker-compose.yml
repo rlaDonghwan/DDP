@@ -1,0 +1,34 @@
+services:
+  tcs-mock-service:
+    # 현재 디렉토리의 Dockerfile을 사용하여 이미지 빌드
+    build: .
+    
+    # 컨테이너명 설정
+    container_name: tcs-mock-service
+    
+    # 포트 매핑 (호스트:컨테이너)
+    ports:
+      - "8085:8085"
+    
+    # 환경 변수 설정
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8085
+    
+    # 컨테이너 재시작 정책
+    restart: unless-stopped
+    
+    # 헬스체크 설정
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # 로그 설정
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
