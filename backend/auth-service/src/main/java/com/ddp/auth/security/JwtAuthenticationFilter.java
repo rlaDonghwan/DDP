@@ -1,7 +1,6 @@
 package com.ddp.auth.security;
 
 import com.ddp.auth.service.JwtService;
-import com.ddp.auth.service.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,12 +8,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.util.Collections;
 
 import java.io.IOException;
 
@@ -25,7 +26,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,21 +37,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {
-                // 토큰에서 사용자 ID 추출
+                // 토큰에서 사용자 정보 추출
                 String userEmail = jwtService.getUserEmailFromToken(jwt);
+                String userRole = jwtService.getUserRoleFromToken(jwt);
 
-                // UserDetails 로드
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-
-                // 인증 객체 생성
+                // 관리자 권한으로 인증 객체 생성
+                SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userRole);
+                
+                // 인증 객체 생성 (principal로 userEmail 사용)
                 UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(userEmail, null, Collections.singletonList(authority));
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // SecurityContext에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("사용자 인증 완료: {}", userEmail);
+                log.debug("사용자 인증 완료: {} (역할: {})", userEmail, userRole);
             }
         } catch (Exception ex) {
             log.error("JWT 토큰 처리 중 오류 발생: {}", ex.getMessage());

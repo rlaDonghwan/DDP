@@ -1,7 +1,7 @@
 package com.ddp.auth.config;
 
 import com.ddp.auth.security.JwtAuthenticationEntryPoint;
-//import com.ddp.auth.security.JwtAuthenticationFilter;
+import com.ddp.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // SecurityFilterChain 설정
     @Bean
@@ -38,6 +38,10 @@ public class SecurityConfig {
         http
                 // CSRF 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
+                
+                // 기본 인증 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -66,9 +70,9 @@ public class SecurityConfig {
                 )
                 
                 // JWT 필터 추가
-//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-//
-//                // H2 콘솔을 위한 프레임 옵션 비활성화
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // H2 콘솔을 위한 프레임 옵션 비활성화
                 .headers(headers -> headers.frameOptions().disable());
 
         return http.build();

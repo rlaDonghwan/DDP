@@ -12,15 +12,25 @@ import org.springframework.stereotype.Component;
 @Setter
 public class JwtConfig {
     
-    // JWT 시크릿 키 (기본값 설정)
-    private String secret = "ddp-auth-service-jwt-secret-key-2024-very-long-secret-key-for-security";
+    // JWT 시크릿 키 (config-repo 환경변수 연동)
+    private String secret = "myDevelopmentSecretKeyForDDPProject32Chars";
     
-    // JWT 토큰 만료 시간 (밀리초, 기본값: 24시간)
-    private long expirationMs = 86400000; // 24 * 60 * 60 * 1000
+    // JWT 액세스 토큰 만료 시간 (초 단위, 기본값: 30분)
+    private long accessTokenExpiration = 1800; // 30분
     
-    // 리프레시 토큰 만료 시간 (밀리초, 기본값: 7일)
-    private long refreshExpirationMs = 604800000; // 7 * 24 * 60 * 60 * 1000
+    // JWT 리프레시 토큰 만료 시간 (초 단위, 기본값: 7일)
+    private long refreshTokenExpiration = 604800; // 7일
     
     // JWT 토큰 발급자
     private String issuer = "ddp-auth-service";
+    
+    // 액세스 토큰 만료 시간을 밀리초로 반환 (기존 호환성 유지)
+    public long getExpirationMs() {
+        return accessTokenExpiration * 1000;
+    }
+    
+    // 리프레시 토큰 만료 시간을 밀리초로 반환 (기존 호환성 유지)
+    public long getRefreshExpirationMs() {
+        return refreshTokenExpiration * 1000;
+    }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 // JWT 토큰 관리 서비스
 @Service
@@ -18,6 +19,7 @@ import java.util.Date;
 public class JwtService {
 
     private final JwtConfig jwtConfig;
+    private final BlacklistService blacklistService;
 
     // JWT 시크릿 키 생성
     private SecretKey getSigningKey() {
@@ -33,9 +35,11 @@ public class JwtService {
         try {
             Date now = new Date();
             Date expiryDate = new Date(now.getTime() + jwtConfig.getExpirationMs());
+            String jti = UUID.randomUUID().toString(); // JWT ID 생성
 
             String token = Jwts.builder()
                     .setSubject(user.getEmail()) // 토큰 주체 (이메일)
+                    .setId(jti) // JWT ID (블랙리스트용)
                     .claim("userId", user.getUserId()) // 사용자 ID
                     .claim("email", user.getEmail()) // 이메일
                     .claim("name", user.getName()) // 사용자 이름
@@ -46,8 +50,8 @@ public class JwtService {
                     .signWith(getSigningKey(), SignatureAlgorithm.HS512) // 서명
                     .compact();
 
-            log.info("API 호출 완료: JWT 토큰 생성 - 사용자 ID: {} ({}ms)", 
-                    user.getUserId(), System.currentTimeMillis() - startTime);
+            log.info("API 호출 완료: JWT 액세스 토큰 생성 - 사용자 ID: {}, JTI: {} ({}ms)", 
+                    user.getUserId(), jti, System.currentTimeMillis() - startTime);
             
             return token;
             
@@ -64,10 +68,27 @@ public class JwtService {
         long startTime = System.currentTimeMillis();
         
         try {
-            Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
+                    .parseSignedClaims(token)
+                    .getPayload();
+            
+            // 블랙리스트 확인
+            String jti = claims.getId();
+            if (jti != null && blacklistService.isAccessTokenBlacklisted(jti)) {
+                log.warn("블랙리스트에 등록된 토큰: {}", jti);
+                return false;
+            }
+            
+            // 사용자별 블랙리스트 확인 (전체 로그아웃 처리)
+            Long userId = claims.get("userId", Long.class);
+            Date issuedAt = claims.getIssuedAt();
+            if (userId != null && issuedAt != null && 
+                blacklistService.isUserTokenBlacklistedBefore(userId, issuedAt)) {
+                log.warn("전체 로그아웃으로 무효화된 토큰 - 사용자 ID: {}", userId);
+                return false;
+            }
             
             log.info("API 호출 완료: JWT 토큰 검증 - 유효함 ({}ms)", 
                     System.currentTimeMillis() - startTime);
@@ -122,6 +143,18 @@ public class JwtService {
     public Date getExpirationDateFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.getExpiration();
+    }
+
+    // JWT 토큰에서 발급 시간 추출
+    public Date getIssuedAtFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.getIssuedAt();
+    }
+
+    // JWT 토큰에서 JTI (JWT ID) 추출
+    public String getJtiFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.getId();
     }
 
     // JWT 토큰에서 Claims 추출 (내부 메서드)

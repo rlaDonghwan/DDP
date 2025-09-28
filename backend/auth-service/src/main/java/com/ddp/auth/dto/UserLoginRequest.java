@@ -12,10 +12,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "사용자 로그인 요청 정보")
 public class UserLoginRequest {
     
-    // 이메일 주소
-    @Email(message = "올바른 이메일 형식이 아닙니다")
+    // 이메일 주소 (관리자는 "admin" 허용)
     @NotBlank(message = "이메일은 필수입니다")
-    @Schema(description = "사용자 이메일 주소", example = "user@example.com", required = true)
+    @Schema(description = "사용자 이메일 주소 또는 관리자 ID", example = "admin", required = true)
     private String email;
     
     // 비밀번호

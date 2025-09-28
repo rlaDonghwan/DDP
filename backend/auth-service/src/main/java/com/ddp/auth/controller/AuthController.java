@@ -1,5 +1,6 @@
 package com.ddp.auth.controller;
 
+import com.ddp.auth.dto.RefreshTokenRequest;
 import com.ddp.auth.dto.TokenResponse;
 import com.ddp.auth.dto.UserLoginRequest;
 import com.ddp.auth.service.AuthService;
@@ -45,6 +46,54 @@ public class AuthController {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 
         TokenResponse response = authService.validateToken(token);
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<TokenResponse> logout(@RequestHeader("Authorization") String authHeader) {
+        log.debug("로그아웃 요청");
+
+        // Bearer 토큰에서 실제 토큰 추출
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        TokenResponse response = authService.logout(token);
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 전체 로그아웃 (모든 기기에서 로그아웃)
+    @PostMapping("/logout-all")
+    public ResponseEntity<TokenResponse> logoutAll(@RequestHeader("Authorization") String authHeader) {
+        log.debug("전체 로그아웃 요청");
+
+        // Bearer 토큰에서 실제 토큰 추출
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        TokenResponse response = authService.logoutAll(token);
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 토큰 갱신
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        log.debug("토큰 갱신 요청");
+
+        TokenResponse response = authService.refreshToken(request.getRefreshToken());
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);
