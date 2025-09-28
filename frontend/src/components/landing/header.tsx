@@ -5,12 +5,16 @@ import Link from "next/link";
 export const Header: React.FC<{ hideNav?: boolean }> = ({ hideNav }) => (
   <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur-sm">
     <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center space-x-2">
-        <Zap className="h-6 w-6 text-indigo-600" />
-        <span className="text-xl font-bold tracking-tight text-gray-900">
+      <Link
+        href="/"
+        aria-label="랜딩 페이지로 이동"
+        className="flex items-center space-x-2 group"
+      >
+        <Zap className="h-6 w-6 text-indigo-600 transition-transform group-hover:rotate-12" />
+        <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
           DDP
         </span>
-      </div>
+      </Link>
       {!hideNav && (
         <nav className="hidden space-x-6 md:flex">
           <a
