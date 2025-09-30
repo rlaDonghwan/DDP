@@ -26,6 +26,14 @@ spring:
             - Path=/api/auth/**
           filters:
             - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+        
+        # TCS Mock Service 라우팅
+        - id: tcs-mock-service
+          uri: lb://tcs-mock-service
+          predicates:
+            - Path=/api/tcs/**
+          filters:
+            - RewritePath=/api/tcs/(?<segment>.*), /tcs/$\{segment}
       
       # 개발 친화적 CORS 설정
       globalcors:

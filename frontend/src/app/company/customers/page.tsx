@@ -1,81 +1,122 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Users, Search, Filter, Eye, Phone, Mail, Calendar, MapPin, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Users,
+  Search,
+  Filter,
+  Eye,
+  Phone,
+  Mail,
+  Calendar,
+  MapPin,
+  FileText,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 const mockCustomers = [
   {
-    id: '1',
-    name: '김철수',
-    phone: '010-1234-5678',
-    email: 'kim@example.com',
-    address: '서울시 강남구 테헤란로 123',
-    deviceModel: 'DDP-2024A',
-    deviceSerial: 'DD24A001234',
+    id: "1",
+    name: "김철수",
+    phone: "010-1234-5678",
+    email: "kim@example.com",
+    address: "서울시 강남구 테헤란로 123",
+    deviceModel: "DDP-2024A",
+    deviceSerial: "DD24A001234",
     installDate: new Date(2024, 0, 15),
     lastInspection: new Date(2024, 7, 15),
     nextInspection: new Date(2024, 11, 15),
-    status: 'active' as const,
+    status: "active" as const,
     violationCount: 0,
-    educationStatus: 'completed' as const,
+    educationStatus: "completed" as const,
   },
   {
-    id: '2',
-    name: '이영희',
-    phone: '010-9876-5432',
-    email: 'lee@example.com',
-    address: '서울시 서초구 강남대로 456',
-    deviceModel: 'DDP-2023B',
-    deviceSerial: 'DD23B005678',
+    id: "2",
+    name: "이영희",
+    phone: "010-9876-5432",
+    email: "lee@example.com",
+    address: "서울시 서초구 강남대로 456",
+    deviceModel: "DDP-2023B",
+    deviceSerial: "DD23B005678",
     installDate: new Date(2023, 5, 20),
     lastInspection: new Date(2024, 6, 20),
     nextInspection: new Date(2024, 9, 20),
-    status: 'warning' as const,
+    status: "warning" as const,
     violationCount: 1,
-    educationStatus: 'required' as const,
+    educationStatus: "required" as const,
   },
   {
-    id: '3',
-    name: '박민준',
-    phone: '010-5555-1234',
-    email: 'park@example.com',
-    address: '경기도 성남시 분당구 정자로 789',
-    deviceModel: 'DDP-2024A',
-    deviceSerial: 'DD24A001235',
+    id: "3",
+    name: "박민준",
+    phone: "010-5555-1234",
+    email: "park@example.com",
+    address: "경기도 성남시 분당구 정자로 789",
+    deviceModel: "DDP-2024A",
+    deviceSerial: "DD24A001235",
     installDate: new Date(2024, 2, 10),
     lastInspection: new Date(2024, 8, 10),
     nextInspection: new Date(2025, 2, 10),
-    status: 'active' as const,
+    status: "active" as const,
     violationCount: 0,
-    educationStatus: 'completed' as const,
+    educationStatus: "completed" as const,
   },
 ];
 
 export default function CustomersPage() {
   const [customers] = useState(mockCustomers);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCustomer, setSelectedCustomer] = useState<typeof mockCustomers[0] | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    (typeof mockCustomers)[0] | null
+  >(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">정상</Badge>;
-      case 'warning':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">주의</Badge>;
-      case 'inactive':
+      case "active":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            정상
+          </Badge>
+        );
+      case "warning":
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            주의
+          </Badge>
+        );
+      case "inactive":
         return <Badge variant="outline">비활성</Badge>;
-      case 'violation':
+      case "violation":
         return <Badge variant="destructive">위반</Badge>;
       default:
         return <Badge variant="outline">-</Badge>;
@@ -84,28 +125,38 @@ export default function CustomersPage() {
 
   const getEducationStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">완료</Badge>;
-      case 'required':
-        return <Badge variant="secondary" className="bg-orange-100 text-orange-800">필요</Badge>;
-      case 'in_progress':
+      case "completed":
+        return (
+          <Badge variant="default" className="bg-blue-100 text-blue-800">
+            완료
+          </Badge>
+        );
+      case "required":
+        return (
+          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+            필요
+          </Badge>
+        );
+      case "in_progress":
         return <Badge variant="outline">진행중</Badge>;
       default:
         return <Badge variant="outline">-</Badge>;
     }
   };
 
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.includes(searchTerm) ||
-                         customer.deviceSerial.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
-    
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone.includes(searchTerm) ||
+      customer.deviceSerial.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || customer.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const handleCustomerDetail = (customer: typeof mockCustomers[0]) => {
+  const handleCustomerDetail = (customer: (typeof mockCustomers)[0]) => {
     setSelectedCustomer(customer);
     setIsDetailDialogOpen(true);
   };
@@ -115,8 +166,7 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">고객 관리</h1>
         <Button className="gap-2">
-          <Users className="h-4 w-4" />
-          새 고객 등록
+          <Users className="h-4 w-4" />새 고객 등록
         </Button>
       </div>
 
@@ -174,7 +224,7 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {customers.filter(c => c.status === 'active').length}명
+              {customers.filter((c) => c.status === "active").length}명
             </div>
           </CardContent>
         </Card>
@@ -186,7 +236,7 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {customers.filter(c => c.status === 'warning').length}명
+              {customers.filter((c) => c.status === "warning").length}명
             </div>
           </CardContent>
         </Card>
@@ -198,7 +248,7 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {customers.filter(c => c.status === 'violation').length}명
+              {customers.filter((c) => c.status === "violation").length}명
             </div>
           </CardContent>
         </Card>
@@ -230,9 +280,7 @@ export default function CustomersPage() {
             <TableBody>
               {filteredCustomers.map((customer) => (
                 <TableRow key={customer.id}>
-                  <TableCell className="font-medium">
-                    {customer.name}
-                  </TableCell>
+                  <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-sm">
@@ -254,19 +302,25 @@ export default function CustomersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {format(customer.installDate, 'yyyy.MM.dd', { locale: ko })}
+                    {format(customer.installDate, "yyyy.MM.dd", { locale: ko })}
                   </TableCell>
                   <TableCell>
-                    {format(customer.nextInspection, 'yyyy.MM.dd', { locale: ko })}
+                    {format(customer.nextInspection, "yyyy.MM.dd", {
+                      locale: ko,
+                    })}
                   </TableCell>
-                  <TableCell>
-                    {getStatusBadge(customer.status)}
-                  </TableCell>
+                  <TableCell>{getStatusBadge(customer.status)}</TableCell>
                   <TableCell>
                     {getEducationStatusBadge(customer.educationStatus)}
                   </TableCell>
                   <TableCell>
-                    <span className={customer.violationCount > 0 ? 'text-red-600 font-medium' : ''}>
+                    <span
+                      className={
+                        customer.violationCount > 0
+                          ? "text-red-600 font-medium"
+                          : ""
+                      }
+                    >
                       {customer.violationCount}회
                     </span>
                   </TableCell>
@@ -297,7 +351,7 @@ export default function CustomersPage() {
               {selectedCustomer?.name}님의 상세 정보
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedCustomer && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
@@ -344,11 +398,19 @@ export default function CustomersPage() {
                     </div>
                     <div>
                       <Label className="text-sm font-medium">시리얼 번호</Label>
-                      <p className="font-mono">{selectedCustomer.deviceSerial}</p>
+                      <p className="font-mono">
+                        {selectedCustomer.deviceSerial}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium">설치일</Label>
-                      <p>{format(selectedCustomer.installDate, 'yyyy년 MM월 dd일', { locale: ko })}</p>
+                      <p>
+                        {format(
+                          selectedCustomer.installDate,
+                          "yyyy년 MM월 dd일",
+                          { locale: ko }
+                        )}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium">상태</Label>
@@ -370,11 +432,25 @@ export default function CustomersPage() {
                   <CardContent className="space-y-3">
                     <div>
                       <Label className="text-sm font-medium">최근 검사</Label>
-                      <p>{format(selectedCustomer.lastInspection, 'yyyy년 MM월 dd일', { locale: ko })}</p>
+                      <p>
+                        {format(
+                          selectedCustomer.lastInspection,
+                          "yyyy년 MM월 dd일",
+                          { locale: ko }
+                        )}
+                      </p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">다음 검사 예정</Label>
-                      <p>{format(selectedCustomer.nextInspection, 'yyyy년 MM월 dd일', { locale: ko })}</p>
+                      <Label className="text-sm font-medium">
+                        다음 검사 예정
+                      </Label>
+                      <p>
+                        {format(
+                          selectedCustomer.nextInspection,
+                          "yyyy년 MM월 dd일",
+                          { locale: ko }
+                        )}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -386,11 +462,21 @@ export default function CustomersPage() {
                   <CardContent className="space-y-3">
                     <div>
                       <Label className="text-sm font-medium">교육 상태</Label>
-                      <div>{getEducationStatusBadge(selectedCustomer.educationStatus)}</div>
+                      <div>
+                        {getEducationStatusBadge(
+                          selectedCustomer.educationStatus
+                        )}
+                      </div>
                     </div>
                     <div>
                       <Label className="text-sm font-medium">위반 횟수</Label>
-                      <p className={selectedCustomer.violationCount > 0 ? 'text-red-600 font-medium' : ''}>
+                      <p
+                        className={
+                          selectedCustomer.violationCount > 0
+                            ? "text-red-600 font-medium"
+                            : ""
+                        }
+                      >
                         {selectedCustomer.violationCount}회
                       </p>
                     </div>
@@ -401,12 +487,13 @@ export default function CustomersPage() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDetailDialogOpen(false)}
+            >
               닫기
             </Button>
-            <Button>
-              편집
-            </Button>
+            <Button>편집</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -414,6 +501,18 @@ export default function CustomersPage() {
   );
 }
 
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`text-sm font-medium text-muted-foreground mb-1 ${className}`}>{children}</div>;
+function Label({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`text-sm font-medium text-muted-foreground mb-1 ${className}`}
+    >
+      {children}
+    </div>
+  );
 }

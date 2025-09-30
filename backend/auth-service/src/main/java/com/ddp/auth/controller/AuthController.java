@@ -18,7 +18,6 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
-@CrossOrigin(origins = "*") // 개발용 CORS 설정
 public class AuthController {
 
     private final AuthService authService;
