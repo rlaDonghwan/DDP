@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,6 @@ import { authApi, getRedirectPath } from "../api";
  */
 export function LoginForm() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -43,19 +43,29 @@ export function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      setError(null);
 
       const response = await authApi.login(data);
 
-      if (response.success && response.user) {
+      if (response.success && response.name && response.role) {
+        // 로그인 성공 Toast 표시
+        toast.success("로그인 성공", {
+          description: `${response.name}님, 환영합니다!`,
+        });
+
         // 역할에 따라 리다이렉트
-        const redirectPath = getRedirectPath(response.user.role);
+        const redirectPath = getRedirectPath(response.role as any);
         router.push(redirectPath);
       } else {
-        setError(response.message || "로그인에 실패했습니다");
+        // 로그인 실패 Toast 표시 (비밀번호 틀림, 계정 없음 등)
+        toast.error("로그인 실패", {
+          description: response.message || "이메일 또는 비밀번호를 확인해주세요",
+        });
       }
     } catch (err) {
-      setError("로그인 중 오류가 발생했습니다");
+      // 예외 발생 시 Toast 표시 (네트워크 오류 등)
+      toast.error("로그인 오류", {
+        description: "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      });
       console.error("로그인 오류:", err);
     } finally {
       setIsLoading(false);
@@ -77,12 +87,6 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-          {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-              {error}
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="email" className="font-medium text-gray-700">
               이메일

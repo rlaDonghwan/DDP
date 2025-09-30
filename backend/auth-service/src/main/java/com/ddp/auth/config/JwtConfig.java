@@ -24,6 +24,9 @@ public class JwtConfig {
     // JWT 토큰 발급자
     private String issuer = "ddp-auth-service";
     
+    // 쿠키 설정
+    private Cookie cookie = new Cookie();
+    
     // 액세스 토큰 만료 시간을 밀리초로 반환 (기존 호환성 유지)
     public long getExpirationMs() {
         return accessTokenExpiration * 1000;
@@ -32,5 +35,23 @@ public class JwtConfig {
     // 리프레시 토큰 만료 시간을 밀리초로 반환 (기존 호환성 유지)
     public long getRefreshExpirationMs() {
         return refreshTokenExpiration * 1000;
+    }
+    
+    // 쿠키 설정 내부 클래스
+    @Getter
+    @Setter
+    public static class Cookie {
+        // Access Token 쿠키 설정
+        private String name = "jwt";
+        private long maxAge = 3600; // 1시간
+        
+        // Refresh Token 쿠키 설정
+        private String refreshName = "refreshToken";
+        private long refreshMaxAge = 604800; // 7일
+        
+        // 공통 쿠키 보안 설정
+        private boolean secure = false;
+        private boolean httpOnly = true;
+        private String sameSite = "strict";
     }
 }

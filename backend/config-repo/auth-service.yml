@@ -37,8 +37,13 @@ jwt:
   access-token-expiration: 3600 # 1시간
   refresh-token-expiration: 604800 # 7일
   cookie:
+    # Access Token 쿠키 설정
     name: jwt
     max-age: 3600 # 쿠키 만료시간: 1시간 (초)
+    # Refresh Token 쿠키 설정
+    refresh-name: refreshToken
+    refresh-max-age: 604800 # 쿠키 만료시간: 7일 (초)
+    # 공통 쿠키 보안 설정
     secure: ${JWT_COOKIE_SECURE:false} # 개발환경: false, 운영환경: true (HTTPS에서만 전송)
     http-only: ${JWT_COOKIE_HTTP_ONLY:true} # XSS 방지
     same-site: ${JWT_COOKIE_SAME_SITE:strict} # CSRF 방지

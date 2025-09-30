@@ -37,12 +37,20 @@ export interface LoginRequest {
 }
 
 /**
- * 로그인 응답
+ * 로그인 응답 (백엔드 TokenResponse 구조)
  */
 export interface LoginResponse {
   success: boolean;
   message: string;
-  user?: User;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
+  refreshExpiresIn?: number;
+  userId?: number;
+  email?: string;
+  name?: string;
+  role?: string;
 }
 
 /**
