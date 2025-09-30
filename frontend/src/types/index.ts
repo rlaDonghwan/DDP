@@ -1,19 +1,5 @@
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'user' | 'company' | 'admin';
-  phone?: string;
-  address?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UserDetails extends User {
-  licenseNumber?: string;
-  deviceId?: string;
-  companyId?: string;
-}
+// 인증 관련 타입은 types/auth.ts에서 import
+export type { User, UserDetails, UserRole, LoginRequest, LoginResponse, SessionResponse } from './auth';
 
 export interface Company {
   id: string;
@@ -91,13 +77,4 @@ export interface DashboardStats {
     level: string;
     count: number;
   }>;
-}
-
-export interface AuthState {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  updateUser: (user: User) => void;
 }

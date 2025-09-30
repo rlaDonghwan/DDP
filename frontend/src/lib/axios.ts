@@ -39,4 +39,59 @@ const api = axios.create({
   },
 });
 
+/**
+ * 요청 인터셉터
+ * 모든 요청 전에 실행됩니다
+ */
+api.interceptors.request.use(
+  (config) => {
+    // 요청 시작 시간 기록
+    config.metadata = { startTime: performance.now() };
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * 응답 인터셉터
+ * 모든 응답 후에 실행됩니다
+ */
+api.interceptors.response.use(
+  (response) => {
+    // 응답 성공 시 실행 시간 계산
+    const endTime = performance.now();
+    const startTime = response.config.metadata?.startTime || endTime;
+    const duration = (endTime - startTime).toFixed(2);
+
+    console.log(
+      `API 응답 성공: ${response.config.method?.toUpperCase()} ${response.config.url} (${duration}ms)`
+    );
+
+    return response;
+  },
+  (error) => {
+    // 응답 에러 시 실행 시간 계산
+    const endTime = performance.now();
+    const startTime = error.config?.metadata?.startTime || endTime;
+    const duration = (endTime - startTime).toFixed(2);
+
+    console.log(
+      `API 응답 실패: ${error.config?.method?.toUpperCase()} ${error.config?.url} (${duration}ms)`,
+      error.response?.status
+    );
+
+    // 401 에러 처리 (인증 실패 - 세션 만료)
+    if (error.response?.status === 401) {
+      // 로그인 페이지가 아닌 경우에만 리다이렉트
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;
