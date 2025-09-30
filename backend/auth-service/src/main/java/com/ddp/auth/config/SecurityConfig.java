@@ -16,9 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
@@ -43,9 +40,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 
-                // CORS 설정
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                
+
                 // 세션 비활성화 (JWT 사용)
                 .sessionManagement(session -> 
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -57,7 +52,9 @@ public class SecurityConfig {
                 // URL 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
                     // 인증 없이 접근 가능한 URL
-                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/v1/auth/**").permitAll() // 새로운 API v1 경로
+                    .requestMatchers("/auth/**").permitAll() // 기존 rewrite된 경로 (호환성)
+                    .requestMatchers("/api/auth/**").permitAll() // 기존 직접 호출용 (호환성)
                     .requestMatchers("/actuator/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
@@ -70,10 +67,8 @@ public class SecurityConfig {
                 )
                 
                 // JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                // H2 콘솔을 위한 프레임 옵션 비활성화
-                .headers(headers -> headers.frameOptions().disable());
 
         return http.build();
     }

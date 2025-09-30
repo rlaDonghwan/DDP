@@ -14,26 +14,20 @@ spring:
         # Auth Service 사용자 라우팅
         - id: auth-service-users
           uri: lb://auth-service
-          predicates:
+          predicates:aa
             - Path=/api/users/**
-          filters:
-            - RewritePath=/api/users/(?<segment>.*), /users/$\{segment}
-        
+
         # Auth Service JWT 라우팅  
         - id: auth-service-jwt
           uri: lb://auth-service
           predicates:
-            - Path=/api/auth/**
-          filters:
-            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
-        
+            - Path=/api/v1/auth/**
+
         # TCS Mock Service 라우팅
         - id: tcs-mock-service
           uri: lb://tcs-mock-service
           predicates:
             - Path=/api/tcs/**
-          filters:
-            - RewritePath=/api/tcs/(?<segment>.*), /tcs/$\{segment}
 
 # API Gateway 로깅 설정 (개발용)
 logging:

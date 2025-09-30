@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 
 // 인증 관련 컨트롤러
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
