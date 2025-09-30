@@ -2,6 +2,9 @@
 
 /**
  * 사용자 역할
+ * NOTE: 모든 로직(미들웨어/훅/가드)에서 role은 소문자("admin" | "company" | "user")로 다룹니다.
+ * 백엔드에서 ADMIN / Admin / COMPANY 등 다양한 케이스가 올 수 있으므로
+ * 최초 수신 지점(login, validateToken, useSession)에서 반드시 toLowerCase() 후 이 타입에 맞춥니다.
  */
 export type UserRole = "admin" | "company" | "user";
 

@@ -1,44 +1,68 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, MapPin, Clock, Plus, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Calendar as CalendarIcon,
+  MapPin,
+  Clock,
+  Plus,
+  Search,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 const mockCompanies = [
   {
-    id: '1',
-    name: 'ABC 정비소',
-    address: '서울시 강남구 테헤란로 123',
-    phone: '02-1234-5678',
-    type: 'repair' as const,
+    id: "1",
+    name: "ABC 정비소",
+    address: "서울시 강남구 테헤란로 123",
+    phone: "02-1234-5678",
+    type: "repair" as const,
     rating: 4.8,
     distance: 2.3,
   },
   {
-    id: '2',
-    name: 'DEF 교육센터',
-    address: '서울시 서초구 강남대로 456',
-    phone: '02-9876-5432',
-    type: 'education' as const,
+    id: "2",
+    name: "DEF 교육센터",
+    address: "서울시 서초구 강남대로 456",
+    phone: "02-9876-5432",
+    type: "education" as const,
     rating: 4.6,
     distance: 1.8,
   },
   {
-    id: '3',
-    name: 'GHI 검사소',
-    address: '경기도 성남시 분당구 정자로 789',
-    phone: '031-1111-2222',
-    type: 'inspection' as const,
+    id: "3",
+    name: "GHI 검사소",
+    address: "경기도 성남시 분당구 정자로 789",
+    phone: "031-1111-2222",
+    type: "inspection" as const,
     rating: 4.9,
     distance: 5.2,
   },
@@ -46,60 +70,77 @@ const mockCompanies = [
 
 const mockBookings = [
   {
-    id: '1',
-    type: '정기 검사',
+    id: "1",
+    type: "정기 검사",
     date: new Date(2024, 8, 20),
-    time: '10:00',
-    company: 'ABC 정비소',
-    status: 'confirmed' as const,
-    notes: '정기 점검 및 소프트웨어 업데이트',
+    time: "10:00",
+    company: "ABC 정비소",
+    status: "confirmed" as const,
+    notes: "정기 점검 및 소프트웨어 업데이트",
   },
   {
-    id: '2',
-    type: '교육 이수',
+    id: "2",
+    type: "교육 이수",
     date: new Date(2024, 8, 25),
-    time: '14:00',
-    company: 'DEF 교육센터',
-    status: 'pending' as const,
-    notes: '음주운전 방지 교육',
+    time: "14:00",
+    company: "DEF 교육센터",
+    status: "pending" as const,
+    notes: "음주운전 방지 교육",
   },
 ];
 
 const timeSlots = [
-  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00', '17:30',
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
 ];
 
 export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedCompany, setSelectedCompany] = useState<string>('');
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [notes, setNotes] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [notes, setNotes] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchLocation, setSearchLocation] = useState('');
+  const [searchLocation, setSearchLocation] = useState("");
   const [showMap, setShowMap] = useState(false);
 
   const handleBooking = () => {
     // TODO: API 호출
     setIsDialogOpen(false);
     setSelectedDate(undefined);
-    setSelectedCompany('');
-    setSelectedType('');
-    setSelectedTime('');
-    setNotes('');
+    setSelectedCompany("");
+    setSelectedType("");
+    setSelectedTime("");
+    setNotes("");
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return <Badge variant="default" className="bg-green-100 text-green-800">확정</Badge>;
-      case 'pending':
+      case "confirmed":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            확정
+          </Badge>
+        );
+      case "pending":
         return <Badge variant="secondary">대기중</Badge>;
-      case 'completed':
+      case "completed":
         return <Badge variant="outline">완료</Badge>;
-      case 'cancelled':
+      case "cancelled":
         return <Badge variant="destructive">취소</Badge>;
       default:
         return <Badge variant="outline">-</Badge>;
@@ -108,21 +149,22 @@ export default function BookingsPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'repair':
-        return 'bg-blue-50 border-blue-200';
-      case 'education':
-        return 'bg-green-50 border-green-200';
-      case 'inspection':
-        return 'bg-purple-50 border-purple-200';
+      case "repair":
+        return "bg-blue-50 border-blue-200";
+      case "education":
+        return "bg-green-50 border-green-200";
+      case "inspection":
+        return "bg-purple-50 border-purple-200";
       default:
-        return 'bg-gray-50 border-gray-200';
+        return "bg-gray-50 border-gray-200";
     }
   };
 
-  const filteredCompanies = mockCompanies.filter(company =>
-    searchLocation === '' || 
-    company.address.toLowerCase().includes(searchLocation.toLowerCase()) ||
-    company.name.toLowerCase().includes(searchLocation.toLowerCase())
+  const filteredCompanies = mockCompanies.filter(
+    (company) =>
+      searchLocation === "" ||
+      company.address.toLowerCase().includes(searchLocation.toLowerCase()) ||
+      company.name.toLowerCase().includes(searchLocation.toLowerCase())
   );
 
   return (
@@ -132,8 +174,7 @@ export default function BookingsPage() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              새 예약하기
+              <Plus className="h-4 w-4" />새 예약하기
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -143,7 +184,7 @@ export default function BookingsPage() {
                 검사, 수리, 교육 등의 서비스를 예약할 수 있습니다.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-6">
               {/* 업체 찾기 */}
               <div className="space-y-4">
@@ -172,9 +213,11 @@ export default function BookingsPage() {
                     <div
                       key={company.id}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedCompany === company.id 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : `${getTypeColor(company.type)} hover:border-gray-300`
+                        selectedCompany === company.id
+                          ? "border-blue-500 bg-blue-50"
+                          : `${getTypeColor(
+                              company.type
+                            )} hover:border-gray-300`
                       }`}
                       onClick={() => setSelectedCompany(company.id)}
                     >
@@ -229,7 +272,9 @@ export default function BookingsPage() {
                         }`}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP", { locale: ko }) : "날짜 선택"}
+                        {selectedDate
+                          ? format(selectedDate, "PPP", { locale: ko })
+                          : "날짜 선택"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -276,7 +321,12 @@ export default function BookingsPage() {
             <DialogFooter>
               <Button
                 onClick={handleBooking}
-                disabled={!selectedCompany || !selectedType || !selectedDate || !selectedTime}
+                disabled={
+                  !selectedCompany ||
+                  !selectedType ||
+                  !selectedDate ||
+                  !selectedTime
+                }
                 className="gap-2"
               >
                 <CalendarIcon className="h-4 w-4" />
@@ -296,9 +346,7 @@ export default function BookingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockBookings.length}건</div>
-            <p className="text-xs text-muted-foreground">
-              이번 달
-            </p>
+            <p className="text-xs text-muted-foreground">이번 달</p>
           </CardContent>
         </Card>
 
@@ -309,11 +357,9 @@ export default function BookingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {mockBookings.filter(b => b.status === 'confirmed').length}건
+              {mockBookings.filter((b) => b.status === "confirmed").length}건
             </div>
-            <p className="text-xs text-blue-600">
-              확정 완료
-            </p>
+            <p className="text-xs text-blue-600">확정 완료</p>
           </CardContent>
         </Card>
 
@@ -324,11 +370,9 @@ export default function BookingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {mockBookings.filter(b => b.status === 'pending').length}건
+              {mockBookings.filter((b) => b.status === "pending").length}건
             </div>
-            <p className="text-xs text-orange-600">
-              승인 대기
-            </p>
+            <p className="text-xs text-orange-600">승인 대기</p>
           </CardContent>
         </Card>
       </div>
@@ -344,26 +388,27 @@ export default function BookingsPage() {
         <CardContent>
           <div className="space-y-4">
             {mockBookings.map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={booking.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
-                      {format(booking.date, 'MM월 dd일 (EEE)', { locale: ko })}
+                      {format(booking.date, "MM월 dd일 (EEE)", { locale: ko })}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {booking.time}
                     </span>
                   </div>
-                  
-                  <div className="text-sm font-medium">
-                    {booking.type}
-                  </div>
-                  
+
+                  <div className="text-sm font-medium">{booking.type}</div>
+
                   <div className="text-sm text-muted-foreground">
                     {booking.company}
                   </div>
-                  
+
                   {getStatusBadge(booking.status)}
                 </div>
 
@@ -371,9 +416,13 @@ export default function BookingsPage() {
                   <Button variant="ghost" size="sm">
                     상세보기
                   </Button>
-                  
-                  {booking.status === 'pending' && (
-                    <Button variant="outline" size="sm" className="text-red-600">
+
+                  {booking.status === "pending" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600"
+                    >
                       취소
                     </Button>
                   )}

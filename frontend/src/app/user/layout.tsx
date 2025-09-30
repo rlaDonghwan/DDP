@@ -1,22 +1,17 @@
-import { AuthGuard } from '@/components/common/auth-guard';
-import { AppSidebar } from '@/components/common/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { AuthGuard } from "@/components/common/auth-guard";
 
+/**
+ * User 레이아웃
+ * Admin 완성 후 개발 예정
+ */
 export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    // <AuthGuard allowedRoles={['user']}>
-      <SidebarProvider>
-        <div className="flex min-h-screen">
-          <AppSidebar />
-          <main className="flex-1 p-6">
-            {children}
-          </main>
-        </div>
-      </SidebarProvider>
-    // </AuthGuard>
+    <AuthGuard allowedRoles={['user']}>
+      <main className="min-h-screen">{children}</main>
+    </AuthGuard>
   );
 }

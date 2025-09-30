@@ -1,10 +1,18 @@
-'use client';
+"use client";
 
-import { Home, FileText, Calendar, Users, BarChart3, Settings, LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import {
+  Home,
+  FileText,
+  Calendar,
+  Users,
+  BarChart3,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -20,84 +28,84 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarTrigger,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 
 const menuItems = {
   user: [
     {
-      title: '대시보드',
-      url: '/user/dashboard',
+      title: "대시보드",
+      url: "/user/dashboard",
       icon: Home,
     },
     {
-      title: '운행기록',
-      url: '/user/records',
+      title: "운행기록",
+      url: "/user/records",
       icon: FileText,
     },
     {
-      title: '예약 관리',
-      url: '/user/bookings',
+      title: "예약 관리",
+      url: "/user/bookings",
       icon: Calendar,
     },
   ],
   company: [
     {
-      title: '대시보드',
-      url: '/company/dashboard',
+      title: "대시보드",
+      url: "/company/dashboard",
       icon: Home,
     },
     {
-      title: '고객 관리',
-      url: '/company/customers',
+      title: "고객 관리",
+      url: "/company/customers",
       icon: Users,
     },
     {
-      title: '예약 관리',
-      url: '/company/bookings',
+      title: "예약 관리",
+      url: "/company/bookings",
       icon: Calendar,
     },
     {
-      title: '일정 관리',
-      url: '/company/schedule',
+      title: "일정 관리",
+      url: "/company/schedule",
       icon: Calendar,
     },
   ],
   admin: [
     {
-      title: '대시보드',
-      url: '/admin/dashboard',
+      title: "대시보드",
+      url: "/admin/dashboard",
       icon: Home,
     },
     {
-      title: '사용자 관리',
-      url: '/admin/users',
+      title: "사용자 관리",
+      url: "/admin/users",
       icon: Users,
     },
     {
-      title: '로그 관리',
-      url: '/admin/logs',
+      title: "로그 관리",
+      url: "/admin/logs",
       icon: FileText,
     },
     {
-      title: '통계 분석',
-      url: '/admin/analytics',
+      title: "통계 분석",
+      url: "/admin/analytics",
       icon: BarChart3,
     },
     {
-      title: '시스템 설정',
-      url: '/admin/settings',
+      title: "시스템 설정",
+      url: "/admin/settings",
       icon: Settings,
     },
   ],
 };
 
 export function AppSidebar() {
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useSession();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
   };
 
   if (!user) return null;
@@ -108,9 +116,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-3 px-4 py-3">
-          <div className="text-sm font-semibold">
-            음주운전 방지장치 시스템
-          </div>
+          <div className="text-sm font-semibold">음주운전 방지장치 시스템</div>
         </div>
       </SidebarHeader>
 
@@ -146,9 +152,9 @@ export function AppSidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.name}</p>
               <p className="text-xs text-muted-foreground truncate">
-                {user.role === 'admin' && '관리자'}
-                {user.role === 'company' && '업체'}
-                {user.role === 'user' && '사용자'}
+                {user.role === "admin" && "관리자"}
+                {user.role === "company" && "업체"}
+                {user.role === "user" && "사용자"}
               </p>
             </div>
           </div>

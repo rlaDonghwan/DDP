@@ -28,8 +28,14 @@ export const authApi = {
         `API 호출 완료: 사용자 로그인 (${(endTime - startTime).toFixed(2)}ms)`
       );
 
-      // 백엔드 응답 반환 (TokenResponse 구조 그대로)
-      return response.data;
+      // 백엔드 응답 역할 문자열 정규화 (ADMIN/Company/User 등 대문자 변 variation 대응)
+      const normalized = { ...response.data } as LoginResponse & {
+        normalizedRole?: string;
+      };
+      if (normalized.role) {
+        normalized.normalizedRole = normalized.role.toLowerCase();
+      }
+      return normalized;
     } catch (error) {
       const endTime = performance.now();
       console.log(
@@ -111,6 +117,38 @@ export const authApi = {
       throw error;
     }
   },
+
+  /**
+   * 토큰 검증 (백엔드에서 Role 정보 포함하여 반환)
+   */
+  validateToken: async (): Promise<LoginResponse> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 토큰 검증");
+
+    try {
+      const response = await api.post<LoginResponse>("/api/v1/auth/validate");
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 토큰 검증 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+
+      // 응답 역할 정규화 (login과 동일한 패턴 유지)
+      const normalized = { ...response.data } as LoginResponse & {
+        normalizedRole?: string;
+      };
+      if (normalized.role) {
+        normalized.normalizedRole = normalized.role.toLowerCase();
+      }
+      return normalized;
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 토큰 검증 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
 };
 
 /**
@@ -119,7 +157,7 @@ export const authApi = {
 export const getRedirectPath = (role: UserRole): string => {
   switch (role) {
     case "admin":
-      return "/admin/dashboard";
+      return "/admin/users"; // 음주운전자 계정 관리 페이지로 이동
     case "company":
       return "/company/dashboard";
     case "user":

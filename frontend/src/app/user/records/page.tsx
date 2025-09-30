@@ -1,59 +1,74 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, FileText, CheckCircle, AlertTriangle, Calendar, Download } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertTriangle,
+  Calendar,
+  Download,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 const mockRecords = [
   {
-    id: '1',
+    id: "1",
     date: new Date(2024, 8, 10),
-    startTime: '08:30',
-    endTime: '17:45',
-    alcoholLevel: 0.00,
-    location: '서울시 강남구',
-    status: 'normal' as const,
+    startTime: "08:30",
+    endTime: "17:45",
+    alcoholLevel: 0.0,
+    location: "서울시 강남구",
+    status: "normal" as const,
     submitted: true,
     submittedAt: new Date(2024, 8, 11),
   },
   {
-    id: '2',
+    id: "2",
     date: new Date(2024, 8, 9),
-    startTime: '09:00',
-    endTime: '18:20',
-    alcoholLevel: 0.00,
-    location: '서울시 서초구',
-    status: 'normal' as const,
+    startTime: "09:00",
+    endTime: "18:20",
+    alcoholLevel: 0.0,
+    location: "서울시 서초구",
+    status: "normal" as const,
     submitted: true,
     submittedAt: new Date(2024, 8, 10),
   },
   {
-    id: '3',
+    id: "3",
     date: new Date(2024, 8, 8),
-    startTime: '07:45',
-    endTime: '16:30',
-    alcoholLevel: 0.00,
-    location: '경기도 성남시',
-    status: 'normal' as const,
+    startTime: "07:45",
+    endTime: "16:30",
+    alcoholLevel: 0.0,
+    location: "경기도 성남시",
+    status: "normal" as const,
     submitted: false,
   },
   {
-    id: '4',
+    id: "4",
     date: new Date(2024, 8, 7),
-    startTime: '09:15',
-    endTime: '17:00',
-    alcoholLevel: 0.00,
-    location: '서울시 강남구',
-    status: 'normal' as const,
+    startTime: "09:15",
+    endTime: "17:00",
+    alcoholLevel: 0.0,
+    location: "서울시 강남구",
+    status: "normal" as const,
     submitted: false,
   },
 ];
@@ -92,20 +107,28 @@ export default function RecordsPage() {
     }, 200);
   };
 
-  const pendingRecords = mockRecords.filter(record => !record.submitted);
-  const submittedRecords = mockRecords.filter(record => record.submitted);
+  const pendingRecords = mockRecords.filter((record) => !record.submitted);
+  const submittedRecords = mockRecords.filter((record) => record.submitted);
 
   const getStatusBadge = (status: string, submitted: boolean) => {
     if (!submitted) {
       return <Badge variant="destructive">미제출</Badge>;
     }
-    
+
     switch (status) {
-      case 'normal':
-        return <Badge variant="default" className="bg-green-100 text-green-800">정상</Badge>;
-      case 'warning':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">주의</Badge>;
-      case 'violation':
+      case "normal":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            정상
+          </Badge>
+        );
+      case "warning":
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            주의
+          </Badge>
+        );
+      case "violation":
         return <Badge variant="destructive">위반</Badge>;
       default:
         return <Badge variant="outline">-</Badge>;
@@ -130,7 +153,7 @@ export default function RecordsPage() {
                 장치에서 생성된 운행기록 파일을 업로드해주세요.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="file">운행기록 파일</Label>
@@ -150,7 +173,8 @@ export default function RecordsPage() {
                 <Alert>
                   <FileText className="h-4 w-4" />
                   <AlertDescription>
-                    선택된 파일: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                    선택된 파일: {selectedFile.name} (
+                    {(selectedFile.size / 1024).toFixed(1)} KB)
                   </AlertDescription>
                 </Alert>
               )}
@@ -195,9 +219,7 @@ export default function RecordsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockRecords.length}건</div>
-            <p className="text-xs text-muted-foreground">
-              이번 달 기록
-            </p>
+            <p className="text-xs text-muted-foreground">이번 달 기록</p>
           </CardContent>
         </Card>
 
@@ -207,10 +229,10 @@ export default function RecordsPage() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{pendingRecords.length}건</div>
-            <p className="text-xs text-red-600">
-              제출 필요
-            </p>
+            <div className="text-2xl font-bold text-red-600">
+              {pendingRecords.length}건
+            </div>
+            <p className="text-xs text-red-600">제출 필요</p>
           </CardContent>
         </Card>
 
@@ -220,10 +242,10 @@ export default function RecordsPage() {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{submittedRecords.length}건</div>
-            <p className="text-xs text-green-600">
-              정상 처리
-            </p>
+            <div className="text-2xl font-bold text-green-600">
+              {submittedRecords.length}건
+            </div>
+            <p className="text-xs text-green-600">정상 처리</p>
           </CardContent>
         </Card>
       </div>
@@ -233,7 +255,7 @@ export default function RecordsPage() {
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>{pendingRecords.length}건의 미제출 기록</strong>이 있습니다. 
+            <strong>{pendingRecords.length}건의 미제출 기록</strong>이 있습니다.
             법적 의무사항이므로 빠른 시일 내에 제출해주세요.
           </AlertDescription>
         </Alert>
@@ -250,34 +272,40 @@ export default function RecordsPage() {
         <CardContent>
           <div className="space-y-4">
             {mockRecords.map((record) => (
-              <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={record.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
-                      {format(record.date, 'MM월 dd일 (EEE)', { locale: ko })}
+                      {format(record.date, "MM월 dd일 (EEE)", { locale: ko })}
                     </span>
                   </div>
-                  
+
                   <div className="text-sm text-muted-foreground">
                     {record.startTime} ~ {record.endTime}
                   </div>
-                  
+
                   <div className="text-sm text-muted-foreground">
                     {record.location}
                   </div>
-                  
+
                   <div className="text-sm font-mono">
                     알코올: {record.alcoholLevel.toFixed(2)}%
                   </div>
-                  
+
                   {getStatusBadge(record.status, record.submitted)}
                 </div>
 
                 <div className="flex items-center gap-2">
                   {record.submitted ? (
                     <div className="text-sm text-muted-foreground">
-                      {record.submittedAt && format(record.submittedAt, 'MM/dd 제출', { locale: ko })}
+                      {record.submittedAt &&
+                        format(record.submittedAt, "MM/dd 제출", {
+                          locale: ko,
+                        })}
                     </div>
                   ) : (
                     <Button size="sm" className="gap-1">
@@ -285,7 +313,7 @@ export default function RecordsPage() {
                       제출
                     </Button>
                   )}
-                  
+
                   <Button variant="ghost" size="sm">
                     <Download className="h-4 w-4" />
                   </Button>

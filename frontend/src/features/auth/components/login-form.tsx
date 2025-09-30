@@ -19,9 +19,13 @@ import { loginSchema, type LoginFormData } from "../schemas";
 import { authApi, getRedirectPath } from "../api";
 
 /**
- * 통합 로그인 폼 컴포넌트 (모든 역할 지원)
+ * 로그인 폼 컴포넌트
  */
-export function LoginForm() {
+interface LoginFormProps {
+  userType: "admin" | "user";
+}
+
+export function LoginForm({ userType }: LoginFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,24 +51,50 @@ export function LoginForm() {
       const response = await authApi.login(data);
 
       if (response.success && response.name && response.role) {
+        const actualRole =
+          (response as any).normalizedRole || response.role.toLowerCase();
+
+        // 역할 검증: userType과 실제 로그인한 역할이 일치하는지 확인 (대소문자 무시)
+        if (userType === "admin" && actualRole !== "admin") {
+          toast.error("로그인 실패", {
+            description:
+              "관리자 계정이 아닙니다. 일반 로그인 페이지를 이용해주세요.",
+          });
+          setIsLoading(false);
+          return;
+        }
+        if (userType === "user" && actualRole === "admin") {
+          toast.error("로그인 실패", {
+            description: "관리자 계정은 관리자 로그인 페이지를 이용해주세요.",
+          });
+          setIsLoading(false);
+          return;
+        }
+
         // 로그인 성공 Toast 표시
         toast.success("로그인 성공", {
           description: `${response.name}님, 환영합니다!`,
         });
 
-        // 역할에 따라 리다이렉트
-        const redirectPath = getRedirectPath(response.role as any);
-        router.push(redirectPath);
+        // 역할에 따라 리다이렉트 (강제 새로고침으로 세션 초기화)
+        const redirectPath = getRedirectPath(actualRole as any);
+
+        // 짧은 지연 후 페이지 이동 (Toast 표시 시간 확보)
+        setTimeout(() => {
+          window.location.href = redirectPath;
+        }, 500);
       } else {
         // 로그인 실패 Toast 표시 (비밀번호 틀림, 계정 없음 등)
         toast.error("로그인 실패", {
-          description: response.message || "이메일 또는 비밀번호를 확인해주세요",
+          description:
+            response.message || "이메일 또는 비밀번호를 확인해주세요",
         });
       }
     } catch (err) {
       // 예외 발생 시 Toast 표시 (네트워크 오류 등)
       toast.error("로그인 오류", {
-        description: "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        description:
+          "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
       });
       console.error("로그인 오류:", err);
     } finally {
@@ -72,21 +102,47 @@ export function LoginForm() {
     }
   };
 
+  // userType에 따른 UI 설정
+  const config = {
+    admin: {
+      icon: "A",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
+      title: "관리자 로그인",
+      description: "관리자 권한으로 시스템에 접속합니다",
+      placeholder: "admin@ddp.com",
+    },
+    user: {
+      icon: "U",
+      iconBg: "bg-indigo-100",
+      iconColor: "text-indigo-600",
+      title: "사용자 로그인",
+      description: "승인된 계정으로 접속하여 서비스를 이용하세요",
+      placeholder: "user@ddp.com",
+    },
+  }[userType];
+
   return (
     <Card className="w-full max-w-md shadow-lg border-indigo-100/60">
       <CardHeader className="space-y-3 text-center pb-4">
-        <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-          <span className="text-2xl font-bold">A</span>
+        <div
+          className={`mx-auto h-12 w-12 flex items-center justify-center rounded-full ${config.iconBg} ${config.iconColor}`}
+        >
+          <span className="text-2xl font-bold">{config.icon}</span>
         </div>
         <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">
-          시스템 로그인
+          {config.title}
         </CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          승인된 계정으로 접속하여 서비스를 이용하세요
+          {config.description}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5"
+          noValidate
+        >
           <div className="space-y-2">
             <Label htmlFor="email" className="font-medium text-gray-700">
               이메일
@@ -94,7 +150,7 @@ export function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@ddp.com"
+              placeholder={config.placeholder}
               {...register("email")}
               className="h-11"
               disabled={isLoading}
