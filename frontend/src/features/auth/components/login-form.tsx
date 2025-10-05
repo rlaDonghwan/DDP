@@ -184,6 +184,23 @@ export function LoginForm({ userType }: LoginFormProps) {
           >
             {isLoading ? "로그인 중..." : "로그인"}
           </Button>
+
+          {userType === "user" && (
+            <div className="pt-4 border-t space-y-3">
+              <p className="text-sm text-center text-gray-600">
+                아직 계정이 없으신가요?
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 text-base font-semibold"
+                onClick={() => router.push("/register")}
+                disabled={isLoading}
+              >
+                회원가입
+              </Button>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

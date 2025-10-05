@@ -19,13 +19,15 @@ export default function LoginPage() {
                 <span className="text-indigo-600">통합 운영 플랫폼</span>
               </h1>
               <p className="mt-4 text-lg text-gray-600 leading-relaxed">
-                조건부 면허 대상자와 제조·수리 업체를 하나의 흐름으로 연결합니다.
-                편리한 서비스 이용과 효율적 운영을 지금 시작하세요.
+                조건부 면허 대상자와 제조·수리 업체를 하나의 흐름으로
+                연결합니다. 편리한 서비스 이용과 효율적 운영을 지금 시작하세요.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="rounded-xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition">
-                <div className="h-6 w-6 text-indigo-600 font-bold text-xl">U</div>
+                <div className="h-6 w-6 text-indigo-600 font-bold text-xl">
+                  U
+                </div>
                 <h3 className="mt-3 font-semibold text-gray-900">
                   역할별 포털
                 </h3>
@@ -34,7 +36,9 @@ export default function LoginPage() {
                 </p>
               </div>
               <div className="rounded-xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition">
-                <div className="h-6 w-6 text-indigo-600 font-bold text-xl">S</div>
+                <div className="h-6 w-6 text-indigo-600 font-bold text-xl">
+                  S
+                </div>
                 <h3 className="mt-3 font-semibold text-gray-900">
                   보안/감사 추적
                 </h3>

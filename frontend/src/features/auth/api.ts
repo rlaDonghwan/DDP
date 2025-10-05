@@ -149,6 +149,148 @@ export const authApi = {
       throw error;
     }
   },
+
+  /**
+   * 휴대폰 인증번호 전송 (CoolSMS)
+   */
+  sendVerificationCode: async (phoneNumber: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 인증번호 전송");
+
+    try {
+      await api.post("/api/auth/send-verification", { phoneNumber });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 인증번호 전송 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 인증번호 전송 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 휴대폰 인증번호 확인
+   */
+  verifyCode: async (
+    phoneNumber: string,
+    verificationCode: string
+  ): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 인증번호 확인");
+
+    try {
+      await api.post("/api/auth/verify-code", {
+        phoneNumber,
+        verificationCode,
+      });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 인증번호 확인 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 인증번호 확인 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 면허번호 TCS 검증
+   */
+  verifyLicense: async (licenseNumber: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: TCS 면허번호 검증");
+
+    try {
+      await api.post("http://localhost:8085/api/tcs/license/verify", {
+        licenseNumber,
+      });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: TCS 면허번호 검증 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: TCS 면허번호 검증 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 면허번호와 전화번호 매칭 확인 (Admin이 생성한 계정과 매칭)
+   */
+  verifyLicensePhone: async (
+    licenseNumber: string,
+    phoneNumber: string
+  ): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 면허번호-전화번호 매칭 확인");
+
+    try {
+      await api.post("/api/auth/verify-license-phone", {
+        licenseNumber,
+        phoneNumber,
+      });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 면허번호-전화번호 매칭 확인 (${(
+          endTime - startTime
+        ).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 면허번호-전화번호 매칭 확인 (${(
+          endTime - startTime
+        ).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 회원가입 (최종 계정 활성화)
+   */
+  register: async (data: {
+    licenseNumber: string;
+    phoneNumber: string;
+    email: string;
+    password: string;
+  }): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 회원가입");
+
+    try {
+      await api.post("/api/auth/register", data);
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 회원가입 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 회원가입 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
 };
 
 /**

@@ -1,5 +1,6 @@
 package com.ddp.auth.config;
 
+import com.ddp.auth.entity.AccountStatus;
 import com.ddp.auth.entity.User;
 import com.ddp.auth.entity.UserRole;
 import com.ddp.auth.repository.UserRepository;
@@ -42,6 +43,7 @@ public class AdminDataInitializer implements CommandLineRunner {
                 .phone("010-0000-0000")
                 .address("서울특별시 중구 세종대로 110")
                 .role(UserRole.ADMIN)
+                .accountStatus(AccountStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

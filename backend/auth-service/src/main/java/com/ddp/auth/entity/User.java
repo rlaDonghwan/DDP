@@ -23,30 +23,39 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    // 이메일 주소 (로그인 ID)
-    @Column(unique = true, nullable = false)
+    // 이메일 주소 (로그인 ID) - PENDING 상태에서는 null 가능
+    @Column(unique = true)
     private String email;
 
-    // 암호화된 비밀번호
-    @Column(nullable = false)
+    // 암호화된 비밀번호 - PENDING 상태에서는 null 가능
+    @Column
     private String passwordHash;
 
     // 사용자 이름
     @Column(nullable = false)
     private String name;
 
-    // 전화번호 (선택사항)
-    @Column
+    // 전화번호
+    @Column(unique = true, nullable = true)
     private String phone;
 
     // 주소 (선택사항)
     @Column
     private String address;
 
+    // 운전면허 번호 (음주운전 방지 프로그램용)
+    @Column(unique = true)
+    private String licenseNumber;
+
     // 사용자 역할
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    // 계정 상태
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus accountStatus;
 
     // 생성 시간
     @CreatedDate

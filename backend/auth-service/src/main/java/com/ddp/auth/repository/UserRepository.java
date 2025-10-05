@@ -23,4 +23,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 이메일 존재 여부 확인
     boolean existsByEmail(String email);
+
+    // 운전면허 번호로 사용자 조회
+    Optional<User> findByLicenseNumber(String licenseNumber);
+
+    // 전화번호로 사용자 조회
+    Optional<User> findByPhone(String phone);
 }

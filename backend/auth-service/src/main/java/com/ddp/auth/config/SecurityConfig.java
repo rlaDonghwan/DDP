@@ -52,7 +52,7 @@ public class SecurityConfig {
                 // URL 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
                     // 인증 없이 접근 가능한 URL
-                    .requestMatchers("/api/v1/auth/**").permitAll() // 새로운 API v1 경로
+                    .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/auth/**").permitAll() // 기존 rewrite된 경로 (호환성)
                     .requestMatchers("/api/auth/**").permitAll() // 기존 직접 호출용 (호환성)
                     .requestMatchers("/actuator/**").permitAll()
