@@ -1,5 +1,6 @@
 package com.ddp.auth.service;
 
+import com.ddp.auth.dto.JwtUserInfo;
 import com.ddp.auth.dto.TokenResponse;
 import com.ddp.auth.dto.UserLoginRequest;
 import com.ddp.auth.entity.User;
@@ -79,25 +80,14 @@ public class AuthService {
                 return TokenResponse.failure("유효하지 않은 토큰입니다.");
             }
 
-            // 토큰에서 사용자 정보 추출
-            String userEmail = jwtService.getUserEmailFromToken(token);
-            Long userId = jwtService.getUserIdFromToken(token);
-            String role = jwtService.getUserRoleFromToken(token);
-
-            // 사용자 존재 확인
-            Optional<User> userOpt = userRepository.findByEmail(userEmail);
-            if (userOpt.isEmpty()) {
-                log.warn("토큰의 사용자가 존재하지 않음: {}", userEmail);
-                return TokenResponse.failure("사용자를 찾을 수 없습니다.");
-            }
-
-            User user = userOpt.get();
+            // 토큰에서 사용자 정보 추출 (최적화: 1회 파싱으로 모든 정보 추출)
+            JwtUserInfo userInfo = jwtService.extractUserInfo(token);
 
             log.info("API 호출 완료: 토큰 검증 - 사용자 ID: {} ({}ms)",
-                    userId, System.currentTimeMillis() - startTime);
+                    userInfo.getUserId(), System.currentTimeMillis() - startTime);
 
-            return TokenResponse.successValidation(token, user.getUserId(), user.getEmail(),
-                    user.getName(), user.getRole().name());
+            return TokenResponse.successValidation(token, userInfo.getUserId(), userInfo.getEmail(),
+                    userInfo.getName(), userInfo.getRole());
 
         } catch (Exception e) {
             log.error("토큰 검증 중 오류 발생: {}", e.getMessage(), e);
@@ -108,32 +98,30 @@ public class AuthService {
     // 로그아웃 처리
     public TokenResponse logout(String token) {
         log.info("API 호출 시작: 사용자 로그아웃");
-        
+
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // 토큰 유효성 검증
             if (!jwtService.validateToken(token)) {
                 log.warn("유효하지 않은 토큰으로 로그아웃 시도");
                 return TokenResponse.failure("유효하지 않은 토큰입니다.");
             }
-            
-            // 토큰에서 정보 추출
-            String jti = jwtService.getJtiFromToken(token);
-            Date expiration = jwtService.getExpirationDateFromToken(token);
-            Long userId = jwtService.getUserIdFromToken(token);
-            
+
+            // 토큰에서 정보 추출 (최적화: 1회 파싱으로 모든 정보 추출)
+            JwtUserInfo userInfo = jwtService.extractUserInfo(token);
+
             // 액세스 토큰을 블랙리스트에 추가
-            blacklistService.addAccessTokenToBlacklist(jti, expiration);
-            
+            blacklistService.addAccessTokenToBlacklist(userInfo.getJti(), userInfo.getExpiration());
+
             // 사용자의 모든 리프레시 토큰 무효화
-            tokenService.revokeAllRefreshTokens(userId);
-            
+            tokenService.revokeAllRefreshTokens(userInfo.getUserId());
+
             log.info("API 호출 완료: 사용자 로그아웃 - 사용자 ID: {} ({}ms)",
-                    userId, System.currentTimeMillis() - startTime);
-            
+                    userInfo.getUserId(), System.currentTimeMillis() - startTime);
+
             return TokenResponse.success(null, null, null, null, "로그아웃이 완료되었습니다.", null);
-            
+
         } catch (Exception e) {
             log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage(), e);
             return TokenResponse.failure("로그아웃 처리 중 오류가 발생했습니다.");
@@ -187,35 +175,33 @@ public class AuthService {
     // 전체 로그아웃 처리 (모든 기기에서 로그아웃)
     public TokenResponse logoutAll(String token) {
         log.info("API 호출 시작: 전체 로그아웃");
-        
+
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // 토큰 유효성 검증
             if (!jwtService.validateToken(token)) {
                 log.warn("유효하지 않은 토큰으로 전체 로그아웃 시도");
                 return TokenResponse.failure("유효하지 않은 토큰입니다.");
             }
-            
-            // 토큰에서 정보 추출
-            String jti = jwtService.getJtiFromToken(token);
-            Date expiration = jwtService.getExpirationDateFromToken(token);
-            Long userId = jwtService.getUserIdFromToken(token);
-            
+
+            // 토큰에서 정보 추출 (최적화: 1회 파싱으로 모든 정보 추출)
+            JwtUserInfo userInfo = jwtService.extractUserInfo(token);
+
             // 현재 액세스 토큰을 블랙리스트에 추가
-            blacklistService.addAccessTokenToBlacklist(jti, expiration);
-            
+            blacklistService.addAccessTokenToBlacklist(userInfo.getJti(), userInfo.getExpiration());
+
             // 사용자의 모든 토큰 무효화 (현재 시간 이전에 발급된 모든 토큰)
-            blacklistService.blacklistAllUserTokens(userId, expiration);
-            
+            blacklistService.blacklistAllUserTokens(userInfo.getUserId(), userInfo.getExpiration());
+
             // 사용자의 모든 리프레시 토큰 무효화
-            tokenService.revokeAllRefreshTokens(userId);
-            
+            tokenService.revokeAllRefreshTokens(userInfo.getUserId());
+
             log.info("API 호출 완료: 전체 로그아웃 - 사용자 ID: {} ({}ms)",
-                    userId, System.currentTimeMillis() - startTime);
-            
+                    userInfo.getUserId(), System.currentTimeMillis() - startTime);
+
             return TokenResponse.success(null, null, null, null, "모든 기기에서 로그아웃이 완료되었습니다.", null);
-            
+
         } catch (Exception e) {
             log.error("전체 로그아웃 처리 중 오류 발생: {}", e.getMessage(), e);
             return TokenResponse.failure("전체 로그아웃 처리 중 오류가 발생했습니다.");

@@ -241,7 +241,7 @@ export default function CustomersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">위반 고객</CardTitle>
             <Users className="h-4 w-4 text-red-500" />
@@ -251,7 +251,7 @@ export default function CustomersPage() {
               {customers.filter((c) => c.status === "violation").length}명
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* 고객 목록 */}

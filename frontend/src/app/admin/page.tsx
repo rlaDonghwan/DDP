@@ -5,5 +5,5 @@ import { redirect } from "next/navigation";
  * /admin/users (음주운전자 계정 관리)로 리다이렉트
  */
 export default function AdminRootPage() {
-  redirect("/admin/users");
+  redirect("/admin/dashboard");
 }

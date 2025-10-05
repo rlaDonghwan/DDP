@@ -2,6 +2,7 @@ package com.ddp.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Schema(description = "JWT 토큰 응답 정보")
 public class TokenResponse {
     
@@ -53,59 +55,63 @@ public class TokenResponse {
     @Schema(description = "사용자 역할")
     private String role;
     
+    // 만료 시간 상수
+    private static final Long ACCESS_TOKEN_EXPIRES_IN = 1800L; // 30분
+    private static final Long REFRESH_TOKEN_EXPIRES_IN = 604800L; // 7일
+
     // 성공 응답 생성 (로그인 성공)
     public static TokenResponse success(String accessToken, String refreshToken, Long userId, String email, String name, String role) {
-        TokenResponse response = new TokenResponse();
-        response.success = true;
-        response.message = "로그인 성공";
-        response.accessToken = accessToken;
-        response.refreshToken = refreshToken;
-        response.tokenType = "Bearer";
-        response.expiresIn = 1800L; // 30분
-        response.refreshExpiresIn = 604800L; // 7일
-        response.userId = userId;
-        response.email = email;
-        response.name = name;
-        response.role = role;
-        return response;
+        return TokenResponse.builder()
+                .success(true)
+                .message("로그인 성공")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(ACCESS_TOKEN_EXPIRES_IN)
+                .refreshExpiresIn(REFRESH_TOKEN_EXPIRES_IN)
+                .userId(userId)
+                .email(email)
+                .name(name)
+                .role(role)
+                .build();
     }
-    
+
     // 성공 응답 생성 (토큰 갱신 성공)
     public static TokenResponse successRefresh(String accessToken, String refreshToken, Long userId, String email, String name, String role) {
-        TokenResponse response = new TokenResponse();
-        response.success = true;
-        response.message = "토큰 갱신 성공";
-        response.accessToken = accessToken;
-        response.refreshToken = refreshToken;
-        response.tokenType = "Bearer";
-        response.expiresIn = 1800L; // 30분
-        response.refreshExpiresIn = 604800L; // 7일
-        response.userId = userId;
-        response.email = email;
-        response.name = name;
-        response.role = role;
-        return response;
+        return TokenResponse.builder()
+                .success(true)
+                .message("토큰 갱신 성공")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(ACCESS_TOKEN_EXPIRES_IN)
+                .refreshExpiresIn(REFRESH_TOKEN_EXPIRES_IN)
+                .userId(userId)
+                .email(email)
+                .name(name)
+                .role(role)
+                .build();
     }
-    
+
     // 성공 응답 생성 (토큰 검증 성공) - 리프레시 토큰 없음
     public static TokenResponse successValidation(String accessToken, Long userId, String email, String name, String role) {
-        TokenResponse response = new TokenResponse();
-        response.success = true;
-        response.message = "토큰 검증 성공";
-        response.accessToken = accessToken;
-        response.tokenType = "Bearer";
-        response.userId = userId;
-        response.email = email;
-        response.name = name;
-        response.role = role;
-        return response;
+        return TokenResponse.builder()
+                .success(true)
+                .message("토큰 검증 성공")
+                .accessToken(accessToken)
+                .tokenType("Bearer")
+                .userId(userId)
+                .email(email)
+                .name(name)
+                .role(role)
+                .build();
     }
-    
+
     // 실패 응답 생성
     public static TokenResponse failure(String message) {
-        TokenResponse response = new TokenResponse();
-        response.success = false;
-        response.message = message;
-        return response;
+        return TokenResponse.builder()
+                .success(false)
+                .message(message)
+                .build();
     }
 }

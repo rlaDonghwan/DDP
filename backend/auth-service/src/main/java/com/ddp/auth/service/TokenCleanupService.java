@@ -1,5 +1,6 @@
 package com.ddp.auth.service;
 
+import com.ddp.auth.constants.RedisKeyConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -16,13 +17,6 @@ import java.util.Set;
 public class TokenCleanupService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    
-    // Redis 키 패턴
-    private static final String REFRESH_TOKEN_KEY_PREFIX = "refresh_token:";
-    private static final String USER_TOKENS_KEY_PREFIX = "user_tokens:";
-    private static final String ACCESS_BLACKLIST_KEY_PREFIX = "blacklist:access:";
-    private static final String REFRESH_BLACKLIST_KEY_PREFIX = "blacklist:refresh:";
-    private static final String USER_BLACKLIST_KEY_PREFIX = "blacklist:user:";
 
     // 서버 시작 시 기존 토큰들 정리
     @EventListener(ApplicationReadyEvent.class)
@@ -44,12 +38,8 @@ public class TokenCleanupService {
             // 3. 액세스 토큰 블랙리스트 정리
             int accessBlacklistCleaned = cleanupAccessBlacklist();
             totalCleaned += accessBlacklistCleaned;
-            
-            // 4. 리프레시 토큰 블랙리스트 정리
-            int refreshBlacklistCleaned = cleanupRefreshBlacklist();
-            totalCleaned += refreshBlacklistCleaned;
-            
-            // 5. 사용자 블랙리스트 정리
+
+            // 4. 사용자 블랙리스트 정리
             int userBlacklistCleaned = cleanupUserBlacklist();
             totalCleaned += userBlacklistCleaned;
             
@@ -64,7 +54,7 @@ public class TokenCleanupService {
     // 리프레시 토큰 정리
     private int cleanupRefreshTokens() {
         try {
-            Set<String> keys = redisTemplate.keys(REFRESH_TOKEN_KEY_PREFIX + "*");
+            Set<String> keys = redisTemplate.keys(RedisKeyConstants.REFRESH_TOKEN_KEY_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("리프레시 토큰 정리: {}개", keys.size());
@@ -80,7 +70,7 @@ public class TokenCleanupService {
     // 사용자별 토큰 목록 정리
     private int cleanupUserTokens() {
         try {
-            Set<String> keys = redisTemplate.keys(USER_TOKENS_KEY_PREFIX + "*");
+            Set<String> keys = redisTemplate.keys(RedisKeyConstants.USER_TOKENS_KEY_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("사용자 토큰 목록 정리: {}개", keys.size());
@@ -96,7 +86,7 @@ public class TokenCleanupService {
     // 액세스 토큰 블랙리스트 정리
     private int cleanupAccessBlacklist() {
         try {
-            Set<String> keys = redisTemplate.keys(ACCESS_BLACKLIST_KEY_PREFIX + "*");
+            Set<String> keys = redisTemplate.keys(RedisKeyConstants.ACCESS_BLACKLIST_KEY_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("액세스 토큰 블랙리스트 정리: {}개", keys.size());
@@ -109,26 +99,10 @@ public class TokenCleanupService {
         }
     }
     
-    // 리프레시 토큰 블랙리스트 정리
-    private int cleanupRefreshBlacklist() {
-        try {
-            Set<String> keys = redisTemplate.keys(REFRESH_BLACKLIST_KEY_PREFIX + "*");
-            if (keys != null && !keys.isEmpty()) {
-                redisTemplate.delete(keys);
-                log.info("리프레시 토큰 블랙리스트 정리: {}개", keys.size());
-                return keys.size();
-            }
-            return 0;
-        } catch (Exception e) {
-            log.error("리프레시 토큰 블랙리스트 정리 중 오류: {}", e.getMessage());
-            return 0;
-        }
-    }
-    
     // 사용자 블랙리스트 정리
     private int cleanupUserBlacklist() {
         try {
-            Set<String> keys = redisTemplate.keys(USER_BLACKLIST_KEY_PREFIX + "*");
+            Set<String> keys = redisTemplate.keys(RedisKeyConstants.USER_BLACKLIST_KEY_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("사용자 블랙리스트 정리: {}개", keys.size());

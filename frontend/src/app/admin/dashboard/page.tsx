@@ -398,7 +398,7 @@ export default function AdminDashboardPage() {
                               toast.success("계정 생성됨으로 표시했습니다.");
                             }}
                           >
-                            표시
+                            계정 생성
                           </Button>
                         )}
                       </TableCell>

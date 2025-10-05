@@ -1,6 +1,7 @@
 package com.ddp.auth.service;
 
 import com.ddp.auth.config.JwtConfig;
+import com.ddp.auth.dto.JwtUserInfo;
 import com.ddp.auth.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -28,7 +29,7 @@ public class JwtService {
 
     // JWT 토큰 생성
     public String generateToken(User user) {
-        log.info("API 호출 시작: JWT 토큰 생성 - 사용자 ID: {}", user.getUserId());
+        log.debug("API 호출 시작: JWT 토큰 생성 - 사용자 ID: {}", user.getUserId());
         
         long startTime = System.currentTimeMillis();
         
@@ -50,7 +51,7 @@ public class JwtService {
                     .signWith(getSigningKey(), SignatureAlgorithm.HS512) // 서명
                     .compact();
 
-            log.info("API 호출 완료: JWT 액세스 토큰 생성 - 사용자 ID: {}, JTI: {} ({}ms)", 
+            log.debug("API 호출 완료: JWT 액세스 토큰 생성 - 사용자 ID: {}, JTI: {} ({}ms)",
                     user.getUserId(), jti, System.currentTimeMillis() - startTime);
             
             return token;
@@ -63,7 +64,7 @@ public class JwtService {
 
     // JWT 토큰 유효성 검증
     public boolean validateToken(String token) {
-        log.info("API 호출 시작: JWT 토큰 검증");
+        log.debug("API 호출 시작: JWT 토큰 검증");
         
         long startTime = System.currentTimeMillis();
         
@@ -90,9 +91,9 @@ public class JwtService {
                 return false;
             }
             
-            log.info("API 호출 완료: JWT 토큰 검증 - 유효함 ({}ms)", 
+            log.debug("API 호출 완료: JWT 토큰 검증 - 유효함 ({}ms)",
                     System.currentTimeMillis() - startTime);
-            
+
             return true;
             
         } catch (SecurityException e) {
@@ -109,9 +110,9 @@ public class JwtService {
             log.error("JWT 토큰 검증 중 오류 발생: {}", e.getMessage(), e);
         }
         
-        log.info("API 호출 완료: JWT 토큰 검증 - 유효하지 않음 ({}ms)", 
+        log.debug("API 호출 완료: JWT 토큰 검증 - 유효하지 않음 ({}ms)",
                 System.currentTimeMillis() - startTime);
-        
+
         return false;
     }
 
@@ -155,6 +156,26 @@ public class JwtService {
     public String getJtiFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.getId();
+    }
+
+    // JWT 토큰에서 모든 사용자 정보 추출 (최적화된 메서드)
+    public JwtUserInfo extractUserInfo(String token) {
+        try {
+            Claims claims = getClaimsFromToken(token);
+
+            return JwtUserInfo.builder()
+                    .userId(claims.get("userId", Long.class))
+                    .email(claims.getSubject())
+                    .name(claims.get("name", String.class))
+                    .role(claims.get("role", String.class))
+                    .jti(claims.getId())
+                    .issuedAt(claims.getIssuedAt())
+                    .expiration(claims.getExpiration())
+                    .build();
+        } catch (Exception e) {
+            log.error("JWT 사용자 정보 추출 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("JWT 사용자 정보 추출에 실패했습니다.", e);
+        }
     }
 
     // JWT 토큰에서 Claims 추출 (내부 메서드)

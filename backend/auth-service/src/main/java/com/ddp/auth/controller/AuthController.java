@@ -1,6 +1,5 @@
 package com.ddp.auth.controller;
 
-import com.ddp.auth.dto.RefreshTokenRequest;
 import com.ddp.auth.dto.TokenResponse;
 import com.ddp.auth.dto.UserLoginRequest;
 import com.ddp.auth.service.AuthService;
@@ -99,12 +98,7 @@ public class AuthController {
         TokenResponse response = authService.logout(token);
 
         if (response.isSuccess()) {
-            // JWT 쿠키 삭제
-            ResponseCookie deleteAccessCookie = cookieService.createDeleteAccessTokenCookie();
-            ResponseCookie deleteRefreshCookie = cookieService.createDeleteRefreshTokenCookie();
-            httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
-            httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-            
+            clearAuthCookies(httpResponse);
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -126,16 +120,19 @@ public class AuthController {
         TokenResponse response = authService.logoutAll(token);
 
         if (response.isSuccess()) {
-            // JWT 쿠키 삭제
-            ResponseCookie deleteAccessCookie = cookieService.createDeleteAccessTokenCookie();
-            ResponseCookie deleteRefreshCookie = cookieService.createDeleteRefreshTokenCookie();
-            httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
-            httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-            
+            clearAuthCookies(httpResponse);
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    // 인증 쿠키 삭제 공통 메서드
+    private void clearAuthCookies(HttpServletResponse httpResponse) {
+        ResponseCookie deleteAccessCookie = cookieService.createDeleteAccessTokenCookie();
+        ResponseCookie deleteRefreshCookie = cookieService.createDeleteRefreshTokenCookie();
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
     }
 
     // 토큰 갱신
