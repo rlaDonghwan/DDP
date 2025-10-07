@@ -44,19 +44,14 @@ function AdminSidebar() {
 
   const menuItems = [
     {
-      label: "대시보드",
+      label: "종합 현황",
       href: "/admin/dashboard",
       icon: "D",
     },
     {
-      label: "음주운전자 계정 관리",
-      href: "/admin/users",
+      label: "대상자 관리",
+      href: "/admin/subjects",
       icon: "U",
-    },
-    {
-      label: "업체 관리",
-      href: "/admin/companies",
-      icon: "C",
     },
     {
       label: "장치 관리",
@@ -64,13 +59,18 @@ function AdminSidebar() {
       icon: "M",
     },
     {
-      label: "통계 및 리포트",
-      href: "/admin/reports",
-      icon: "R",
+      label: "로그 관리",
+      href: "/admin/logs",
+      icon: "L",
     },
     {
-      label: "시스템 설정",
-      href: "/admin/settings",
+      label: "업체 관리",
+      href: "/admin/companies",
+      icon: "C",
+    },
+    {
+      label: "시스템 관리",
+      href: "/admin/system",
       icon: "S",
     },
   ];
