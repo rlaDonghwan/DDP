@@ -155,16 +155,5 @@ public class TokenService {
             log.error("사용자 모든 리프레시 토큰 삭제 중 오류 발생: {}", e.getMessage(), e);
         }
     }
-    
-    // 사용자의 활성 토큰 개수 조회
-    public long getActiveTokenCount(Long userId) {
-        try {
-            String userTokensKey = RedisKeyConstants.USER_TOKENS_KEY_PREFIX + userId;
-            Long count = redisTemplate.opsForSet().size(userTokensKey);
-            return count != null ? count : 0;
-        } catch (Exception e) {
-            log.error("활성 토큰 개수 조회 중 오류 발생: {}", e.getMessage(), e);
-            return 0;
-        }
-    }
+
 }
