@@ -8,12 +8,15 @@ import com.ddp.tcs.entity.LicenseStatus;
 import com.ddp.tcs.repository.LicenseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,10 @@ import java.util.stream.Collectors;
 public class TcsService {
 
     private final LicenseRepository licenseRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${auth.service.url:http://localhost:8081}")
+    private String authServiceUrl;
 
     // 면허 정보 조회
     public LicenseVerifyResponse verifyLicense(LicenseVerifyRequest request) {
@@ -93,34 +100,64 @@ public class TcsService {
     // 음주운전 위반자 목록 조회
     public DuiSubjectResponse getDuiSubjects() {
         log.info("API 호출 시작: 음주운전 위반자 목록 조회");
-        
+
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // 음주운전 위반자 목록 조회
             List<License> duiLicenses = licenseRepository.findAllDuiViolators();
-            
-            // DTO로 변환
+
+            // DTO로 변환 (Auth Service 연동하여 계정 생성 여부 확인)
             List<DuiSubjectResponse.DuiSubject> subjects = duiLicenses.stream()
-                    .map(license -> DuiSubjectResponse.DuiSubject.builder()
-                            .licenseNumber(license.getLicenseNumber())
-                            .name(license.getName())
-                            .birthDate(license.getBirthDate())
-                            .address(license.getAddress())
-                            .phoneNumber(license.getPhoneNumber())
-                            .violationCount(license.getViolationCount())
-                            .lastViolationDate(LocalDate.now().minusDays((long) (Math.random() * 365))) // 임의의 최근 위반일
-                            .build())
+                    .map(license -> {
+                        // Auth Service에서 계정 생성 여부 확인
+                        Map<String, Object> accountCheck = checkAccountFromAuthService(license.getLicenseNumber());
+
+                        return DuiSubjectResponse.DuiSubject.builder()
+                                .licenseNumber(license.getLicenseNumber())
+                                .name(license.getName())
+                                .birthDate(license.getBirthDate())
+                                .address(license.getAddress())
+                                .phoneNumber(license.getPhoneNumber())
+                                .violationCount(license.getViolationCount())
+                                .lastViolationDate(LocalDate.now().minusDays((long) (Math.random() * 365))) // 임의의 최근 위반일
+                                .isAccountCreated((Boolean) accountCheck.getOrDefault("exists", false))
+                                .accountStatus((String) accountCheck.get("accountStatus"))
+                                .build();
+                    })
                     .collect(Collectors.toList());
-            
-            log.info("API 호출 완료: 음주운전 위반자 목록 조회 - 총 {}명 ({}ms)", 
+
+            log.info("API 호출 완료: 음주운전 위반자 목록 조회 - 총 {}명 ({}ms)",
                     subjects.size(), System.currentTimeMillis() - startTime);
-            
+
             return DuiSubjectResponse.success(subjects);
-            
+
         } catch (Exception e) {
             log.error("음주운전 위반자 목록 조회 중 오류 발생: {}", e.getMessage(), e);
             return DuiSubjectResponse.failure("시스템 오류가 발생했습니다.");
         }
+    }
+
+    // Auth Service에서 계정 생성 여부 확인
+    private Map<String, Object> checkAccountFromAuthService(String licenseNumber) {
+        try {
+            String url = authServiceUrl + "/api/v1/auth/admin/accounts/check/" + licenseNumber;
+            log.debug("Auth Service 계정 확인 요청: {}", url);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null) {
+                log.debug("Auth Service 응답: licenseNumber={}, exists={}, status={}",
+                        licenseNumber, response.get("exists"), response.get("accountStatus"));
+                return response;
+            }
+
+        } catch (Exception e) {
+            log.warn("Auth Service 계정 확인 실패 (licenseNumber={}): {}", licenseNumber, e.getMessage());
+        }
+
+        // 실패 시 기본값 반환
+        return Map.of("exists", false, "accountStatus", (Object) null);
     }
 }

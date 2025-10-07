@@ -35,24 +35,30 @@ public class DuiSubjectResponse {
     public static class DuiSubject {
         // 면허번호
         private String licenseNumber;
-        
+
         // 성명
         private String name;
-        
+
         // 생년월일
         private LocalDate birthDate;
-        
+
         // 주소
         private String address;
-        
+
         // 전화번호
         private String phoneNumber;
-        
+
         // 위반 횟수
         private int violationCount;
-        
+
         // 최근 위반일
         private LocalDate lastViolationDate;
+
+        // 계정 생성 여부 (Auth Service 연동)
+        private boolean isAccountCreated;
+
+        // 계정 상태 (PENDING, ACTIVE, null)
+        private String accountStatus;
     }
 
     // 성공 응답 생성

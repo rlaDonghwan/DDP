@@ -1,5 +1,6 @@
 package com.ddp.auth.controller;
 
+import com.ddp.auth.dto.AccountCheckResponse;
 import com.ddp.auth.dto.AdminCreateAccountRequest;
 import com.ddp.auth.dto.AdminCreateAccountResponse;
 import com.ddp.auth.service.AdminAccountService;
@@ -39,6 +40,23 @@ public class AdminAccountController {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 계정 존재 여부 확인
+    @GetMapping("/check/{licenseNumber}")
+    @Operation(summary = "계정 존재 여부 확인", description = "운전면허 번호로 계정 존재 여부 및 상태 확인")
+    public ResponseEntity<AccountCheckResponse> checkAccount(@PathVariable String licenseNumber) {
+
+        log.debug("계정 존재 여부 확인 요청: 운전면허 번호 {}", licenseNumber);
+
+        boolean exists = adminAccountService.checkAccountExists(licenseNumber);
+
+        if (exists) {
+            String accountStatus = adminAccountService.getAccountStatus(licenseNumber);
+            return ResponseEntity.ok(AccountCheckResponse.exists(accountStatus));
+        } else {
+            return ResponseEntity.ok(AccountCheckResponse.notExists());
         }
     }
 }

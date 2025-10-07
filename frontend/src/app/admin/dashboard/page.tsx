@@ -76,19 +76,11 @@ export default function AdminDashboardPage() {
     try {
       const res = await adminDuiApi.getSubjects();
       if (res.success) {
-        // 기존 state 유지하고 새 데이터 머지 (licenseNumber 기준)
-        setSubjects((prev) => {
-          const map = new Map<string, DuiSubject>();
-          prev.forEach((p) => map.set(p.licenseNumber, p));
-          res.subjects.forEach((s) => {
-            const existing = map.get(s.licenseNumber);
-            map.set(s.licenseNumber, {
-              ...s,
-              accountCreated: existing?.accountCreated || false,
-            });
-          });
-          return Array.from(map.values());
-        });
+        // API 응답 데이터를 그대로 사용 (accountCreated 포함)
+        setSubjects(res.subjects.map(s => ({
+          ...s,
+          accountCreated: s.accountCreated || false
+        })));
       } else {
         setError(res.errorMessage || "데이터를 가져오지 못했습니다.");
       }

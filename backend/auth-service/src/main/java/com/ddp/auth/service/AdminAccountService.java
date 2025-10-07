@@ -112,6 +112,25 @@ public class AdminAccountService {
         return licenseNumber;
     }
 
+    // 계정 존재 여부 확인
+    public boolean checkAccountExists(String licenseNumber) {
+        log.debug("계정 존재 여부 확인 - 운전면허 번호: {}", maskLicenseNumber(licenseNumber));
+        return userRepository.findByLicenseNumber(licenseNumber).isPresent();
+    }
+
+    // 계정 상태 조회
+    public String getAccountStatus(String licenseNumber) {
+        log.debug("계정 상태 조회 - 운전면허 번호: {}", maskLicenseNumber(licenseNumber));
+
+        Optional<User> user = userRepository.findByLicenseNumber(licenseNumber);
+
+        if (user.isEmpty()) {
+            return null;
+        }
+
+        return user.get().getAccountStatus().name();
+    }
+
     // 전화번호 마스킹
     private String maskPhone(String phone) {
         if (phone == null || phone.length() < 10) {
