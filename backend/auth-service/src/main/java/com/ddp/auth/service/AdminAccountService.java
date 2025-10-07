@@ -58,6 +58,7 @@ public class AdminAccountService {
                     .licenseNumber(licenseNumber)
                     .name(tcsResponse.getName())
                     .phone(tcsResponse.getPhone())
+                    .address(tcsResponse.getAddress())
                     .role(UserRole.USER)  // 기본 역할: USER
                     .accountStatus(AccountStatus.PENDING)  // 미완성 상태
                     .build();

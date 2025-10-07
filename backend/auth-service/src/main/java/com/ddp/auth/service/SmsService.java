@@ -1,7 +1,9 @@
 package com.ddp.auth.service;
 
-import com.ddp.auth.constants.RedisKeyConstants;
-import lombok.RequiredArgsConstructor;
+import com.solapi.sdk.SolapiClient;
+import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
+import com.solapi.sdk.message.model.Message;
+import com.solapi.sdk.message.service.DefaultMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -11,19 +13,31 @@ import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 
-// SMS 인증 서비스 (CoolSMS 연동)
+// SMS 인증 서비스 (Solapi 연동)
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class SmsService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final DefaultMessageService messageService;
+
+    @Value("${solapi.from-number}")
+    private String fromNumber;
 
     @Value("${sms.verification.expiration-seconds:180}")
     private int verificationExpirationSeconds; // 인증번호 만료 시간 (기본 3분)
 
     @Value("${sms.verification-token.expiration-seconds:600}")
     private int verificationTokenExpirationSeconds; // 인증 토큰 만료 시간 (기본 10분)
+
+    // 생성자: Solapi SDK 초기화
+    public SmsService(RedisTemplate<String, String> redisTemplate,
+                      @Value("${solapi.api.key}") String apiKey,
+                      @Value("${solapi.api.secret}") String apiSecret) {
+        this.redisTemplate = redisTemplate;
+        this.messageService = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
+        log.info("Solapi SMS 서비스 초기화 완료");
+    }
 
     private static final String SMS_CODE_KEY_PREFIX = "sms:code:";
     private static final String SMS_TOKEN_KEY_PREFIX = "sms:token:";
@@ -42,12 +56,8 @@ public class SmsService {
             String key = SMS_CODE_KEY_PREFIX + phone;
             redisTemplate.opsForValue().set(key, verificationCode, Duration.ofSeconds(verificationExpirationSeconds));
 
-            // TODO: 실제 CoolSMS API 호출
-            // 현재는 로그로만 출력 (개발 환경)
-            log.info("SMS 발송 (Mock): 전화번호 {}, 인증번호: {}", maskPhone(phone), verificationCode);
-
-            // 실제 프로덕션 환경에서는 아래와 같이 CoolSMS API 호출
-            // sendSmsViaCoolSms(phone, verificationCode);
+            // Solapi를 통한 실제 SMS 발송
+            sendSmsViaSolapi(phone, verificationCode);
 
             log.info("SMS 인증번호 발송 완료 - 전화번호: {}, 만료시간: {}초 ({}ms)",
                     maskPhone(phone), verificationExpirationSeconds, System.currentTimeMillis() - startTime);
@@ -175,16 +185,33 @@ public class SmsService {
         return phone;
     }
 
-    // TODO: 실제 CoolSMS API 호출 메서드
-    /*
-    private void sendSmsViaCoolSms(String phone, String code) {
-        // CoolSMS SDK 사용 예시
-        // Message message = new Message(apiKey, apiSecret);
-        // HashMap<String, String> params = new HashMap<>();
-        // params.put("to", phone);
-        // params.put("from", senderPhone);
-        // params.put("text", "[DDP] 인증번호: " + code);
-        // message.send(params);
+    // Solapi를 통한 실제 SMS 발송
+    private void sendSmsViaSolapi(String to, String code) {
+        try {
+            log.info("Solapi SMS 발송 시작 - 수신번호: {}", maskPhone(to));
+
+            // 하이픈 제거 (Solapi는 하이픈 없는 전화번호 형식 사용)
+            String cleanTo = to.replaceAll("-", "");
+
+            // 메시지 객체 생성
+            Message message = new Message();
+            message.setFrom(fromNumber);
+            message.setTo(cleanTo);
+            message.setText("[DDP] 인증번호: " + code);
+
+            // SMS 발송
+            this.messageService.send(message);
+
+            log.info("Solapi SMS 발송 성공");
+
+        } catch (SolapiMessageNotReceivedException exception) {
+            // 발송에 실패한 메시지 목록 확인
+            log.error("Solapi SMS 발송 실패 - 실패 메시지 목록: {}", exception.getFailedMessageList());
+            log.error("Solapi SMS 발송 실패 - 에러 메시지: {}", exception.getMessage());
+            throw new RuntimeException("SMS 발송에 실패했습니다: " + exception.getMessage(), exception);
+        } catch (Exception exception) {
+            log.error("Solapi SMS 발송 중 오류 발생: {}", exception.getMessage(), exception);
+            throw new RuntimeException("SMS 발송 중 오류가 발생했습니다: " + exception.getMessage(), exception);
+        }
     }
-    */
 }

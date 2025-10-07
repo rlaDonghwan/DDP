@@ -27,7 +27,7 @@ public class AdminDataInitializer implements CommandLineRunner {
     }
 
     private void createDefaultAdminIfNotExists() {
-        String adminEmail = "admin";
+        String adminEmail = "admin@naver.com";
         
         // 이미 관리자 계정이 있는지 확인
         if (userRepository.existsByEmail(adminEmail)) {

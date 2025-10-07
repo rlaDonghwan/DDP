@@ -48,6 +48,20 @@ jwt:
     http-only: ${JWT_COOKIE_HTTP_ONLY:true} # XSS 방지
     same-site: ${JWT_COOKIE_SAME_SITE:strict} # CSRF 방지
 
+# Solapi SMS 설정
+solapi:
+  api:
+    key: ${SOLAPI_API_KEY:YOUR_API_KEY} # Solapi API Key
+    secret: ${SOLAPI_API_SECRET:YOUR_API_SECRET} # Solapi API Secret
+  from-number: ${SOLAPI_FROM_NUMBER:01012345678} # 발신번호 (하이픈 제거)
+
+# SMS 인증 설정
+sms:
+  verification:
+    expiration-seconds: 180 # 인증번호 만료 시간 (3분)
+  verification-token:
+    expiration-seconds: 600 # 인증 토큰 만료 시간 (10분)
+
 # Auth Service 로깅 설정
 logging:
   pattern:
