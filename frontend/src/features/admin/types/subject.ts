@@ -124,4 +124,5 @@ export interface DuiSubjectListResponse {
   success: boolean;
   totalCount: number;
   subjects: DuiSubject[];
+  errorMessage?: string;
 }

@@ -28,19 +28,24 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export default function AdminSubjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { subjects, totalCount, isLoading, error } = useSubjects();
+  const { subjects, totalCount, isLoading, error, createAccount } =
+    useSubjects();
 
   // 검색 필터링
   const filteredSubjects = subjects.filter(
     (subject) =>
       subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      subject.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      subject.phone.includes(searchQuery) ||
-      subject.licenseNumber.includes(searchQuery)
+      subject.phoneNumber.includes(searchQuery) ||
+      subject.licenseNumber.includes(searchQuery) ||
+      subject.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // 상태 뱃지 렌더링
-  const renderStatusBadge = (status: string) => {
+  const renderStatusBadge = (status: string | null) => {
+    if (!status) {
+      return <Badge variant="outline">미생성</Badge>;
+    }
+
     switch (status) {
       case "active":
         return <Badge variant="default">활성</Badge>;
@@ -87,19 +92,19 @@ export default function AdminSubjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {subjects.filter((s) => s.status === "active").length}
+              {subjects.filter((s) => s.accountStatus === "active").length}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600">
-              정지 계정
+              계정 미생성
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {subjects.filter((s) => s.status === "suspended").length}
+            <div className="text-2xl font-bold text-orange-600">
+              {subjects.filter((s) => !s.accountCreated).length}
             </div>
           </CardContent>
         </Card>
@@ -116,13 +121,13 @@ export default function AdminSubjectsPage() {
         <CardContent>
           <div className="mb-4 flex items-center gap-2">
             <Input
-              placeholder="이름, 이메일, 전화번호, 면허번호로 검색..."
+              placeholder="이름, 전화번호, 면허번호, 주소로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
             <Button variant="outline">필터</Button>
-            <Button>새 대상자 추가</Button>
+            <Button>계정 생성</Button>
           </div>
 
           {/* 로딩 상태 */}
@@ -147,35 +152,31 @@ export default function AdminSubjectsPage() {
                   <TableRow>
                     <TableHead>이름</TableHead>
                     <TableHead>면허번호</TableHead>
-                    <TableHead>이메일</TableHead>
+                    <TableHead>생년월일</TableHead>
                     <TableHead>전화번호</TableHead>
-                    <TableHead>장치 ID</TableHead>
-                    <TableHead>상태</TableHead>
+                    <TableHead>주소</TableHead>
+                    <TableHead>계정 상태</TableHead>
                     <TableHead>위반 횟수</TableHead>
                     <TableHead className="text-right">작업</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSubjects.map((subject) => (
-                    <TableRow key={subject.id}>
+                    <TableRow key={subject.licenseNumber}>
                       <TableCell className="font-medium">
                         {subject.name}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {subject.licenseNumber}
                       </TableCell>
-                      <TableCell>{subject.email}</TableCell>
-                      <TableCell>{subject.phone}</TableCell>
-                      <TableCell>
-                        {subject.deviceId ? (
-                          <span className="font-mono text-xs">
-                            {subject.deviceId}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">미할당</span>
-                        )}
+                      <TableCell>{subject.birthDate}</TableCell>
+                      <TableCell>{subject.phoneNumber}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {subject.address}
                       </TableCell>
-                      <TableCell>{renderStatusBadge(subject.status)}</TableCell>
+                      <TableCell>
+                        {renderStatusBadge(subject.accountStatus)}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -184,13 +185,23 @@ export default function AdminSubjectsPage() {
                               : "secondary"
                           }
                         >
-                          {subject.violationCount}
+                          {subject.violationCount}회
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          상세
-                        </Button>
+                        {subject.accountCreated ? (
+                          <Button variant="ghost" size="sm">
+                            상세
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => createAccount(subject.licenseNumber)}
+                          >
+                            계정 생성
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

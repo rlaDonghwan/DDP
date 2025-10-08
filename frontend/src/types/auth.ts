@@ -63,3 +63,26 @@ export interface SessionResponse {
   authenticated: boolean;
   user?: User;
 }
+
+/**
+ * SMS 인증 응답
+ */
+export interface SmsVerificationResponse {
+  success: boolean;
+  message: string;
+  expiresIn?: number; // 만료 시간 (초)
+  verificationToken?: string; // 인증 완료 시 토큰
+  name?: string; // 사용자 이름 (인증 완료 시)
+  licenseNumber?: string; // 마스킹된 면허번호 (인증 완료 시)
+}
+
+/**
+ * 회원가입 완료 응답
+ */
+export interface CompleteRegistrationResponse {
+  success: boolean;
+  message: string;
+  userId?: number;
+  email?: string;
+  name?: string;
+}

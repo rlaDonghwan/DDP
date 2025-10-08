@@ -47,7 +47,7 @@ export const adminDuiApi = {
 
     try {
       const res = await api.post<{ success: boolean; message: string }>(
-        "/api/admin/dui/create-account",
+        "/api/v1/auth/admin/accounts/create",
         { licenseNumber }
       );
 

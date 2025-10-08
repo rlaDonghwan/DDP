@@ -82,13 +82,9 @@ api.interceptors.response.use(
       error.response?.status
     );
 
-    // 401 에러 처리 (인증 실패 - 세션 만료)
-    if (error.response?.status === 401) {
-      // 로그인 페이지가 아닌 경우에만 리다이렉트
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
-      }
-    }
+    // 401 에러 처리는 각 컴포넌트에서 처리하도록 위임
+    // axios 인터셉터에서 강제 리다이렉트하지 않음
+    // 이유: Toast 메시지 표시 전에 페이지가 이동하면 사용자가 에러를 볼 수 없음
 
     return Promise.reject(error);
   }

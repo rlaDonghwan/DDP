@@ -4,6 +4,8 @@ import type {
   LoginResponse,
   SessionResponse,
   UserRole,
+  SmsVerificationResponse,
+  CompleteRegistrationResponse,
 } from "@/types/auth";
 
 /**
@@ -151,52 +153,72 @@ export const authApi = {
   },
 
   /**
-   * 휴대폰 인증번호 전송 (CoolSMS)
+   * SMS 인증번호 전송
    */
-  sendVerificationCode: async (phoneNumber: string): Promise<void> => {
+  sendVerificationCode: async (
+    phone: string
+  ): Promise<SmsVerificationResponse> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 인증번호 전송");
+    console.log("API 호출 시작: SMS 인증번호 전송");
 
     try {
-      await api.post("/api/auth/send-verification", { phoneNumber });
+      const response = await api.post<SmsVerificationResponse>(
+        "/api/v1/auth/registration/send-sms",
+        { phone }
+      );
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 인증번호 전송 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: SMS 인증번호 전송 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
+
+      return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 인증번호 전송 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: SMS 인증번호 전송 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
       throw error;
     }
   },
 
   /**
-   * 휴대폰 인증번호 확인
+   * SMS 인증번호 확인
    */
   verifyCode: async (
-    phoneNumber: string,
+    phone: string,
     verificationCode: string
-  ): Promise<void> => {
+  ): Promise<SmsVerificationResponse> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 인증번호 확인");
+    console.log("API 호출 시작: SMS 인증번호 확인");
 
     try {
-      await api.post("/api/auth/verify-code", {
-        phoneNumber,
-        verificationCode,
-      });
+      const response = await api.post<SmsVerificationResponse>(
+        "/api/v1/auth/registration/verify-sms",
+        {
+          phone,
+          verificationCode,
+        }
+      );
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 인증번호 확인 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: SMS 인증번호 확인 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
+
+      return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 인증번호 확인 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: SMS 인증번호 확인 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
       throw error;
     }
@@ -232,61 +254,36 @@ export const authApi = {
   },
 
   /**
-   * 면허번호와 전화번호 매칭 확인 (Admin이 생성한 계정과 매칭)
+   * 회원가입 완료 (이메일/비밀번호 설정 및 계정 활성화)
    */
-  verifyLicensePhone: async (
-    licenseNumber: string,
-    phoneNumber: string
-  ): Promise<void> => {
+  completeRegistration: async (
+    verificationToken: string,
+    email: string,
+    password: string
+  ): Promise<CompleteRegistrationResponse> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 면허번호-전화번호 매칭 확인");
+    console.log("API 호출 시작: 회원가입 완료");
 
     try {
-      await api.post("/api/auth/verify-license-phone", {
-        licenseNumber,
-        phoneNumber,
-      });
+      const response = await api.post<CompleteRegistrationResponse>(
+        "/api/v1/auth/registration/complete",
+        {
+          verificationToken,
+          email,
+          password,
+        }
+      );
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 면허번호-전화번호 매칭 확인 (${(
-          endTime - startTime
-        ).toFixed(2)}ms)`
+        `API 호출 완료: 회원가입 완료 (${(endTime - startTime).toFixed(2)}ms)`
       );
+
+      return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 면허번호-전화번호 매칭 확인 (${(
-          endTime - startTime
-        ).toFixed(2)}ms)`
-      );
-      throw error;
-    }
-  },
-
-  /**
-   * 회원가입 (최종 계정 활성화)
-   */
-  register: async (data: {
-    licenseNumber: string;
-    phoneNumber: string;
-    email: string;
-    password: string;
-  }): Promise<void> => {
-    const startTime = performance.now();
-    console.log("API 호출 시작: 회원가입");
-
-    try {
-      await api.post("/api/auth/register", data);
-
-      const endTime = performance.now();
-      console.log(
-        `API 호출 완료: 회원가입 (${(endTime - startTime).toFixed(2)}ms)`
-      );
-    } catch (error) {
-      const endTime = performance.now();
-      console.log(
-        `API 호출 실패: 회원가입 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: 회원가입 완료 (${(endTime - startTime).toFixed(2)}ms)`
       );
       throw error;
     }
@@ -299,7 +296,7 @@ export const authApi = {
 export const getRedirectPath = (role: UserRole): string => {
   switch (role) {
     case "admin":
-      return "/admin/users"; // 음주운전자 계정 관리 페이지로 이동
+      return "/admin/dashboard"; // 관리자 대시보드로 이동
     case "company":
       return "/company/dashboard";
     case "user":

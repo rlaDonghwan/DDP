@@ -83,6 +83,7 @@ export function RegisterForm() {
   // 각 단계에서 수집된 데이터
   const [verifiedPhoneNumber, setVerifiedPhoneNumber] = useState("");
   const [verifiedLicenseNumber, setVerifiedLicenseNumber] = useState("");
+  const [verificationToken, setVerificationToken] = useState(""); // SMS 인증 토큰
 
   // 인증번호 전송 상태
   const [isCodeSent, setIsCodeSent] = useState(false);
@@ -129,7 +130,9 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
 
-      await authApi.sendVerificationCode(phoneNumber);
+      // 전화번호 포맷: 010-1234-5678
+      const formattedPhone = phoneNumber.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+      await authApi.sendVerificationCode(formattedPhone);
 
       setIsCodeSent(true);
       setCountdown(180); // 3분
@@ -171,9 +174,16 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
 
-      await authApi.verifyCode(data.phoneNumber, data.verificationCode);
+      // 전화번호 포맷: 010-1234-5678
+      const formattedPhone = data.phoneNumber.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+      const response = await authApi.verifyCode(formattedPhone, data.verificationCode);
 
-      setVerifiedPhoneNumber(data.phoneNumber);
+      // verificationToken 저장 (회원가입 완료 시 사용)
+      if (response.verificationToken) {
+        setVerificationToken(response.verificationToken);
+      }
+
+      setVerifiedPhoneNumber(formattedPhone);
       setCurrentStep("license");
       toast.success("휴대폰 인증이 완료되었습니다");
     } catch (error) {
@@ -185,31 +195,21 @@ export function RegisterForm() {
   };
 
   /**
-   * 면허번호 확인 (TCS 연동 및 Admin 계정 매칭)
+   * 면허번호 확인 (TCS 연동)
    */
   const onLicenseVerificationSubmit = async (data: LicenseVerificationData) => {
     try {
       setIsLoading(true);
 
-      // 1. TCS 면허번호 검증
-      try {
-        await authApi.verifyLicense(data.licenseNumber);
-      } catch (error) {
-        toast.error("유효하지 않은 면허번호입니다");
-        return;
-      }
-
-      // 2. Auth-service에서 Admin이 생성한 계정과 매칭 확인
-      await authApi.verifyLicensePhone(data.licenseNumber, verifiedPhoneNumber);
+      // TCS 면허번호 검증
+      await authApi.verifyLicense(data.licenseNumber);
 
       setVerifiedLicenseNumber(data.licenseNumber);
       setCurrentStep("account");
       toast.success("면허번호 확인이 완료되었습니다");
     } catch (error) {
       console.error("면허번호 확인 오류:", error);
-      toast.error(
-        "면허번호와 전화번호가 등록된 정보와 일치하지 않습니다. 관리자에게 문의하세요."
-      );
+      toast.error("유효하지 않은 면허번호입니다");
     } finally {
       setIsLoading(false);
     }
@@ -219,15 +219,19 @@ export function RegisterForm() {
    * 계정 설정 완료 (회원가입)
    */
   const onAccountSetupSubmit = async (data: AccountSetupData) => {
+    if (!verificationToken) {
+      toast.error("인증 토큰이 없습니다. 처음부터 다시 시도해주세요.");
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      await authApi.register({
-        licenseNumber: verifiedLicenseNumber,
-        phoneNumber: verifiedPhoneNumber,
-        email: data.email,
-        password: data.password,
-      });
+      await authApi.completeRegistration(
+        verificationToken,
+        data.email,
+        data.password
+      );
 
       setCurrentStep("complete");
       toast.success("회원가입이 완료되었습니다!");
