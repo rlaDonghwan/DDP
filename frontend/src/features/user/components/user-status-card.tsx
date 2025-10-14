@@ -9,11 +9,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { UserStatus } from "../types/user";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import type { UserStatus, UserProfile } from "../types/user";
+import {
+  calculateDday,
+  formatKoreanDate,
+  getDdayVariant,
+} from "@/lib/date-utils";
 
 interface UserStatusCardProps {
+  profile: UserProfile | undefined;
   status: UserStatus | undefined;
   isLoading: boolean;
 }
@@ -21,7 +25,11 @@ interface UserStatusCardProps {
 /**
  * 사용자 현황 정보 카드 컴포넌트
  */
-export function UserStatusCard({ status, isLoading }: UserStatusCardProps) {
+export function UserStatusCard({
+  profile,
+  status,
+  isLoading,
+}: UserStatusCardProps) {
   // 로딩 상태
   if (isLoading) {
     return (
@@ -38,28 +46,44 @@ export function UserStatusCard({ status, isLoading }: UserStatusCardProps) {
     );
   }
 
-  // 현황 정보 없음
-  if (!status) {
-    return (
-      <Card>
-        <CardContent className="py-10">
-          <p className="text-center text-red-600">
-            현황 정보를 불러올 수 없습니다
-          </p>
-        </CardContent>
-      </Card>
+  // 현황 정보가 없으면 기본값 사용
+  const displayStatus: UserStatus = status || {
+    deviceInstalled: false,
+    deviceStatus: "normal",
+    deviceModel: undefined,
+    deviceSerialNumber: undefined,
+    vehicleInfo: undefined,
+    nextInspectionDate: undefined,
+    nextLogSubmitDate: undefined,
+    lastLogSubmitDate: undefined,
+    totalLogSubmits: 0,
+    pendingNotifications: 0,
+  };
+
+  /**
+   * 면허 상태 뱃지 반환
+   */
+  const getLicenseStatusBadge = () => {
+    if (!profile?.licenseStatus) {
+      return <Badge variant="secondary">정보 없음</Badge>;
+    }
+
+    return profile.licenseStatus === "정상" ? (
+      <Badge variant="default">정상</Badge>
+    ) : (
+      <Badge variant="destructive">조건부</Badge>
     );
-  }
+  };
 
   /**
    * 장치 상태 뱃지 반환
    */
   const getDeviceStatusBadge = () => {
-    if (!status.deviceInstalled) {
+    if (!displayStatus.deviceInstalled) {
       return <Badge variant="secondary">미설치</Badge>;
     }
 
-    switch (status.deviceStatus) {
+    switch (displayStatus.deviceStatus) {
       case "normal":
         return <Badge variant="default">정상</Badge>;
       case "maintenance":
@@ -72,74 +96,140 @@ export function UserStatusCard({ status, isLoading }: UserStatusCardProps) {
   };
 
   /**
-   * 날짜 포맷팅
+   * D-day 배지 스타일 반환
    */
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "정보 없음";
-    try {
-      return format(new Date(dateString), "yyyy년 MM월 dd일", { locale: ko });
-    } catch {
-      return "정보 없음";
+  const getDdayBadgeVariant = (
+    variant: "urgent" | "warning" | "normal" | "expired"
+  ) => {
+    switch (variant) {
+      case "urgent":
+        return "destructive";
+      case "warning":
+        return "secondary";
+      case "expired":
+        return "outline";
+      default:
+        return "default";
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>나의 현황</CardTitle>
-        <CardDescription>
-          음주운전 방지장치 설치 및 운행 현황을 확인하세요
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">
+              {profile?.name || "사용자"}님의 현황
+            </CardTitle>
+            <CardDescription>
+              음주운전 방지장치 설치 및 운행 현황을 확인하세요
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">면허 상태:</span>
+            {getLicenseStatusBadge()}
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* 장치 설치 여부 */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-500 mb-2">
-              장치 설치 여부
-            </p>
-            <div className="flex items-center gap-2">
-              {getDeviceStatusBadge()}
+      <CardContent className="space-y-6">
+        {/* 장치 정보 섹션 */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            장치 정보
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 장치 상태 */}
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                장치 상태
+              </p>
+              <div className="flex items-center gap-2">
+                {getDeviceStatusBadge()}
+              </div>
+            </div>
+
+            {/* 장치 모델명 */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600 mb-2">모델명</p>
+              <p className="text-base font-semibold text-gray-900">
+                {displayStatus.deviceModel || "정보 없음"}
+              </p>
+            </div>
+
+            {/* 장치 시리얼 번호 */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600 mb-2">S/N</p>
+              <p className="text-base font-semibold text-gray-900">
+                {displayStatus.deviceSerialNumber || "정보 없음"}
+              </p>
+            </div>
+
+            {/* 차량 정보 */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                장착 차량
+              </p>
+              <p className="text-base font-semibold text-gray-900">
+                {displayStatus.vehicleInfo || "정보 없음"}
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* 다음 검교정 예정일 */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-500 mb-2">
-              다음 검교정 예정일
-            </p>
-            <p className="text-base font-semibold text-gray-900">
-              {formatDate(status.nextInspectionDate)}
-            </p>
-          </div>
+        {/* 일정 정보 섹션 */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            예정 일정
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 다음 로그 제출 예정일 */}
+            <div className="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100">
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                다음 로그 제출 예정일
+              </p>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={getDdayBadgeVariant(
+                    getDdayVariant(displayStatus.nextLogSubmitDate)
+                  )}
+                  className="text-base"
+                >
+                  {calculateDday(displayStatus.nextLogSubmitDate)}
+                </Badge>
+                <p className="text-base font-semibold text-gray-900">
+                  {formatKoreanDate(displayStatus.nextLogSubmitDate)}
+                </p>
+              </div>
+            </div>
 
-          {/* 최근 로그 제출일 */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-500 mb-2">
-              최근 로그 제출일
-            </p>
-            <p className="text-base font-semibold text-gray-900">
-              {formatDate(status.lastLogSubmitDate)}
-            </p>
-          </div>
-
-          {/* 총 로그 제출 횟수 */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-500 mb-2">
-              총 로그 제출 횟수
-            </p>
-            <p className="text-2xl font-bold text-indigo-600">
-              {status.totalLogSubmits}
-              <span className="text-sm font-normal text-gray-500 ml-1">회</span>
-            </p>
+            {/* 정기 검교정 예정일 */}
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                정기 검교정 예정일
+              </p>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={getDdayBadgeVariant(
+                    getDdayVariant(displayStatus.nextInspectionDate)
+                  )}
+                  className="text-base"
+                >
+                  {calculateDday(displayStatus.nextInspectionDate)}
+                </Badge>
+                <p className="text-base font-semibold text-gray-900">
+                  {formatKoreanDate(displayStatus.nextInspectionDate)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 미확인 알림 */}
-        {status.pendingNotifications > 0 && (
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        {displayStatus.pendingNotifications > 0 && (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm font-medium text-yellow-800">
-              확인하지 않은 알림이 {status.pendingNotifications}건 있습니다
+              확인하지 않은 알림이 {displayStatus.pendingNotifications}건
+              있습니다
             </p>
           </div>
         )}

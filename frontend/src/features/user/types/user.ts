@@ -10,6 +10,7 @@ export interface UserProfile {
   phone?: string;
   address?: string;
   licenseNumber?: string; // 마스킹된 면허번호
+  licenseStatus?: "조건부" | "정상"; // 면허 상태
   deviceId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -58,7 +59,11 @@ export interface QuickMenuItem {
 export interface UserStatus {
   deviceInstalled: boolean; // 장치 설치 여부
   deviceStatus: "normal" | "maintenance" | "warning"; // 장치 상태
+  deviceModel?: string; // 장치 모델명
+  deviceSerialNumber?: string; // 장치 시리얼 번호
+  vehicleInfo?: string; // 장착된 차량 정보
   nextInspectionDate?: string; // 다음 검교정 예정일 (ISO 8601)
+  nextLogSubmitDate?: string; // 다음 로그 제출 예정일 (ISO 8601)
   lastLogSubmitDate?: string; // 최근 로그 제출일 (ISO 8601)
   totalLogSubmits: number; // 총 로그 제출 횟수
   pendingNotifications: number; // 미확인 알림 수

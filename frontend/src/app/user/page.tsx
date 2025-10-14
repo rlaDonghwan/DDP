@@ -6,10 +6,11 @@ import {
   useNotifications,
   useAnnouncements,
 } from "@/features/user/hooks/use-user-status";
-import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
 import { UserStatusCard } from "@/features/user/components/user-status-card";
+import { QuickMenuCard } from "@/features/user/components/quick-menu-card";
 import { NotificationsCard } from "@/features/user/components/notifications-card";
 import { AnnouncementsCard } from "@/features/user/components/announcements-card";
+import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
 
 /**
  * 사용자 포털 메인 페이지 (마이페이지)
@@ -39,8 +40,15 @@ export default function UserMainPage() {
         </p>
       </div>
 
-      {/* 나의 현황 정보 (SFR-010: 일반 현황 조회) */}
-      <UserStatusCard status={status} isLoading={statusLoading} />
+      {/* 사용자 현황 요약 (SFR-010: 일반 현황 조회) */}
+      <UserStatusCard
+        profile={profile}
+        status={status}
+        isLoading={statusLoading || profileLoading}
+      />
+
+      {/* 빠른 메뉴 */}
+      <QuickMenuCard />
 
       {/* 사용자 정보 카드 */}
       <ProfileInfoCard profile={profile} isLoading={profileLoading} />

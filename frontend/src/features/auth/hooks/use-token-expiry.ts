@@ -13,6 +13,7 @@ export function useTokenExpiry() {
   const router = useRouter();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const toastIdRef = useRef<string | number | null>(null);
+  const userActionTakenRef = useRef<boolean>(false); // 사용자가 버튼을 눌렀는지 추적
 
   /**
    * 로그아웃 처리
@@ -33,6 +34,15 @@ export function useTokenExpiry() {
    * (handleLogout을 참조하므로 그 다음에 정의)
    */
   const handleRefreshToken = useCallback(async () => {
+    // 사용자 액션 플래그 설정
+    userActionTakenRef.current = true;
+
+    // 토스트 먼저 닫기 (onAutoClose 실행 방지)
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
+
     try {
       await authApi.refreshToken();
       toast.success("로그인 시간이 연장되었습니다", {
@@ -47,13 +57,35 @@ export function useTokenExpiry() {
         showExpiryWarning();
       }, EXPIRY_WARNING_TIME);
       console.log("토큰 갱신 완료: 29분 후 알림 표시 예정");
+
+      // 플래그 초기화
+      userActionTakenRef.current = false;
     } catch (error) {
       console.error("토큰 갱신 실패:", error);
       toast.error("로그인 연장 실패", {
         description: "다시 로그인해주세요.",
       });
+      userActionTakenRef.current = false;
       await handleLogout();
     }
+  }, [handleLogout]);
+
+  /**
+   * 로그아웃 버튼 클릭 핸들러
+   */
+  const handleLogoutClick = useCallback(() => {
+    // 사용자 액션 플래그 설정
+    userActionTakenRef.current = true;
+
+    // 토스트 먼저 닫기
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
+
+    // 로그아웃 실행
+    handleLogout();
+    userActionTakenRef.current = false;
   }, [handleLogout]);
 
   /**
@@ -61,6 +93,9 @@ export function useTokenExpiry() {
    * (handleRefreshToken, handleLogout을 참조하므로 그 다음에 정의)
    */
   const showExpiryWarning = useCallback(() => {
+    // 플래그 초기화 (새로운 경고 표시 시작)
+    userActionTakenRef.current = false;
+
     // 이미 표시된 Toast가 있으면 제거
     if (toastIdRef.current) {
       toast.dismiss(toastIdRef.current);
@@ -75,14 +110,17 @@ export function useTokenExpiry() {
       },
       cancel: {
         label: "로그아웃",
-        onClick: handleLogout,
+        onClick: handleLogoutClick,
       },
       onAutoClose: () => {
-        // 10초 후 자동으로 닫히면 로그아웃 처리
-        handleLogout();
+        // 10초 후 자동으로 닫힐 때만 로그아웃 처리
+        // 사용자가 버튼을 눌렀으면 로그아웃하지 않음
+        if (!userActionTakenRef.current) {
+          handleLogout();
+        }
       },
     });
-  }, [handleRefreshToken, handleLogout]);
+  }, [handleRefreshToken, handleLogout, handleLogoutClick]);
 
   /**
    * 만료 타이머 시작 함수 (내부용)

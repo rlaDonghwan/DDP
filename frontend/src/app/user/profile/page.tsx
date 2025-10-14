@@ -130,11 +130,11 @@ export default function ProfileEditPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>이름</Label>
               <Input value={profile.name} disabled />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>이메일</Label>
               <Input value={profile.email} disabled />
             </div>
@@ -153,7 +153,7 @@ export default function ProfileEditPage() {
         <CardContent>
           <form onSubmit={handleSubmitProfile(onSubmitProfile)}>
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="phone">연락처</Label>
                 <Input
                   id="phone"
@@ -168,7 +168,7 @@ export default function ProfileEditPage() {
                   </p>
                 )}
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="address">주소</Label>
                 <Input
                   id="address"
@@ -202,7 +202,7 @@ export default function ProfileEditPage() {
         <CardContent>
           <form onSubmit={handleSubmitPassword(onSubmitPassword)}>
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="currentPassword">현재 비밀번호</Label>
                 <Input
                   id="currentPassword"
@@ -217,7 +217,7 @@ export default function ProfileEditPage() {
                 )}
               </div>
               <Separator />
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="newPassword">새 비밀번호</Label>
                 <Input
                   id="newPassword"
@@ -234,7 +234,7 @@ export default function ProfileEditPage() {
                   8-20자, 대소문자, 숫자, 특수문자 포함
                 </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="confirmPassword">새 비밀번호 확인</Label>
                 <Input
                   id="confirmPassword"

@@ -96,31 +96,6 @@ export const authApi = {
   },
 
   /**
-   * 세션 조회 (현재 로그인된 사용자 정보)
-   */
-  getSession: async (): Promise<SessionResponse> => {
-    const startTime = performance.now();
-    console.log("API 호출 시작: 세션 조회");
-
-    try {
-      const response = await api.get<SessionResponse>("/api/auth/me");
-
-      const endTime = performance.now();
-      console.log(
-        `API 호출 완료: 세션 조회 (${(endTime - startTime).toFixed(2)}ms)`
-      );
-
-      return response.data;
-    } catch (error) {
-      const endTime = performance.now();
-      console.log(
-        `API 호출 실패: 세션 조회 (${(endTime - startTime).toFixed(2)}ms)`
-      );
-      throw error;
-    }
-  },
-
-  /**
    * 토큰 검증 (백엔드에서 Role 정보 포함하여 반환)
    */
   validateToken: async (): Promise<LoginResponse> => {

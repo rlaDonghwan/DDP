@@ -6,9 +6,14 @@ import { z } from "zod";
 export const updateProfileSchema = z.object({
   phone: z
     .string()
-    .min(10, "전화번호는 최소 10자 이상이어야 합니다")
-    .max(11, "전화번호는 최대 11자까지 입력 가능합니다")
-    .regex(/^[0-9]+$/, "전화번호는 숫자만 입력 가능합니다")
+    .transform((val) => val.replace(/[-\s]/g, "")) // 하이픈과 공백 제거
+    .pipe(
+      z
+        .string()
+        .min(10, "전화번호는 최소 10자리 이상이어야 합니다")
+        .max(11, "전화번호는 최대 11자리까지 입력 가능합니다")
+        .regex(/^[0-9]+$/, "전화번호는 숫자만 입력 가능합니다")
+    )
     .optional(),
   address: z
     .string()
