@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={inter.variable}>
-      <body className="flex flex-col min-h-screen font-Pretendard bg-gradient-to-br from-blue-50 to-indigo-100">
+      <body className="flex flex-col min-h-screen font-Pretendard bg-gray-50">
         <ReactQueryProvider>
           {children}
           <Toaster />

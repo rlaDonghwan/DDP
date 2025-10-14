@@ -5,14 +5,23 @@ import {
   FileText,
   Calendar,
   Users,
-  BarChart3,
   Settings,
   LogOut,
+  ClipboardList,
+  Building2,
+  Wrench,
+  UserCircle,
+  ChevronUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/features/auth/hooks/use-session";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -20,32 +29,45 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+/**
+ * 역할별 메뉴 항목 정의
+ */
 const menuItems = {
   user: [
     {
-      title: "대시보드",
-      url: "/user/dashboard",
+      title: "마이페이지",
+      url: "/user",
       icon: Home,
     },
     {
-      title: "운행기록",
-      url: "/user/records",
-      icon: FileText,
+      title: "운행기록 제출",
+      url: "/user/logs/submit",
+      icon: ClipboardList,
     },
     {
       title: "예약 관리",
-      url: "/user/bookings",
+      url: "/user/appointments",
       icon: Calendar,
+    },
+    {
+      title: "설치 업체 조회",
+      url: "/user/companies",
+      icon: Building2,
+    },
+    {
+      title: "설치 내역 조회",
+      url: "/user/installations",
+      icon: Wrench,
+    },
+    {
+      title: "개인정보 수정",
+      url: "/user/profile",
+      icon: UserCircle,
     },
   ],
   company: [
@@ -72,14 +94,19 @@ const menuItems = {
   ],
   admin: [
     {
-      title: "대시보드",
+      title: "종합 현황",
       url: "/admin/dashboard",
       icon: Home,
     },
     {
-      title: "사용자 관리",
-      url: "/admin/users",
+      title: "대상자 관리",
+      url: "/admin/subjects",
       icon: Users,
+    },
+    {
+      title: "장치 관리",
+      url: "/admin/devices",
+      icon: Wrench,
     },
     {
       title: "로그 관리",
@@ -87,40 +114,58 @@ const menuItems = {
       icon: FileText,
     },
     {
-      title: "통계 분석",
-      url: "/admin/analytics",
-      icon: BarChart3,
+      title: "업체 관리",
+      url: "/admin/companies",
+      icon: Building2,
     },
     {
-      title: "시스템 설정",
-      url: "/admin/settings",
+      title: "시스템 관리",
+      url: "/admin/system",
       icon: Settings,
     },
   ],
 };
 
-export function AppSidebar() {
+/**
+ * AppSidebar 컴포넌트
+ * 역할(user.role)에 따라 자동으로 메뉴를 표시합니다
+ */
+export function AppSidebar({ className }: { className?: string }) {
   const { user, logout } = useSession();
   const router = useRouter();
 
+  // 로그아웃 핸들러
   const handleLogout = async () => {
     await logout();
     router.push("/login");
   };
 
+  // 프로필 페이지 이동
+  const handleProfile = () => {
+    if (user?.role === "admin") {
+      router.push("/admin/profile");
+    } else if (user?.role === "company") {
+      router.push("/company/profile");
+    } else {
+      router.push("/user/profile");
+    }
+  };
+
   if (!user) return null;
 
+  // 역할에 따라 메뉴 항목 선택
   const items = menuItems[user.role] || [];
 
-  return (
-    <Sidebar>
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="text-sm font-semibold">음주운전 방지장치 시스템</div>
-        </div>
-      </SidebarHeader>
+  // 역할 표시 텍스트
+  const roleText = {
+    admin: "관리자",
+    company: "업체",
+    user: "사용자",
+  }[user.role];
 
-      <SidebarContent>
+  return (
+    <Sidebar collapsible="icon" className={className}>
+      <SidebarContent className="rounded-none">
         <SidebarGroup>
           <SidebarGroupLabel>메인 메뉴</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -128,9 +173,9 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                    <a href={item.url} className="flex items-center gap-3 py-3">
+                      <item.icon className="h-5 w-5" />
+                      <span className="text-sm">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -141,33 +186,36 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t">
-        <div className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="" />
-              <AvatarFallback>
-                {user.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user.role === "admin" && "관리자"}
-                {user.role === "company" && "업체"}
-                {user.role === "user" && "사용자"}
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="w-full justify-start gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            로그아웃
-          </Button>
-        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs">{roleText}</span>
+                  </div>
+                  <ChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>로그아웃</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

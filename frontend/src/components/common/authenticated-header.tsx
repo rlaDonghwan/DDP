@@ -1,10 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // (잠시 유지: 추후 필요 시 제거 가능)
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown } from "lucide-react";
 import {
@@ -20,7 +20,7 @@ import {
  * 인증된 사용자 네비게이션 바
  * 모든 인증 페이지에서 사용되는 공통 헤더 컴포넌트
  */
-export function AuthenticatedHeader() {
+export function AuthenticatedHeader({ leftSlot }: { leftSlot?: ReactNode }) {
   const { user, isLoading, logout } = useSession();
   const router = useRouter();
 
@@ -72,19 +72,22 @@ export function AuthenticatedHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="fixed top-0 z-40 w-full border-b bg-white">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* 좌측: 로고 (랜딩 헤더와 동일 스타일) */}
-        <Link
-          href="/"
-          aria-label="랜딩 페이지로 이동"
-          className="flex items-center space-x-2 group"
-        >
-          <Zap className="h-6 w-6 text-indigo-600 transition-transform group-hover:rotate-12" />
-          <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
-            DDP
-          </span>
-        </Link>
+        {/* 좌측: (옵션) 사이드바 트리거 + 로고 */}
+        <div className="flex items-center gap-2">
+          {leftSlot ? <div className="-ml-1">{leftSlot}</div> : null}
+          <Link
+            href="/"
+            aria-label="랜딩 페이지로 이동"
+            className="flex items-center space-x-2 group"
+          >
+            <Zap className="h-6 w-6 text-indigo-600 transition-transform group-hover:rotate-12" />
+            <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
+              DDP
+            </span>
+          </Link>
+        </div>
 
         {/* 우측: 사용자 정보 + 로그아웃 */}
         <div className="flex items-center gap-4">

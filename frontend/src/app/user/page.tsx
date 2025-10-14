@@ -10,14 +10,14 @@ import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
 import { UserStatusCard } from "@/features/user/components/user-status-card";
 import { NotificationsCard } from "@/features/user/components/notifications-card";
 import { AnnouncementsCard } from "@/features/user/components/announcements-card";
-import { QuickMenu } from "@/features/user/components/quick-menu";
 
 /**
  * 사용자 포털 메인 페이지 (마이페이지)
  * SFR-010: 음주운전 방지장치 사용자 시스템 요구기능
  * - 일반 현황 및 내역 조회
- * - 주요 기능 바로가기
  * - 알림 및 공지사항
+ *
+ * 주요 기능 바로가기는 좌측 사이드바에서 제공됩니다
  */
 export default function UserMainPage() {
   const { data: profile, isLoading: profileLoading } = useUserProfile();
@@ -44,9 +44,6 @@ export default function UserMainPage() {
 
       {/* 사용자 정보 카드 */}
       <ProfileInfoCard profile={profile} isLoading={profileLoading} />
-
-      {/* 바로가기 메뉴 (SFR-010: 주요 기능 바로가기) */}
-      <QuickMenu />
 
       {/* 알림 및 공지사항 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

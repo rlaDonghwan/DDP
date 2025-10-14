@@ -2,6 +2,8 @@
 
 import { useSession } from "@/features/auth/hooks/use-session";
 import { AuthenticatedHeader } from "@/components/common/authenticated-header";
+import { AppSidebar } from "@/components/common/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /**
  * 사용자 포털 레이아웃
  * 사용자 역할(user)만 접근 가능하도록 보호합니다
- * 상단에 AuthenticatedHeader를 포함합니다
+ * shadcn/ui Sidebar와 상단 Header를 포함합니다
  */
 export default function UserLayout({
   children,
@@ -40,7 +42,7 @@ export default function UserLayout({
   if (isLoading) {
     return (
       <div className="flex h-screen flex-col">
-        <div className="h-16 w-full border-b bg-white/95 animate-pulse"></div>
+        <div className="h-16 w-full border-b bg-gray-50 animate-pulse"></div>
         <div className="flex-1 bg-gray-50 p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <Skeleton className="h-10 w-48" />
@@ -57,14 +59,22 @@ export default function UserLayout({
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* 상단 네비게이션 바 */}
-      <AuthenticatedHeader />
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar />
+      <main className="flex w-full flex-1 flex-col">
+        {/* 상단 네비게이션 바 */}
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">
+            <AuthenticatedHeader />
+          </div>
+        </header>
 
-      {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="max-w-7xl mx-auto p-8">{children}</div>
+        {/* 콘텐츠 영역 */}
+        <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50">
+          <div className="max-w-7xl mx-auto w-full p-8">{children}</div>
+        </div>
       </main>
-    </div>
+    </SidebarProvider>
   );
 }
