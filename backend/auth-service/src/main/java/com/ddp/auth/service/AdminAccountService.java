@@ -1,7 +1,7 @@
 package com.ddp.auth.service;
 
-import com.ddp.auth.dto.AdminCreateAccountResponse;
-import com.ddp.auth.dto.TcsVerificationResponse;
+import com.ddp.auth.dto.response.AdminCreateAccountResponse;
+import com.ddp.auth.dto.response.TcsVerificationResponse;
 import com.ddp.auth.entity.AccountStatus;
 import com.ddp.auth.entity.User;
 import com.ddp.auth.entity.UserRole;

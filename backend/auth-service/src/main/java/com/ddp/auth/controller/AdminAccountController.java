@@ -1,8 +1,8 @@
 package com.ddp.auth.controller;
 
-import com.ddp.auth.dto.AccountCheckResponse;
-import com.ddp.auth.dto.AdminCreateAccountRequest;
-import com.ddp.auth.dto.AdminCreateAccountResponse;
+import com.ddp.auth.dto.response.AccountCheckResponse;
+import com.ddp.auth.dto.request.AdminCreateAccountRequest;
+import com.ddp.auth.dto.response.AdminCreateAccountResponse;
 import com.ddp.auth.service.AdminAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

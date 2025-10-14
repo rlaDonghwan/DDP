@@ -15,7 +15,7 @@ spring:
         - id: auth-service-users
           uri: lb://auth-service
           predicates:
-            - Path=/api/users/**
+            - Path=/api/v1/users/**
 
         # Auth Service JWT 라우팅  
         - id: auth-service-jwt

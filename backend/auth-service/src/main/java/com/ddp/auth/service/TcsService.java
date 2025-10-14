@@ -1,7 +1,7 @@
 package com.ddp.auth.service;
 
-import com.ddp.auth.dto.TcsVerificationRequest;
-import com.ddp.auth.dto.TcsVerificationResponse;
+import com.ddp.auth.dto.request.TcsVerificationRequest;
+import com.ddp.auth.dto.response.TcsVerificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

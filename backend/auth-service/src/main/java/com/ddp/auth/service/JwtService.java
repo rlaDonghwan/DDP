@@ -1,7 +1,7 @@
 package com.ddp.auth.service;
 
 import com.ddp.auth.config.JwtConfig;
-import com.ddp.auth.dto.JwtUserInfo;
+import com.ddp.auth.dto.response.JwtUserInfo;
 import com.ddp.auth.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

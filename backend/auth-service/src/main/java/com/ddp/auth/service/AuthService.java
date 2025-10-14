@@ -1,8 +1,8 @@
 package com.ddp.auth.service;
 
-import com.ddp.auth.dto.JwtUserInfo;
-import com.ddp.auth.dto.TokenResponse;
-import com.ddp.auth.dto.UserLoginRequest;
+import com.ddp.auth.dto.response.JwtUserInfo;
+import com.ddp.auth.dto.request.TokenResponse;
+import com.ddp.auth.dto.request.UserLoginRequest;
 import com.ddp.auth.entity.User;
 import com.ddp.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.Optional;
 
 // 인증 서비스

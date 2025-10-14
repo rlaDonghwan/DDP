@@ -1,6 +1,10 @@
 package com.ddp.auth.controller;
 
-import com.ddp.auth.dto.*;
+import com.ddp.auth.dto.request.CompleteRegistrationRequest;
+import com.ddp.auth.dto.request.SmsVerificationCodeRequest;
+import com.ddp.auth.dto.request.SmsVerificationRequest;
+import com.ddp.auth.dto.response.CompleteRegistrationResponse;
+import com.ddp.auth.dto.response.SmsVerificationResponse;
 import com.ddp.auth.service.UserRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 // 사용자 회원가입 컨트롤러
 @RestController
-@RequestMapping("/api/v1/auth/registration")
+@RequestMapping("/api/v1/users/registration")
 @RequiredArgsConstructor
 @Slf4j
 @Validated

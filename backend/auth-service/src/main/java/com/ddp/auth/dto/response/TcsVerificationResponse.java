@@ -1,4 +1,4 @@
-package com.ddp.auth.dto;
+package com.ddp.auth.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Service;
 
 // TCS 운전면허 검증 응답 DTO
 @Data

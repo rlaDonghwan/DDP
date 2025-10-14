@@ -65,4 +65,24 @@ public class User {
     // 수정 시간
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    /**
+     * 프로필 정보 업데이트 메서드
+     * 불변 객체 설계를 유지하면서 필드를 업데이트합니다
+     */
+    public void updateProfile(String phone, String address) {
+        if (phone != null) {
+            this.phone = phone;
+        }
+        if (address != null) {
+            this.address = address;
+        }
+    }
+
+    /**
+     * 비밀번호 업데이트 메서드
+     */
+    public void updatePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+    }
 }

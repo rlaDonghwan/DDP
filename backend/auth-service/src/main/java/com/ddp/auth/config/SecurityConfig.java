@@ -53,15 +53,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     // 인증 없이 접근 가능한 URL
                     .requestMatchers("/api/v1/auth/**").permitAll()
-                    .requestMatchers("/auth/**").permitAll() // 기존 rewrite된 경로 (호환성)
-                    .requestMatchers("/api/auth/**").permitAll() // 기존 직접 호출용 (호환성)
+                    .requestMatchers("/api/v1/users/**").permitAll() // 사용자 등록 관련
                     .requestMatchers("/actuator/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    
+
                     // 관리자 전용 URL
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    
+
+                    // 사용자 프로필 관리 (인증 필요)
+                    .requestMatchers("/api/v1/users/**").authenticated()
+
                     // 나머지는 인증 필요
                     .anyRequest().authenticated()
                 )

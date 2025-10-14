@@ -31,6 +31,11 @@ export default function AdminSubjectsPage() {
   const { subjects, totalCount, isLoading, error, createAccount } =
     useSubjects();
 
+  // 활성 계정 수 계산 (대소문자 무시)
+  const activeAccountCount = subjects.filter(
+    (s) => s.accountStatus?.toUpperCase() === "ACTIVE"
+  ).length;
+
   // 검색 필터링
   const filteredSubjects = subjects.filter(
     (subject) =>
@@ -40,13 +45,13 @@ export default function AdminSubjectsPage() {
       subject.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 상태 뱃지 렌더링
+  // 상태 뱃지 렌더링 (대소문자 무시)
   const renderStatusBadge = (status: string | null) => {
     if (!status) {
       return <Badge variant="outline">미생성</Badge>;
     }
 
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "active":
         return <Badge variant="default">활성</Badge>;
       case "suspended":
@@ -92,7 +97,7 @@ export default function AdminSubjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {subjects.filter((s) => s.accountStatus === "active").length}
+              {activeAccountCount}
             </div>
           </CardContent>
         </Card>
@@ -191,7 +196,7 @@ export default function AdminSubjectsPage() {
                       <TableCell className="text-right">
                         {subject.accountCreated ? (
                           <Button variant="ghost" size="sm">
-                            상세
+                            생성 완료
                           </Button>
                         ) : (
                           <Button

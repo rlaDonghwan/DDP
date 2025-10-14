@@ -1,7 +1,7 @@
 package com.ddp.auth.service;
 
-import com.ddp.auth.dto.CompleteRegistrationResponse;
-import com.ddp.auth.dto.SmsVerificationResponse;
+import com.ddp.auth.dto.response.CompleteRegistrationResponse;
+import com.ddp.auth.dto.response.SmsVerificationResponse;
 import com.ddp.auth.entity.AccountStatus;
 import com.ddp.auth.entity.User;
 import com.ddp.auth.repository.UserRepository;

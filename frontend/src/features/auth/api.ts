@@ -163,7 +163,7 @@ export const authApi = {
 
     try {
       const response = await api.post<SmsVerificationResponse>(
-        "/api/v1/auth/registration/send-sms",
+        "/api/v1/users/registration/send-sms",
         { phone }
       );
 
@@ -198,7 +198,7 @@ export const authApi = {
 
     try {
       const response = await api.post<SmsVerificationResponse>(
-        "/api/v1/auth/registration/verify-sms",
+        "/api/v1/users/registration/verify-sms",
         {
           phone,
           verificationCode,
@@ -266,7 +266,7 @@ export const authApi = {
 
     try {
       const response = await api.post<CompleteRegistrationResponse>(
-        "/api/v1/auth/registration/complete",
+        "/api/v1/users/registration/complete",
         {
           verificationToken,
           email,

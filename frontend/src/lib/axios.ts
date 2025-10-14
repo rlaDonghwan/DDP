@@ -1,4 +1,15 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
+
+/**
+ * Axios 타입 확장: metadata 속성 추가
+ */
+declare module "axios" {
+  export interface InternalAxiosRequestConfig {
+    metadata?: {
+      startTime: number;
+    };
+  }
+}
 
 /**
  * API URL 동적 결정 함수
@@ -66,7 +77,9 @@ api.interceptors.response.use(
     const duration = (endTime - startTime).toFixed(2);
 
     console.log(
-      `API 응답 성공: ${response.config.method?.toUpperCase()} ${response.config.url} (${duration}ms)`
+      `API 응답 성공: ${response.config.method?.toUpperCase()} ${
+        response.config.url
+      } (${duration}ms)`
     );
 
     return response;
@@ -78,13 +91,11 @@ api.interceptors.response.use(
     const duration = (endTime - startTime).toFixed(2);
 
     console.log(
-      `API 응답 실패: ${error.config?.method?.toUpperCase()} ${error.config?.url} (${duration}ms)`,
+      `API 응답 실패: ${error.config?.method?.toUpperCase()} ${
+        error.config?.url
+      } (${duration}ms)`,
       error.response?.status
     );
-
-    // 401 에러 처리는 각 컴포넌트에서 처리하도록 위임
-    // axios 인터셉터에서 강제 리다이렉트하지 않음
-    // 이유: Toast 메시지 표시 전에 페이지가 이동하면 사용자가 에러를 볼 수 없음
 
     return Promise.reject(error);
   }

@@ -1,19 +1,17 @@
 package com.ddp.auth.controller;
 
-import com.ddp.auth.dto.TokenResponse;
-import com.ddp.auth.dto.UserLoginRequest;
+import com.ddp.auth.dto.request.TokenResponse;
+import com.ddp.auth.dto.request.UserLoginRequest;
 import com.ddp.auth.service.AuthService;
 import com.ddp.auth.service.CookieService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
