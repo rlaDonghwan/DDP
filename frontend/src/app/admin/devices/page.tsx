@@ -30,8 +30,12 @@ export default function AdminDevicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { devices, totalCount, isLoading, error } = useDevices();
 
+  // 데이터가 없을 때 기본값 설정
+  const safeDevices = devices ?? [];
+  const safeTotalCount = totalCount ?? 0;
+
   // 검색 필터링
-  const filteredDevices = devices.filter(
+  const filteredDevices = safeDevices.filter(
     (device) =>
       device.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       device.modelName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,6 +72,17 @@ export default function AdminDevicesPage() {
         </p>
       </div>
 
+      {/* 에러 알림 배너 */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="py-4">
+            <p className="text-sm text-red-600">
+              일부 데이터를 불러오는 중 오류가 발생했습니다. 기본 데이터를 표시합니다.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 통계 카드 */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -77,7 +92,7 @@ export default function AdminDevicesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCount}</div>
+            <div className="text-2xl font-bold">{safeTotalCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -88,7 +103,7 @@ export default function AdminDevicesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {devices.filter((d) => d.status === "active").length}
+              {safeDevices.filter((d) => d.status === "active").length}
             </div>
           </CardContent>
         </Card>
@@ -100,7 +115,7 @@ export default function AdminDevicesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {devices.filter((d) => d.status === "maintenance").length}
+              {safeDevices.filter((d) => d.status === "maintenance").length}
             </div>
           </CardContent>
         </Card>
@@ -112,7 +127,7 @@ export default function AdminDevicesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {devices.filter((d) => d.status === "error").length}
+              {safeDevices.filter((d) => d.status === "error").length}
             </div>
           </CardContent>
         </Card>
@@ -145,14 +160,6 @@ export default function AdminDevicesPage() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : error ? (
-            <div className="py-10 text-center text-red-600">
-              데이터를 불러오는 중 오류가 발생했습니다.
-            </div>
-          ) : filteredDevices.length === 0 ? (
-            <div className="py-10 text-center text-gray-500">
-              검색 결과가 없습니다.
-            </div>
           ) : (
             <div className="rounded-md border">
               <Table>
@@ -169,36 +176,46 @@ export default function AdminDevicesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDevices.map((device) => (
-                    <TableRow key={device.id}>
-                      <TableCell className="font-mono text-xs font-medium">
-                        {device.serialNumber}
-                      </TableCell>
-                      <TableCell>{device.modelName}</TableCell>
-                      <TableCell>{device.manufacturer}</TableCell>
-                      <TableCell>
-                        {device.assignedSubjectName || (
-                          <span className="text-gray-400">미할당</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {device.vehicleNumber || (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{renderStatusBadge(device.status)}</TableCell>
-                      <TableCell>
-                        {device.companyName || (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          상세
-                        </Button>
+                  {filteredDevices.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                        {searchQuery
+                          ? "검색 결과가 없습니다."
+                          : "등록된 장치가 없습니다."}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredDevices.map((device) => (
+                      <TableRow key={device.id}>
+                        <TableCell className="font-mono text-xs font-medium">
+                          {device.serialNumber}
+                        </TableCell>
+                        <TableCell>{device.modelName}</TableCell>
+                        <TableCell>{device.manufacturer}</TableCell>
+                        <TableCell>
+                          {device.assignedSubjectName || (
+                            <span className="text-gray-400">미할당</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {device.vehicleNumber || (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{renderStatusBadge(device.status)}</TableCell>
+                        <TableCell>
+                          {device.companyName || (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            상세
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

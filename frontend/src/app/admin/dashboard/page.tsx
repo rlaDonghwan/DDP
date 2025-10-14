@@ -42,23 +42,16 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // 에러 상태
-  if (error || !data) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">종합 현황 대시보드</h1>
-        <Card>
-          <CardContent className="py-10">
-            <p className="text-center text-red-600">
-              데이터를 불러오는 중 오류가 발생했습니다.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const { stats, logTrend, regionDistribution, recentAlerts } = data;
+  // 데이터가 없을 때 기본값 설정
+  const stats = data?.stats ?? {
+    totalSubjects: 0,
+    deviceInstallRate: 0,
+    todayLogs: 0,
+    pendingAlerts: 0,
+  };
+  const logTrend = data?.logTrend ?? [];
+  const regionDistribution = data?.regionDistribution ?? [];
+  const recentAlerts = data?.recentAlerts ?? [];
 
   return (
     <div className="space-y-6">
@@ -71,6 +64,17 @@ export default function AdminDashboardPage() {
           시스템의 전체 현황을 한눈에 확인할 수 있습니다.
         </p>
       </div>
+
+      {/* 에러 알림 배너 */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="py-4">
+            <p className="text-sm text-red-600">
+              일부 데이터를 불러오는 중 오류가 발생했습니다. 기본 데이터를 표시합니다.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 주요 통계 카드 */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -119,21 +123,29 @@ export default function AdminDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logTrend.slice(-7).map((item) => (
-                <TableRow key={item.date}>
-                  <TableCell className="font-medium">{item.date}</TableCell>
-                  <TableCell className="text-right">{item.count}</TableCell>
-                  <TableCell className="text-right">
-                    <span
-                      className={
-                        item.alertCount > 0 ? "text-red-600 font-bold" : ""
-                      }
-                    >
-                      {item.alertCount}
-                    </span>
+              {logTrend.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                    표시할 데이터가 없습니다.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                logTrend.slice(-7).map((item) => (
+                  <TableRow key={item.date}>
+                    <TableCell className="font-medium">{item.date}</TableCell>
+                    <TableCell className="text-right">{item.count}</TableCell>
+                    <TableCell className="text-right">
+                      <span
+                        className={
+                          item.alertCount > 0 ? "text-red-600 font-bold" : ""
+                        }
+                      >
+                        {item.alertCount}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -156,20 +168,28 @@ export default function AdminDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {regionDistribution.map((region) => (
-                <TableRow key={region.region}>
-                  <TableCell className="font-medium">{region.region}</TableCell>
-                  <TableCell className="text-right">
-                    {region.subjectCount}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {region.companyCount}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {region.deviceCount}
+              {regionDistribution.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                    표시할 데이터가 없습니다.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                regionDistribution.map((region) => (
+                  <TableRow key={region.region}>
+                    <TableCell className="font-medium">{region.region}</TableCell>
+                    <TableCell className="text-right">
+                      {region.subjectCount}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {region.companyCount}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {region.deviceCount}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

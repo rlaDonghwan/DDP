@@ -110,7 +110,7 @@ const menuItems = {
     },
     {
       title: "로그 관리",
-      url: "/admin/logs",
+      url: "/admin/log",
       icon: FileText,
     },
     {

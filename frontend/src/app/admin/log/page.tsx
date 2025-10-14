@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCompanies } from "@/features/admin/hooks/use-companies";
+import { useLogs } from "@/features/admin/hooks/use-logs";
 import {
   Card,
   CardContent,
@@ -23,52 +23,34 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * 업체 관리 페이지
- * 시스템에 등록된 전체 설치/관리 업체를 조회하고 신규 업체를 등록/승인
+ * 로그 관리 페이지
+ * 사용자가 제출한 모든 운행기록(로그)을 조회하고, 이상 로그(알코올 감지 등)를 분석
  */
-export default function AdminCompaniesPage() {
+export default function AdminLogsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { companies, totalCount, isLoading, error } = useCompanies();
+  const { logs, totalCount, isLoading, error } = useLogs();
 
   // 데이터가 없을 때 기본값 설정
-  const safeCompanies = companies ?? [];
+  const safeLogs = logs ?? [];
   const safeTotalCount = totalCount ?? 0;
 
   // 검색 필터링
-  const filteredCompanies = safeCompanies.filter(
-    (company) =>
-      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.businessNumber.includes(searchQuery) ||
-      company.representativeName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+  const filteredLogs = safeLogs.filter(
+    (log) =>
+      log.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.vehicleNumber.includes(searchQuery) ||
+      log.deviceSerialNumber.includes(searchQuery)
   );
-
-  // 상태 뱃지 렌더링
-  const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <Badge variant="default">승인</Badge>;
-      case "pending":
-        return <Badge>대기</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">반려</Badge>;
-      case "suspended":
-        return <Badge variant="secondary">정지</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   return (
     <div className="space-y-6">
       {/* 페이지 헤더 */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          업체 관리
+          로그 관리
         </h1>
         <p className="text-gray-600 mt-2">
-          장치 설치 및 관리 업체를 조회하고 승인 처리합니다.
+          운행기록 로그를 조회하고 알코올 감지 이벤트를 분석합니다.
         </p>
       </div>
 
@@ -77,8 +59,7 @@ export default function AdminCompaniesPage() {
         <Card className="border-red-200 bg-red-50">
           <CardContent className="py-4">
             <p className="text-sm text-red-600">
-              일부 데이터를 불러오는 중 오류가 발생했습니다. 기본 데이터를
-              표시합니다.
+              일부 데이터를 불러오는 중 오류가 발생했습니다. 기본 데이터를 표시합니다.
             </p>
           </CardContent>
         </Card>
@@ -89,7 +70,7 @@ export default function AdminCompaniesPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600">
-              전체 업체
+              전체 로그
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -99,40 +80,42 @@ export default function AdminCompaniesPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600">
-              승인 완료
+              정상 로그
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {safeCompanies.filter((c) => c.status === "approved").length}
+              {safeLogs.filter((l) => !l.hasViolation).length}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600">
-              승인 대기
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {safeCompanies.filter((c) => c.status === "pending").length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              반려/정지
+              위반 로그
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {
-                safeCompanies.filter(
-                  (c) => c.status === "rejected" || c.status === "suspended"
-                ).length
-              }
+              {safeLogs.filter((l) => l.hasViolation).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              위반율
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {safeTotalCount > 0
+                ? (
+                    (safeLogs.filter((l) => l.hasViolation).length / safeTotalCount) *
+                    100
+                  ).toFixed(1)
+                : 0}
+              %
             </div>
           </CardContent>
         </Card>
@@ -141,21 +124,21 @@ export default function AdminCompaniesPage() {
       {/* 검색 및 목록 */}
       <Card>
         <CardHeader>
-          <CardTitle>업체 목록</CardTitle>
+          <CardTitle>로그 목록</CardTitle>
           <CardDescription>
-            등록된 업체를 검색하고 승인 처리할 수 있습니다.
+            제출된 운행기록을 검색하고 상세 분석할 수 있습니다.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex items-center gap-2">
             <Input
-              placeholder="업체명, 사업자번호, 대표자명으로 검색..."
+              placeholder="대상자명, 차량번호, 장치 S/N으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
             <Button variant="outline">필터</Button>
-            <Button>새 업체 등록</Button>
+            <Button variant="outline">위반만 보기</Button>
           </div>
 
           {/* 로딩 상태 */}
@@ -170,50 +153,49 @@ export default function AdminCompaniesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>업체명</TableHead>
-                    <TableHead>사업자번호</TableHead>
-                    <TableHead>대표자</TableHead>
-                    <TableHead>연락처</TableHead>
-                    <TableHead>지역</TableHead>
-                    <TableHead>관리 장치</TableHead>
-                    <TableHead>상태</TableHead>
+                    <TableHead>제출 일시</TableHead>
+                    <TableHead>대상자</TableHead>
+                    <TableHead>장치 S/N</TableHead>
+                    <TableHead>차량번호</TableHead>
+                    <TableHead>운행 시간</TableHead>
+                    <TableHead>테스트 횟수</TableHead>
+                    <TableHead>위반 여부</TableHead>
                     <TableHead className="text-right">작업</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCompanies.length === 0 ? (
+                  {filteredLogs.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-center text-gray-500 py-8"
-                      >
+                      <TableCell colSpan={8} className="text-center text-gray-500 py-8">
                         {searchQuery
                           ? "검색 결과가 없습니다."
-                          : "등록된 업체가 없습니다."}
+                          : "등록된 로그가 없습니다."}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredCompanies.map((company) => (
-                      <TableRow key={company.id}>
+                    filteredLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="text-xs">
+                          {new Date(log.submittedAt).toLocaleString("ko-KR")}
+                        </TableCell>
                         <TableCell className="font-medium">
-                          {company.name}
+                          {log.subjectName}
                         </TableCell>
                         <TableCell className="font-mono text-xs">
-                          {company.businessNumber}
+                          {log.deviceSerialNumber}
                         </TableCell>
-                        <TableCell>{company.representativeName}</TableCell>
-                        <TableCell>{company.phone}</TableCell>
-                        <TableCell>{company.region}</TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div>장치: {company.deviceCount}개</div>
-                            <div className="text-gray-500">
-                              고객: {company.customerCount}명
-                            </div>
-                          </div>
+                        <TableCell>{log.vehicleNumber}</TableCell>
+                        <TableCell className="text-xs">
+                          {new Date(log.startTime).toLocaleTimeString("ko-KR")} ~{" "}
+                          {new Date(log.endTime).toLocaleTimeString("ko-KR")}
                         </TableCell>
+                        <TableCell>{log.alcoholTestResults.length}</TableCell>
                         <TableCell>
-                          {renderStatusBadge(company.status)}
+                          {log.hasViolation ? (
+                            <Badge variant="destructive">위반</Badge>
+                          ) : (
+                            <Badge variant="default">정상</Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm">

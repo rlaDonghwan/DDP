@@ -60,21 +60,23 @@ export default function UserLayout({
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar />
-      <main className="flex w-full flex-1 flex-col">
-        {/* 상단 네비게이션 바 */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex-1">
-            <AuthenticatedHeader />
-          </div>
-        </header>
+      <div className="flex w-full flex-col">
+        {/* 헤더를 전체 너비로 최상단에 배치 */}
+        <AuthenticatedHeader leftSlot={<SidebarTrigger className="-ml-1" />} />
 
-        {/* 콘텐츠 영역 */}
-        <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50">
-          <div className="max-w-7xl mx-auto w-full p-8">{children}</div>
+        {/* 사이드바와 메인 콘텐츠를 헤더 아래에 가로로 배치 */}
+        <div className="flex flex-1">
+          {/* 사이드바를 헤더 아래 왼쪽에 배치 */}
+          <AppSidebar />
+
+          {/* 메인 콘텐츠 영역 */}
+          <main className="flex-1">
+            <div className="flex flex-col gap-4 bg-gray-50 p-6 pt-8 md:pt-10">
+              {children}
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </SidebarProvider>
   );
 }
