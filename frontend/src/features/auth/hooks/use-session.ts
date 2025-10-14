@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { authApi } from "../api";
 import { useTokenExpiry } from "./use-token-expiry";
+import { hasAuthCookie } from "@/lib/utils";
 import type { User } from "@/types/auth";
 
 /**
@@ -22,6 +23,16 @@ export function useSession() {
   const fetchSession = async () => {
     try {
       setIsLoading(true);
+
+      // 쿠키가 없으면 API 호출 생략 (불필요한 400 에러 방지)
+      if (!hasAuthCookie()) {
+        setUser(null);
+        setIsAuthenticated(false);
+        clearExpiryTimer();
+        setIsLoading(false);
+        return;
+      }
+
       // 백엔드 토큰 검증 API 호출 (Role 정보 포함)
       const response = await authApi.validateToken();
 

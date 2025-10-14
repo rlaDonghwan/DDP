@@ -1,15 +1,31 @@
 "use client";
 
 import { useUserProfile } from "@/features/user/hooks/use-user-profile";
+import {
+  useUserStatus,
+  useNotifications,
+  useAnnouncements,
+} from "@/features/user/hooks/use-user-status";
 import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
+import { UserStatusCard } from "@/features/user/components/user-status-card";
+import { NotificationsCard } from "@/features/user/components/notifications-card";
+import { AnnouncementsCard } from "@/features/user/components/announcements-card";
 import { QuickMenu } from "@/features/user/components/quick-menu";
 
 /**
  * 사용자 포털 메인 페이지 (마이페이지)
- * 사용자의 기본 정보와 바로가기 메뉴를 제공합니다
+ * SFR-010: 음주운전 방지장치 사용자 시스템 요구기능
+ * - 일반 현황 및 내역 조회
+ * - 주요 기능 바로가기
+ * - 알림 및 공지사항
  */
 export default function UserMainPage() {
-  const { data: profile, isLoading } = useUserProfile();
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const { data: status, isLoading: statusLoading } = useUserStatus();
+  const { data: notifications, isLoading: notificationsLoading } =
+    useNotifications();
+  const { data: announcements, isLoading: announcementsLoading } =
+    useAnnouncements();
 
   return (
     <div className="space-y-6">
@@ -19,15 +35,33 @@ export default function UserMainPage() {
           마이페이지
         </h1>
         <p className="text-gray-600 mt-2">
-          내 정보를 확인하고 주요 기능을 이용하세요
+          음주운전 방지장치 설치 대상자 현황 및 주요 기능을 확인하세요
         </p>
       </div>
 
-      {/* 사용자 정보 카드 */}
-      <ProfileInfoCard profile={profile} isLoading={isLoading} />
+      {/* 나의 현황 정보 (SFR-010: 일반 현황 조회) */}
+      <UserStatusCard status={status} isLoading={statusLoading} />
 
-      {/* 바로가기 메뉴 */}
+      {/* 사용자 정보 카드 */}
+      <ProfileInfoCard profile={profile} isLoading={profileLoading} />
+
+      {/* 바로가기 메뉴 (SFR-010: 주요 기능 바로가기) */}
       <QuickMenu />
+
+      {/* 알림 및 공지사항 섹션 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 최근 알림 */}
+        <NotificationsCard
+          notifications={notifications}
+          isLoading={notificationsLoading}
+        />
+
+        {/* 공지사항 */}
+        <AnnouncementsCard
+          announcements={announcements}
+          isLoading={announcementsLoading}
+        />
+      </div>
     </div>
   );
 }

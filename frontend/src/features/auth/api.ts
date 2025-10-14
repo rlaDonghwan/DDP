@@ -301,6 +301,6 @@ export const getRedirectPath = (role: UserRole): string => {
       return "/company/dashboard";
     case "user":
     default:
-      return "/user/dashboard";
+      return "/user";
   }
 };

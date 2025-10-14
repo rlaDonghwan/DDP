@@ -13,6 +13,7 @@ import type { QuickMenuItem } from "../types/user";
 
 /**
  * 바로가기 메뉴 아이템 목록
+ * SFR-010: 주요 기능 바로가기
  */
 const quickMenuItems: QuickMenuItem[] = [
   {
@@ -43,6 +44,20 @@ const quickMenuItems: QuickMenuItem[] = [
     href: "/user/companies",
     icon: "🏢",
   },
+  {
+    id: "view-installation-history",
+    title: "설치 내역 조회",
+    description: "나의 장치 설치 내역을 상세히 확인합니다",
+    href: "/user/installations",
+    icon: "🔧",
+  },
+  {
+    id: "edit-profile",
+    title: "개인정보 수정",
+    description: "비밀번호 및 계정 정보를 수정합니다",
+    href: "/user/profile",
+    icon: "⚙️",
+  },
 ];
 
 /**
@@ -60,7 +75,7 @@ export function QuickMenu() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {quickMenuItems.map((item) => (
             <Button
               key={item.id}
