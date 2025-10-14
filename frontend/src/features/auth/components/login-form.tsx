@@ -76,13 +76,13 @@ export function LoginForm({ userType }: LoginFormProps) {
           description: `${response.name}님, 환영합니다!`,
         });
 
-        // 역할에 따라 리다이렉트 (강제 새로고침으로 세션 초기화)
+        // 역할에 따라 리다이렉트
         const redirectPath = getRedirectPath(actualRole as any);
 
-        // 짧은 지연 후 페이지 이동 (Toast 표시 시간 확보)
+        // 지연 후 페이지 이동 (쿠키 저장 대기 + Toast 표시 시간 확보)
         setTimeout(() => {
-          window.location.href = redirectPath;
-        }, 500);
+          router.push(redirectPath);
+        }, 1000);
       } else {
         // 로그인 실패 Toast 표시 (비밀번호 틀림, 계정 없음 등)
         toast.error("로그인 실패", {

@@ -24,15 +24,6 @@ export function useSession() {
     try {
       setIsLoading(true);
 
-      // 쿠키가 없으면 API 호출 생략 (불필요한 400 에러 방지)
-      if (!hasAuthCookie()) {
-        setUser(null);
-        setIsAuthenticated(false);
-        clearExpiryTimer();
-        setIsLoading(false);
-        return;
-      }
-
       // 백엔드 토큰 검증 API 호출 (Role 정보 포함)
       const response = await authApi.validateToken();
 
@@ -66,8 +57,19 @@ export function useSession() {
         setIsAuthenticated(false);
         clearExpiryTimer();
       }
-    } catch (error) {
-      console.error("세션 조회 실패:", error);
+    } catch (error: any) {
+      // 쿠키가 없는 경우 (로그아웃 후 등)는 조용히 처리
+      const hasCookie = hasAuthCookie();
+      const statusCode = error?.response?.status;
+
+      // 400/401 에러 + 쿠키 없음 = 정상적인 비인증 상태 (에러 로그 출력 안 함)
+      if (!hasCookie && (statusCode === 400 || statusCode === 401)) {
+        // 조용히 처리 (콘솔 에러 출력 안 함)
+      } else {
+        // 그 외의 에러는 로그 출력 (실제 문제 상황)
+        console.error("세션 조회 실패:", error?.message || error);
+      }
+
       setUser(null);
       setIsAuthenticated(false);
       clearExpiryTimer();

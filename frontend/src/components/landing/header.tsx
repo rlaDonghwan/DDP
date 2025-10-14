@@ -16,6 +16,11 @@ export const Header: React.FC<{ hideNav?: boolean }> = ({ hideNav }) => {
    * 인증 상태에 따라 적절한 페이지로 리다이렉트
    */
   const handleLoginClick = () => {
+    // 로딩 중이면 클릭 무시 (세션 확인 중)
+    if (isLoading) {
+      return;
+    }
+
     if (user) {
       // 로그인 상태: 역할에 따라 리다이렉트
       switch (user.role) {
