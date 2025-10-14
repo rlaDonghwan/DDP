@@ -17,20 +17,25 @@ export default function AdminLayout({
   return (
     <RequireRole allowedRoles={["admin"]}>
       <SidebarProvider defaultOpen={true}>
-        {/* 상단 헤더 높이만큼 배경바를 고정시켜 사이드바 영역까지 헤더 배경을 확장 */}
-        <div className="fixed inset-x-0 top-0 z-30 h-16 border-b bg-white" />
-        <AppSidebar className="top-16 z-20" />
-        <main className="flex w-full flex-1 flex-col pt-16">
-          {/* 상단 네비게이션 바 - 사이드바 트리거를 같은 줄/같은 배경으로 배치 */}
+        <div className="flex w-full flex-col">
+          {/* 헤더를 전체 너비로 최상단에 배치 */}
           <AuthenticatedHeader
             leftSlot={<SidebarTrigger className="-ml-1" />}
           />
 
-          {/* 콘텐츠 영역 */}
-          <div className="flex flex-1 flex-col gap-4 bg-gray-50 p-6">
-            {children}
+          {/* 사이드바와 메인 콘텐츠를 헤더 아래에 가로로 배치 */}
+          <div className="flex flex-1">
+            {/* 사이드바를 헤더 아래 왼쪽에 배치 */}
+            <AppSidebar />
+
+            {/* 메인 콘텐츠 영역 */}
+            <main className="flex-1">
+              <div className="flex flex-col gap-4 bg-gray-50 p-6 pt-8 md:pt-10">
+                {children}
+              </div>
+            </main>
           </div>
-        </main>
+        </div>
       </SidebarProvider>
     </RequireRole>
   );

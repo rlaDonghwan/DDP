@@ -72,8 +72,8 @@ export function AuthenticatedHeader({ leftSlot }: { leftSlot?: ReactNode }) {
   };
 
   return (
-    <header className="fixed top-0 z-40 w-full border-b bg-white">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b bg-white">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* 좌측: (옵션) 사이드바 트리거 + 로고 */}
         <div className="flex items-center gap-2">
           {leftSlot ? <div className="-ml-1">{leftSlot}</div> : null}

@@ -167,7 +167,7 @@ export function AppSidebar({ className }: { className?: string }) {
     <Sidebar collapsible="icon" className={className}>
       <SidebarContent className="rounded-none">
         <SidebarGroup>
-          <SidebarGroupLabel>메인 메뉴</SidebarGroupLabel>
+          <SidebarGroupLabel>메뉴</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
