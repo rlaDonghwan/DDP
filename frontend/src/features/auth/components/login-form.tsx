@@ -22,7 +22,7 @@ import { authApi, getRedirectPath } from "../api";
  * 로그인 폼 컴포넌트
  */
 interface LoginFormProps {
-  userType: "admin" | "user";
+  userType: "admin" | "user" | "company";
 }
 
 export function LoginForm({ userType }: LoginFormProps) {
@@ -63,9 +63,19 @@ export function LoginForm({ userType }: LoginFormProps) {
           setIsLoading(false);
           return;
         }
-        if (userType === "user" && actualRole === "admin") {
+        if (userType === "company" && actualRole !== "company") {
           toast.error("로그인 실패", {
-            description: "관리자 계정은 관리자 로그인 페이지를 이용해주세요.",
+            description:
+              "업체 계정이 아닙니다. 올바른 로그인 페이지를 이용해주세요.",
+          });
+          setIsLoading(false);
+          return;
+        }
+        if (userType === "user" && (actualRole === "admin" || actualRole === "company")) {
+          toast.error("로그인 실패", {
+            description: actualRole === "admin"
+              ? "관리자 계정은 관리자 로그인 페이지를 이용해주세요."
+              : "업체 계정은 업체 로그인 페이지를 이용해주세요.",
           });
           setIsLoading(false);
           return;
@@ -111,6 +121,14 @@ export function LoginForm({ userType }: LoginFormProps) {
       title: "관리자 로그인",
       description: "관리자 권한으로 시스템에 접속합니다",
       placeholder: "admin@ddp.com",
+    },
+    company: {
+      icon: "C",
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
+      title: "업체 로그인",
+      description: "업체 계정으로 접속하여 고객 및 장치를 관리하세요",
+      placeholder: "company@ddp.com",
     },
     user: {
       icon: "U",
@@ -199,6 +217,14 @@ export function LoginForm({ userType }: LoginFormProps) {
               >
                 회원가입
               </Button>
+            </div>
+          )}
+
+          {userType === "company" && (
+            <div className="pt-4 border-t">
+              <p className="text-sm text-center text-gray-500">
+                업체 계정은 관리자의 승인 후 이용 가능합니다
+              </p>
             </div>
           )}
         </form>

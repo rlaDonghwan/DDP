@@ -201,8 +201,33 @@ const Footer: React.FC = () => (
           </ul>
         </div>
       </div>
-      <div className="mt-12 border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
-        &copy; 2025 DDP Project. All rights reserved.
+      <div className="mt-12 border-t border-gray-700 pt-8">
+        <div className="flex flex-col items-center space-y-4 mb-6">
+          <p className="text-sm text-gray-400">역할별 로그인</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/login"
+              className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-indigo-700"
+            >
+              사용자 로그인
+            </Link>
+            <Link
+              href="/company/login"
+              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700"
+            >
+              업체 로그인
+            </Link>
+            <Link
+              href="/admin/login"
+              className="rounded-lg bg-orange-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-orange-700"
+            >
+              관리자 로그인
+            </Link>
+          </div>
+        </div>
+        <div className="text-center text-sm text-gray-400">
+          &copy; 2025 DDP Project. All rights reserved.
+        </div>
       </div>
     </div>
   </footer>
