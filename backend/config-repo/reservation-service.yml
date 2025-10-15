@@ -1,0 +1,43 @@
+# Reservation Service 설정
+# 예약 관리 서비스
+
+server:
+  port: 8083
+
+spring:
+  application:
+    name: reservation-service
+
+  # PostgreSQL 데이터베이스 설정
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ddp_reservation}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:ddp_user}
+    password: ${DB_PASSWORD:ddp_password}
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Reservation Service 로깅 설정
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"
+  level:
+    com.ddp.reservation: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# 액추에이터 및 Health Check 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,refresh
+  endpoint:
+    health:
+      show-details: always

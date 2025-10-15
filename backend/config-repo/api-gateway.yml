@@ -7,27 +7,66 @@ server:
 spring:
   application:
     name: api-gateway
-  
+
   cloud:
     gateway:
       routes:
-        # Auth Service 사용자 라우팅
+        # Auth Service 사용자 라우팅 (JWT 필터 적용)
         - id: auth-service-users
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/users/**
+          filters:
+            - JwtAuthentication
 
-        # Auth Service JWT 라우팅  
+        # Auth Service JWT 라우팅 (JWT 필터 적용)
         - id: auth-service-jwt
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/auth/**
+          filters:
+            - JwtAuthentication
 
-        # TCS Mock Service 라우팅
+        # TCS Mock Service 라우팅 (공개 API)
         - id: tcs-mock-service
           uri: lb://tcs-mock-service
           predicates:
             - Path=/api/tcs/**
+
+        # Company Service 관리자 API (JWT 필터 적용)
+        - id: company-service-admin
+          uri: lb://company-service
+          predicates:
+            - Path=/api/admin/companies/**
+          filters:
+            - JwtAuthentication
+
+        # Company Service 공개 API (필터 없음)
+        - id: company-service-public
+          uri: lb://company-service
+          predicates:
+            - Path=/api/public/operators/**
+
+        # Reservation Service 사용자 API (JWT 필터 적용)
+        - id: reservation-service-user
+          uri: lb://reservation-service
+          predicates:
+            - Path=/api/reservations/**
+          filters:
+            - JwtAuthentication
+
+        # Reservation Service 업체 API (JWT 필터 적용)
+        - id: reservation-service-company
+          uri: lb://reservation-service
+          predicates:
+            - Path=/api/company/reservations/**
+          filters:
+            - JwtAuthentication
+
+# JWT 설정 (auth-service와 동일한 시크릿 사용)
+jwt:
+  secret: ${JWT_SECRET:myDevelopmentSecretKeyForDDPProject32Chars}
+  issuer: ddp-gateway
 
 # API Gateway 로깅 설정 (개발용)
 logging:

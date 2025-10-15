@@ -1,0 +1,34 @@
+# reservation Service Config Client 설정
+# Config Server에서 설정을 로드하기 위한 최소 설정
+
+spring:
+  application:
+    name: reservation-service # Config Server에서 auth-service.yml을 찾기 위한 이름
+  
+  # Config Server 연결 설정
+  config:
+    import: "configserver:http://localhost:8888" # Config Server URL
+    # import: "configserver:http://config-service:8888" # Docker 환경용
+  
+  # Config Client 설정
+  cloud:
+    config:
+      enabled: true # Config Client 활성화
+      fail-fast: true # Config Server 연결 실패시 애플리케이션 시작 실패
+      retry:
+        initial-interval: 1000 # 재시도 초기 간격 (ms)
+        max-attempts: 6 # 최대 재시도 횟수
+        max-interval: 2000 # 최대 재시도 간격 (ms)
+
+# TCS Mock API 설정
+tcs:
+  api:
+    url: http://localhost:8085/api/tcs # TCS Mock API URL
+    # url: http://tcs-mock-service:8085/api/tcs # Docker 환경용
+
+# SMS 인증 설정
+sms:
+  verification:
+    expiration-seconds: 180 # 인증번호 만료 시간 (3분)
+  verification-token:
+    expiration-seconds: 600 # 인증 토큰 만료 시간 (10분)
