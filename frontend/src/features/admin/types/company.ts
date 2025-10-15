@@ -4,6 +4,11 @@
 export type CompanyStatus = "approved" | "pending" | "rejected" | "suspended";
 
 /**
+ * 계약 상태
+ */
+export type ContractStatus = "active" | "pending" | "expired";
+
+/**
  * 업체 정보
  */
 export interface Company {
@@ -99,6 +104,12 @@ export interface CreateCompanyRequest {
   phone: string;
   address: string;
   region: string;
+  certificationValidUntil: string; // 인증 유효 기간 (ISO 날짜)
+  contractStatus: ContractStatus; // 계약 상태
+  businessRegistrationNumber: string; // 사업자등록증 번호
+  sealInfo: string; // 직인 정보
+  initialAccountId: string; // 초기 계정 ID
+  initialPassword: string; // 초기 비밀번호
 }
 
 /**

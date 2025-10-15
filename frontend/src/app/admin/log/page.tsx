@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLogs } from "@/features/admin/hooks/use-logs";
+import { useLogs, useApproveLog, useRejectLog } from "@/features/admin/hooks/use-logs";
 import {
   Card,
   CardContent,
@@ -20,7 +20,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CheckCircle, XCircle } from "lucide-react";
 
 /**
  * 로그 관리 페이지
@@ -28,7 +42,12 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export default function AdminLogsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+
   const { logs, totalCount, isLoading, error } = useLogs();
+  const approveMutation = useApproveLog();
+  const rejectMutation = useRejectLog();
 
   // 데이터가 없을 때 기본값 설정
   const safeLogs = logs ?? [];
@@ -198,9 +217,79 @@ export default function AdminLogsPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            상세
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => approveMutation.mutate(log.id)}
+                              disabled={approveMutation.isPending}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              승인
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setSelectedLogId(log.id)}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  반려
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>로그 반려</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    이 로그를 반려하시겠습니까? 반려 사유를 입력해주세요.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="reason">반려 사유</Label>
+                                    <Textarea
+                                      id="reason"
+                                      value={rejectionReason}
+                                      onChange={(e) =>
+                                        setRejectionReason(e.target.value)
+                                      }
+                                      placeholder="반려 사유를 입력하세요"
+                                      className="min-h-[100px]"
+                                    />
+                                  </div>
+                                </div>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel
+                                    onClick={() => {
+                                      setRejectionReason("");
+                                      setSelectedLogId(null);
+                                    }}
+                                  >
+                                    취소
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      if (selectedLogId && rejectionReason.trim()) {
+                                        rejectMutation.mutate({
+                                          logId: selectedLogId,
+                                          reason: rejectionReason,
+                                        });
+                                        setRejectionReason("");
+                                        setSelectedLogId(null);
+                                      }
+                                    }}
+                                    disabled={
+                                      !rejectionReason.trim() ||
+                                      rejectMutation.isPending
+                                    }
+                                  >
+                                    반려 확인
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))

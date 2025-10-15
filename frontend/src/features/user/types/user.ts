@@ -97,3 +97,19 @@ export interface Announcement {
   createdAt: string; // ISO 8601
   author: string; // 작성자 (관리자)
 }
+
+/**
+ * 할당된 장치 정보
+ */
+export interface AssignedDevice {
+  id: string;
+  serialNumber: string; // 장치 시리얼 번호
+  model: string; // 모델명
+  manufacturer: string; // 제조사
+  status: string; // 장치 상태
+  installationDate: string; // 설치일 (ISO 날짜)
+  installedBy: string; // 설치 업체명
+  installedByCompanyId: string; // 설치 업체 ID
+  lastInspectionDate?: string; // 최종 점검일 (ISO 날짜)
+  nextInspectionDate?: string; // 다음 점검일 (ISO 날짜)
+}

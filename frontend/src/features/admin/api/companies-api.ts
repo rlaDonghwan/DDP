@@ -105,30 +105,46 @@ export const companiesApi = {
   },
 
   /**
-   * 업체 승인/반려
+   * 업체 승인
    */
-  approveCompany: async (
-    data: ApproveCompanyRequest
-  ): Promise<{ success: boolean }> => {
+  approveCompany: async (companyId: string): Promise<void> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 업체 승인/반려");
+    console.log("API 호출 시작: 업체 승인");
 
     try {
-      const response = await api.post<{ success: boolean }>(
-        "/api/admin/companies/approve",
-        data
-      );
+      await api.post(`/api/admin/companies/${companyId}/approve`);
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 업체 승인/반려 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: 업체 승인 (${(endTime - startTime).toFixed(2)}ms)`
       );
-
-      return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 업체 승인/반려 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: 업체 승인 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 업체 거절
+   */
+  rejectCompany: async (companyId: string, reason: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 업체 거절");
+
+    try {
+      await api.post(`/api/admin/companies/${companyId}/reject`, { reason });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 업체 거절 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 업체 거절 (${(endTime - startTime).toFixed(2)}ms)`
       );
       throw error;
     }

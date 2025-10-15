@@ -45,24 +45,24 @@ const menuItems = {
       icon: Home,
     },
     {
-      title: "운행기록 제출",
-      url: "/user/logs/submit",
-      icon: ClipboardList,
-    },
-    {
-      title: "예약 관리",
-      url: "/user/appointments",
-      icon: Calendar,
-    },
-    {
-      title: "설치 업체 조회",
-      url: "/user/companies",
+      title: "업체 검색",
+      url: "/user/operators/search",
       icon: Building2,
     },
     {
-      title: "설치 내역 조회",
-      url: "/user/installations",
-      icon: Wrench,
+      title: "나의 예약",
+      url: "/user/reservations",
+      icon: Calendar,
+    },
+    {
+      title: "운행기록 제출",
+      url: "/user/log/submit",
+      icon: ClipboardList,
+    },
+    {
+      title: "제출 이력",
+      url: "/user/log",
+      icon: FileText,
     },
     {
       title: "개인정보 수정",
@@ -77,19 +77,24 @@ const menuItems = {
       icon: Home,
     },
     {
+      title: "예약 관리",
+      url: "/company/reservations",
+      icon: Calendar,
+    },
+    {
       title: "고객 관리",
       url: "/company/customers",
       icon: Users,
     },
     {
-      title: "예약 관리",
-      url: "/company/bookings",
-      icon: Calendar,
+      title: "장치 관리",
+      url: "/company/devices",
+      icon: Wrench,
     },
     {
-      title: "일정 관리",
-      url: "/company/schedule",
-      icon: Calendar,
+      title: "업체 정보",
+      url: "/company/profile",
+      icon: Building2,
     },
   ],
   admin: [

@@ -26,6 +26,7 @@ import {
   type ChangePasswordInput,
 } from "@/features/user/schemas/profile-schema";
 import { useRouter } from "next/navigation";
+import { DeviceInfoCard } from "@/features/user/components/device-info-card";
 
 /**
  * 개인정보 수정 페이지
@@ -141,6 +142,9 @@ export default function ProfileEditPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 장치 정보 */}
+      <DeviceInfoCard />
 
       {/* 프로필 수정 */}
       <Card>

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useCompanies } from "@/features/admin/hooks/use-companies";
+import {
+  useCompanies,
+  useApproveCompany,
+  useRejectCompany,
+} from "@/features/admin/hooks/use-companies";
 import {
   Card,
   CardContent,
@@ -20,7 +24,22 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CheckCircle, XCircle } from "lucide-react";
+import { CreateCompanyDialog } from "@/features/admin/components/create-company-dialog";
 
 /**
  * 업체 관리 페이지
@@ -28,7 +47,13 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export default function AdminCompaniesPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   const { companies, totalCount, isLoading, error } = useCompanies();
+  const approveMutation = useApproveCompany();
+  const rejectMutation = useRejectCompany();
 
   // 데이터가 없을 때 기본값 설정
   const safeCompanies = companies ?? [];
@@ -155,7 +180,9 @@ export default function AdminCompaniesPage() {
               className="max-w-sm"
             />
             <Button variant="outline">필터</Button>
-            <Button>새 업체 등록</Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              새 업체 등록
+            </Button>
           </div>
 
           {/* 로딩 상태 */}
@@ -216,9 +243,88 @@ export default function AdminCompaniesPage() {
                           {renderStatusBadge(company.status)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            상세
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            {company.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  onClick={() => approveMutation.mutate(company.id)}
+                                  disabled={approveMutation.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  승인
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => setSelectedCompanyId(company.id)}
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      거절
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>업체 거절</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        이 업체를 거절하시겠습니까? 거절 사유를 입력해주세요.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <div className="space-y-4 py-4">
+                                      <div className="space-y-2">
+                                        <Label htmlFor="reason">거절 사유</Label>
+                                        <Textarea
+                                          id="reason"
+                                          value={rejectionReason}
+                                          onChange={(e) =>
+                                            setRejectionReason(e.target.value)
+                                          }
+                                          placeholder="거절 사유를 입력하세요"
+                                          className="min-h-[100px]"
+                                        />
+                                      </div>
+                                    </div>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel
+                                        onClick={() => {
+                                          setRejectionReason("");
+                                          setSelectedCompanyId(null);
+                                        }}
+                                      >
+                                        취소
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => {
+                                          if (selectedCompanyId && rejectionReason.trim()) {
+                                            rejectMutation.mutate({
+                                              companyId: selectedCompanyId,
+                                              reason: rejectionReason,
+                                            });
+                                            setRejectionReason("");
+                                            setSelectedCompanyId(null);
+                                          }
+                                        }}
+                                        disabled={
+                                          !rejectionReason.trim() ||
+                                          rejectMutation.isPending
+                                        }
+                                      >
+                                        거절 확인
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            )}
+                            {company.status !== "pending" && (
+                              <Button variant="ghost" size="sm">
+                                상세
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -229,6 +335,12 @@ export default function AdminCompaniesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* 업체 등록 다이얼로그 */}
+      <CreateCompanyDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   );
 }

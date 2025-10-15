@@ -1,134 +1,133 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logsApi } from "../api/logs-api";
-import type {
-  DrivingLog,
-  DrivingLogDetail,
-  LogFilterOptions,
-  LogStatistics,
-} from "../types/log";
+import type { LogFilterOptions } from "../types/log";
+import { toast } from "sonner";
 
 /**
- * 로그 목록 관리 훅
+ * 관리자 로그 목록 조회 훅
+ */
+export function useAdminLogs(filters?: LogFilterOptions) {
+  return useQuery({
+    queryKey: ["admin", "logs", filters],
+    queryFn: async () => {
+      const response = await logsApi.getLogs(filters);
+      return {
+        logs: response.logs,
+        totalCount: response.totalCount,
+      };
+    },
+  });
+}
+
+/**
+ * 로그 상세 정보 조회 훅
+ */
+export function useAdminLogDetail(id: string) {
+  return useQuery({
+    queryKey: ["admin", "logs", id],
+    queryFn: async () => {
+      const response = await logsApi.getLogById(id);
+      return response.log;
+    },
+    enabled: !!id,
+  });
+}
+
+/**
+ * 로그 통계 조회 훅
+ */
+export function useAdminLogStatistics(params?: {
+  startDate?: string;
+  endDate?: string;
+  subjectId?: string;
+}) {
+  return useQuery({
+    queryKey: ["admin", "log-statistics", params],
+    queryFn: () => logsApi.getLogStatistics(params),
+  });
+}
+
+/**
+ * 로그 승인 훅
+ */
+export function useApproveLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (logId: string) => logsApi.approveLog(logId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "logs"] });
+      toast.success("로그가 승인되었습니다");
+    },
+    onError: () => {
+      toast.error("로그 승인에 실패했습니다");
+    },
+  });
+}
+
+/**
+ * 로그 반려 훅
+ */
+export function useRejectLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ logId, reason }: { logId: string; reason: string }) =>
+      logsApi.rejectLog(logId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "logs"] });
+      toast.success("로그가 반려되었습니다");
+    },
+    onError: () => {
+      toast.error("로그 반려에 실패했습니다");
+    },
+  });
+}
+
+/**
+ * 기존 호환성을 위한 래퍼 훅
+ * @deprecated useAdminLogs를 직접 사용하세요
  */
 export function useLogs(filters?: LogFilterOptions) {
-  const [logs, setLogs] = useState<DrivingLog[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  /**
-   * 로그 목록 조회
-   */
-  const fetchLogs = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await logsApi.getLogs(filters);
-      setLogs(response.logs);
-      setTotalCount(response.totalCount);
-    } catch (err) {
-      console.error("로그 목록 조회 실패:", err);
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 필터 변경 시 데이터 재조회
-  useEffect(() => {
-    fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  const { data, isLoading, error, refetch } = useAdminLogs(filters);
 
   return {
-    logs,
-    totalCount,
+    logs: data?.logs || [],
+    totalCount: data?.totalCount || 0,
     isLoading,
     error,
-    refetch: fetchLogs,
+    refetch,
   };
 }
 
 /**
- * 로그 상세 정보 관리 훅
+ * @deprecated useAdminLogDetail을 직접 사용하세요
  */
 export function useLogDetail(id: string) {
-  const [log, setLog] = useState<DrivingLogDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  /**
-   * 로그 상세 조회
-   */
-  const fetchLogDetail = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await logsApi.getLogById(id);
-      setLog(response.log);
-    } catch (err) {
-      console.error("로그 상세 조회 실패:", err);
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchLogDetail();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  const { data, isLoading, error, refetch } = useAdminLogDetail(id);
 
   return {
-    log,
+    log: data || null,
     isLoading,
     error,
-    refetch: fetchLogDetail,
+    refetch,
   };
 }
 
 /**
- * 로그 통계 관리 훅
+ * @deprecated useAdminLogStatistics를 직접 사용하세요
  */
 export function useLogStatistics(params?: {
   startDate?: string;
   endDate?: string;
   subjectId?: string;
 }) {
-  const [statistics, setStatistics] = useState<LogStatistics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  /**
-   * 로그 통계 조회
-   */
-  const fetchStatistics = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await logsApi.getLogStatistics(params);
-      setStatistics(response);
-    } catch (err) {
-      console.error("로그 통계 조회 실패:", err);
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStatistics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+  const { data, isLoading, error, refetch } = useAdminLogStatistics(params);
 
   return {
-    statistics,
+    statistics: data || null,
     isLoading,
     error,
-    refetch: fetchStatistics,
+    refetch,
   };
 }

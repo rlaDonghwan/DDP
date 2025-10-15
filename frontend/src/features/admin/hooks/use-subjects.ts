@@ -1,83 +1,67 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { subjectsApi } from "../api/subjects-api";
-import type { DuiSubject } from "../types/subject";
-import type { SubjectFilterData } from "../schemas/subject-schema";
 import { toast } from "sonner";
 
 /**
- * 대상자 목록 관리 훅
+ * 관리자 대상자 목록 조회 훅
  */
-export function useSubjects(filters?: SubjectFilterData) {
-  const [subjects, setSubjects] = useState<DuiSubject[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  /**
-   * 대상자 목록 조회
-   */
-  const fetchSubjects = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+export function useAdminSubjects() {
+  return useQuery({
+    queryKey: ["admin", "subjects"],
+    queryFn: async () => {
       const response = await subjectsApi.getSubjects();
-      setSubjects(response.subjects);
-      setTotalCount(response.totalCount);
-    } catch (err) {
-      console.error("대상자 목록 조회 실패:", err);
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return {
+        subjects: response.subjects,
+        totalCount: response.totalCount,
+      };
+    },
+  });
+}
 
-  /**
-   * 계정 생성
-   */
-  const createAccount = useCallback(
-    async (licenseNumber: string) => {
-      try {
-        const response = await subjectsApi.createAccount(licenseNumber);
+/**
+ * 대상자 계정 생성 훅
+ */
+export function useCreateSubjectAccount() {
+  const queryClient = useQueryClient();
 
-        if (response.success) {
-          toast.success("계정 생성 완료", {
-            description:
-              response.message || "계정이 성공적으로 생성되었습니다.",
-          });
-
-          // 목록 새로고침
-          await fetchSubjects();
-        } else {
-          toast.error("계정 생성 실패", {
-            description: response.message || "계정 생성에 실패했습니다.",
-          });
-        }
-      } catch (err: any) {
-        console.error("계정 생성 실패:", err);
-        toast.error("계정 생성 오류", {
-          description:
-            err?.response?.data?.message || "계정 생성 중 오류가 발생했습니다.",
+  return useMutation({
+    mutationFn: (licenseNumber: string) =>
+      subjectsApi.createAccount(licenseNumber),
+    onSuccess: (response) => {
+      if (response.success) {
+        queryClient.invalidateQueries({ queryKey: ["admin", "subjects"] });
+        toast.success("계정 생성 완료", {
+          description: response.message || "계정이 성공적으로 생성되었습니다.",
+        });
+      } else {
+        toast.error("계정 생성 실패", {
+          description: response.message || "계정 생성에 실패했습니다.",
         });
       }
     },
-    [fetchSubjects]
-  );
-
-  // 필터 변경 시 데이터 재조회
-  useEffect(() => {
-    fetchSubjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
-
-  return {
-    subjects,
-    totalCount,
-    isLoading,
-    error,
-    refetch: fetchSubjects,
-    createAccount,
-  };
+    onError: (err: any) => {
+      toast.error("계정 생성 오류", {
+        description:
+          err?.response?.data?.message || "계정 생성 중 오류가 발생했습니다.",
+      });
+    },
+  });
 }
 
+/**
+ * 기존 호환성을 위한 래퍼 훅
+ * @deprecated useAdminSubjects와 useCreateSubjectAccount를 직접 사용하세요
+ */
+export function useSubjects() {
+  const { data, isLoading, error, refetch } = useAdminSubjects();
+  const createAccountMutation = useCreateSubjectAccount();
+
+  return {
+    subjects: data?.subjects || [],
+    totalCount: data?.totalCount || 0,
+    isLoading,
+    error,
+    refetch,
+    createAccount: createAccountMutation.mutate,
+  };
+}

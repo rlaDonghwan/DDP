@@ -102,4 +102,50 @@ export const logsApi = {
       throw error;
     }
   },
+
+  /**
+   * 로그 승인
+   */
+  approveLog: async (logId: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 로그 승인");
+
+    try {
+      await api.post(`/api/admin/logs/${logId}/approve`);
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 로그 승인 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 로그 승인 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 로그 반려
+   */
+  rejectLog: async (logId: string, reason: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 로그 반려");
+
+    try {
+      await api.post(`/api/admin/logs/${logId}/reject`, { reason });
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 로그 반려 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 로그 반려 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
 };

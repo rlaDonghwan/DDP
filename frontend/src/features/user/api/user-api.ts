@@ -7,6 +7,7 @@ import type {
   UserStatus,
   Notification,
   Announcement,
+  AssignedDevice,
 } from "../types/user";
 
 /**
@@ -180,6 +181,40 @@ export const userApi = {
       const endTime = performance.now();
       console.log(
         `API 호출 실패: 공지사항 조회 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 할당된 장치 정보 조회
+   */
+  getAssignedDevice: async (): Promise<AssignedDevice | null> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 할당된 장치 조회");
+
+    try {
+      const response = await api.get<AssignedDevice>("/api/v1/users/device");
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 할당된 장치 조회 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+
+      return response.data;
+    } catch (error: any) {
+      const endTime = performance.now();
+
+      // 404 에러는 장치가 할당되지 않은 정상 상태
+      if (error?.response?.status === 404) {
+        console.log(
+          `API 호출 완료: 할당된 장치 없음 (${(endTime - startTime).toFixed(2)}ms)`
+        );
+        return null;
+      }
+
+      console.log(
+        `API 호출 실패: 할당된 장치 조회 (${(endTime - startTime).toFixed(2)}ms)`
       );
       throw error;
     }
