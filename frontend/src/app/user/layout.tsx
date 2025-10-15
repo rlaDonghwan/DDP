@@ -22,6 +22,7 @@ export default function UserLayout({
   const router = useRouter();
 
   // 인증 및 권한 체크
+  // TODO: 개발 중 임시 주석처리 - 로그인 없이 user 페이지 접근 가능
   useEffect(() => {
     if (!isLoading) {
       // 인증되지 않은 경우 로그인 페이지로 리다이렉트
@@ -39,6 +40,7 @@ export default function UserLayout({
   }, [isLoading, isAuthenticated, user, router]);
 
   // 로딩 중
+  // TODO: 개발 중 임시 주석처리 - 로그인 없이 user 페이지 접근 가능
   if (isLoading) {
     return (
       <div className="flex h-screen flex-col">
@@ -53,7 +55,7 @@ export default function UserLayout({
     );
   }
 
-  // 인증되지 않았거나 권한이 없는 경우
+  // // 인증되지 않았거나 권한이 없는 경우
   if (!isAuthenticated || !user || user.role !== "user") {
     return null; // 리다이렉트 처리 중
   }

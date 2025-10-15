@@ -119,14 +119,18 @@ export const userApi = {
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 사용자 현황 조회 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: 사용자 현황 조회 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
 
       return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 사용자 현황 조회 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: 사용자 현황 조회 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
       throw error;
     }
@@ -198,7 +202,9 @@ export const userApi = {
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 할당된 장치 조회 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: 할당된 장치 조회 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
 
       return response.data;
@@ -208,13 +214,17 @@ export const userApi = {
       // 404 에러는 장치가 할당되지 않은 정상 상태
       if (error?.response?.status === 404) {
         console.log(
-          `API 호출 완료: 할당된 장치 없음 (${(endTime - startTime).toFixed(2)}ms)`
+          `API 호출 완료: 할당된 장치 없음 (${(endTime - startTime).toFixed(
+            2
+          )}ms)`
         );
         return null;
       }
 
       console.log(
-        `API 호출 실패: 할당된 장치 조회 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: 할당된 장치 조회 (${(endTime - startTime).toFixed(
+          2
+        )}ms)`
       );
       throw error;
     }

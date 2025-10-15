@@ -25,6 +25,7 @@ export function RequireRole({
   const { user, isLoading, isAuthenticated } = useSession();
   const router = useRouter();
 
+  // TODO: 개발 중 임시 주석처리 - 로그인 없이 모든 페이지 접근 가능
   useEffect(() => {
     // 로딩 완료 후 인증되지 않은 경우 로그인 페이지로 이동
     if (!isLoading && !isAuthenticated) {
@@ -32,6 +33,7 @@ export function RequireRole({
     }
   }, [isLoading, isAuthenticated, router]);
 
+  // TODO: 개발 중 임시 주석처리 - 로그인 없이 모든 페이지 접근 가능
   // 로딩 중
   if (isLoading) {
     return (

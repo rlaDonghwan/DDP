@@ -38,7 +38,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 3) Admin 권한 검증 (/admin/login 제외)
   if (
     request.nextUrl.pathname.startsWith("/admin") &&
     request.nextUrl.pathname !== "/admin/login"
