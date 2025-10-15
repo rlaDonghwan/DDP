@@ -14,7 +14,7 @@ export const adminDuiApi = {
 
     try {
       const res = await api.get<DuiSubjectListResponse>(
-        "/api/tcs/dui/subjects"
+        "/api/v1/tcs/dui/subjects"
       );
 
       const endTime = performance.now();

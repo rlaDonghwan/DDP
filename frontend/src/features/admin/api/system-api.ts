@@ -32,7 +32,7 @@ export const systemApi = {
 
     try {
       const response = await api.get<AccountListResponse>(
-        "/api/admin/accounts",
+        "/api/v1/admin/accounts",
         {
           params,
         }
@@ -64,7 +64,7 @@ export const systemApi = {
 
     try {
       const response = await api.post<{ success: boolean }>(
-        "/api/admin/accounts",
+        "/api/v1/admin/accounts",
         data
       );
 
@@ -152,7 +152,7 @@ export const systemApi = {
 
     try {
       const response = await api.get<PermissionResponse>(
-        "/api/admin/permissions"
+        "/api/v1/admin/permissions"
       );
 
       const endTime = performance.now();
@@ -181,7 +181,7 @@ export const systemApi = {
 
     try {
       const response = await api.post<{ success: boolean }>(
-        "/api/admin/permissions",
+        "/api/v1/admin/permissions",
         data
       );
 
@@ -215,7 +215,7 @@ export const systemApi = {
     console.log("API 호출 시작: 공지사항 목록 조회");
 
     try {
-      const response = await api.get<NoticeListResponse>("/api/admin/notices", {
+      const response = await api.get<NoticeListResponse>("/api/v1/admin/notices", {
         params,
       });
 
@@ -280,7 +280,7 @@ export const systemApi = {
 
     try {
       const response = await api.post<{ success: boolean }>(
-        "/api/admin/notices",
+        "/api/v1/admin/notices",
         data
       );
 

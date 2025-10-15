@@ -26,7 +26,7 @@ export const companiesApi = {
 
     try {
       const response = await api.get<CompanyListResponse>(
-        "/api/admin/companies",
+        "/api/v1/admin/companies",
         {
           params,
         }
@@ -56,7 +56,7 @@ export const companiesApi = {
 
     try {
       const response = await api.get<CompanyDetailResponse>(
-        `/api/admin/companies/${id}`
+        `/api/v1/admin/companies/${id}`
       );
 
       const endTime = performance.now();
@@ -85,7 +85,7 @@ export const companiesApi = {
 
     try {
       const response = await api.post<{ success: boolean }>(
-        "/api/admin/companies",
+        "/api/v1/admin/companies",
         data
       );
 
@@ -112,7 +112,7 @@ export const companiesApi = {
     console.log("API 호출 시작: 업체 승인");
 
     try {
-      await api.post(`/api/admin/companies/${companyId}/approve`);
+      await api.post(`/api/v1/admin/companies/${companyId}/approve`);
 
       const endTime = performance.now();
       console.log(
@@ -135,7 +135,7 @@ export const companiesApi = {
     console.log("API 호출 시작: 업체 거절");
 
     try {
-      await api.post(`/api/admin/companies/${companyId}/reject`, { reason });
+      await api.post(`/api/v1/admin/companies/${companyId}/reject`, { reason });
 
       const endTime = performance.now();
       console.log(
@@ -162,7 +162,7 @@ export const companiesApi = {
 
     try {
       const response = await api.put<{ success: boolean }>(
-        `/api/admin/companies/${id}`,
+        `/api/v1/admin/companies/${id}`,
         data
       );
 
@@ -190,7 +190,7 @@ export const companiesApi = {
 
     try {
       const response = await api.delete<{ success: boolean }>(
-        `/api/admin/companies/${id}`
+        `/api/v1/admin/companies/${id}`
       );
 
       const endTime = performance.now();

@@ -207,7 +207,7 @@ export const authApi = {
     console.log("API 호출 시작: TCS 면허번호 검증");
 
     try {
-      await api.post("http://localhost:8085/api/tcs/license/verify", {
+      await api.post("/api/v1/tcs/license/verify", {
         licenseNumber,
       });
 

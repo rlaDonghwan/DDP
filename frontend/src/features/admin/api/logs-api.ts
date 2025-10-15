@@ -21,7 +21,7 @@ export const logsApi = {
 
     try {
       const response = await api.get<DrivingLogListResponse>(
-        "/api/admin/logs",
+        "/api/v1/admin/logs",
         {
           params,
         }
@@ -82,7 +82,7 @@ export const logsApi = {
 
     try {
       const response = await api.get<LogStatistics>(
-        "/api/admin/logs/statistics",
+        "/api/v1/admin/logs/statistics",
         {
           params,
         }

@@ -13,7 +13,7 @@ export const dashboardApi = {
     console.log("API 호출 시작: 대시보드 데이터 조회");
 
     try {
-      const response = await api.get<DashboardResponse>("/api/admin/dashboard");
+      const response = await api.get<DashboardResponse>("/api/v1/admin/dashboard");
 
       const endTime = performance.now();
       console.log(

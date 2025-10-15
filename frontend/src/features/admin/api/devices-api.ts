@@ -25,7 +25,7 @@ export const devicesApi = {
     console.log("API 호출 시작: 장치 목록 조회");
 
     try {
-      const response = await api.get<DeviceListResponse>("/api/admin/devices", {
+      const response = await api.get<DeviceListResponse>("/api/v1/admin/devices", {
         params,
       });
 
@@ -82,7 +82,7 @@ export const devicesApi = {
 
     try {
       const response = await api.post<{ success: boolean }>(
-        "/api/admin/devices",
+        "/api/v1/admin/devices",
         data
       );
 
