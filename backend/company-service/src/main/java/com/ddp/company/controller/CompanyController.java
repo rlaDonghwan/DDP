@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 // 업체 관리 컨트롤러
 @RestController
-@RequestMapping("/api/admin/companies")
+@RequestMapping("/api/v1/admin/companies")
 @RequiredArgsConstructor
 @Slf4j
 @Validated

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 // 업체 검색 공개 API 컨트롤러 (인증 불필요)
 @RestController
-@RequestMapping("/api/public/operators")
+@RequestMapping("/api/v1/public/operators")
 @RequiredArgsConstructor
 @Slf4j
 @Validated

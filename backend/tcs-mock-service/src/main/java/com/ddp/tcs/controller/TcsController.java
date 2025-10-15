@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 
 // TCS Mock API 컨트롤러 - 경찰청 TCS API 시뮬레이션
 @RestController
-@RequestMapping("/api/tcs")
+@RequestMapping("/api/v1/tcs")
 @RequiredArgsConstructor
 @Slf4j
 @Validated

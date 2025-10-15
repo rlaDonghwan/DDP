@@ -31,13 +31,13 @@ spring:
         - id: tcs-mock-service
           uri: lb://tcs-mock-service
           predicates:
-            - Path=/api/tcs/**
+            - Path=/api/v1/tcs/**
 
         # Company Service 관리자 API (JWT 필터 적용)
         - id: company-service-admin
           uri: lb://company-service
           predicates:
-            - Path=/api/admin/companies/**
+            - Path=/api/v1/admin/companies/**
           filters:
             - JwtAuthentication
 
@@ -45,13 +45,13 @@ spring:
         - id: company-service-public
           uri: lb://company-service
           predicates:
-            - Path=/api/public/operators/**
+            - Path=/api/v1/public/operators/**
 
         # Reservation Service 사용자 API (JWT 필터 적용)
         - id: reservation-service-user
           uri: lb://reservation-service
           predicates:
-            - Path=/api/reservations/**
+            - Path=/api/v1/reservations/**
           filters:
             - JwtAuthentication
 
@@ -59,7 +59,7 @@ spring:
         - id: reservation-service-company
           uri: lb://reservation-service
           predicates:
-            - Path=/api/company/reservations/**
+            - Path=/api/v1/company/reservations/**
           filters:
             - JwtAuthentication
 

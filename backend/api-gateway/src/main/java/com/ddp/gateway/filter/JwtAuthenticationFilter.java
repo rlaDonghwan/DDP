@@ -84,13 +84,13 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
      */
     private boolean isPublicPath(String path) {
         List<String> publicPaths = List.of(
-            "/api/public",        // 업체 검색 공개 API
-            "/api/v1/auth/login", // 로그인
-            "/api/v1/auth/logout", // 로그아웃
+            "/api/v1/public",        // 업체 검색 공개 API
+            "/api/v1/auth/login",    // 로그인
+            "/api/v1/auth/logout",   // 로그아웃
             "/api/v1/users/register", // 회원가입
             "/api/v1/users/complete-registration", // 회원가입 완료
-            "/api/v1/users/sms", // SMS 인증
-            "/api/tcs"           // TCS Mock API
+            "/api/v1/users/sms",     // SMS 인증
+            "/api/v1/tcs"            // TCS Mock API
         );
 
         return publicPaths.stream().anyMatch(path::startsWith);
