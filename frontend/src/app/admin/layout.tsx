@@ -1,8 +1,8 @@
 "use client";
 
 import { RequireRole } from "@/features/auth/components/require-role";
-import { AuthenticatedHeader } from "@/components/common/authenticated-header";
-import { AppSidebar } from "@/components/common/app-sidebar";
+import { AuthenticatedHeader } from "@/features/auth/components/authenticated-header";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 /**

@@ -1,8 +1,8 @@
 "use client";
 
 import { useSession } from "@/features/auth/hooks/use-session";
-import { AuthenticatedHeader } from "@/components/common/authenticated-header";
-import { AppSidebar } from "@/components/common/app-sidebar";
+import { AuthenticatedHeader } from "@/features/auth/components/authenticated-header";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
