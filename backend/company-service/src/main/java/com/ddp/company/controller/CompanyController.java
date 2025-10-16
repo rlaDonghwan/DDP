@@ -135,7 +135,7 @@ public class CompanyController {
         @PathVariable Long id,
         @RequestBody RejectRequest request
     ) {
-        log.debug("업체 거절 요청 - userId: {}, role: {}, ID: {}, 사유: {}", userId, role, id, request.getReason());
+        log.debug("업체 거절 요청 - userId: {}, role: {}, ID: {}, 사유: {}", userId, role, id, request.reason());
 
         // ADMIN 권한 체크
         if (!"ADMIN".equals(role)) {
@@ -143,7 +143,7 @@ public class CompanyController {
             return ResponseEntity.status(403).body(ApiResponse.failure("권한이 없습니다."));
         }
 
-        ApiResponse response = companyService.rejectCompany(id, request.getReason());
+        ApiResponse response = companyService.rejectCompany(id, request.reason());
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);

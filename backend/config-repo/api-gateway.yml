@@ -11,21 +11,17 @@ spring:
   cloud:
     gateway:
       routes:
-        # Auth Service 사용자 라우팅 (JWT 필터 적용)
+        # Auth Service 사용자 라우팅
         - id: auth-service-users
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/users/**
-          filters:
-            - JwtAuthentication
 
-        # Auth Service JWT 라우팅 (JWT 필터 적용)
+        # Auth Service JWT 라우팅
         - id: auth-service-jwt
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/auth/**
-          filters:
-            - JwtAuthentication
 
         # TCS Mock Service 라우팅 (공개 API)
         - id: tcs-mock-service
@@ -33,35 +29,29 @@ spring:
           predicates:
             - Path=/api/v1/tcs/**
 
-        # Company Service 관리자 API (JWT 필터 적용)
+        # Company Service 관리자 API
         - id: company-service-admin
           uri: lb://company-service
           predicates:
             - Path=/api/v1/admin/companies/**
-          filters:
-            - JwtAuthentication
 
-        # Company Service 공개 API (필터 없음)
+        # Company Service 공개 API
         - id: company-service-public
           uri: lb://company-service
           predicates:
             - Path=/api/v1/public/operators/**
 
-        # Reservation Service 사용자 API (JWT 필터 적용)
+        # Reservation Service 사용자 API
         - id: reservation-service-user
           uri: lb://reservation-service
           predicates:
             - Path=/api/v1/reservations/**
-          filters:
-            - JwtAuthentication
 
-        # Reservation Service 업체 API (JWT 필터 적용)
+        # Reservation Service 업체 API
         - id: reservation-service-company
           uri: lb://reservation-service
           predicates:
             - Path=/api/v1/company/reservations/**
-          filters:
-            - JwtAuthentication
 
 # JWT 설정 (auth-service와 동일한 시크릿 사용)
 jwt:
