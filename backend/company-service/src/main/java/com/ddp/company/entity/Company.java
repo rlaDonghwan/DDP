@@ -94,23 +94,6 @@ public class Company {
     @Column
     private String rejectedReason;
 
-    // 인증 유효 기간
-    @Column
-    private LocalDate certificationValidUntil;
-
-    // 계약 상태
-    @Enumerated(EnumType.STRING)
-    @Column
-    private ContractStatus contractStatus;
-
-    // 사업자등록증 번호
-    @Column
-    private String businessRegistrationNumber;
-
-    // 직인 정보
-    @Column
-    private String sealInfo;
-
     // 초기 계정 ID
     @Column
     private String initialAccountId;

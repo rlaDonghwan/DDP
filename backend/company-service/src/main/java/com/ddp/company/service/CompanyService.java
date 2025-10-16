@@ -126,10 +126,6 @@ public class CompanyService {
                 .address(request.getAddress())
                 .region(request.getRegion())
                 .status(CompanyStatus.PENDING)  // 기본 상태: 대기 중
-                .certificationValidUntil(LocalDate.parse(request.getCertificationValidUntil()))
-                .contractStatus(request.getContractStatus())
-                .businessRegistrationNumber(request.getBusinessRegistrationNumber())
-                .sealInfo(request.getSealInfo())
                 .initialAccountId(request.getInitialAccountId())
                 .deviceCount(0)
                 .customerCount(0)

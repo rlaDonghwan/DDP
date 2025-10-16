@@ -1,9 +1,7 @@
 package com.ddp.company.dto.request;
 
-import com.ddp.company.entity.ContractStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,20 +42,6 @@ public class CreateCompanyRequest {
     // 지역
     @NotBlank(message = "지역은 필수입니다")
     private String region;
-
-    // 인증 유효 기간 (ISO 날짜)
-    @NotBlank(message = "인증 유효 기간은 필수입니다")
-    private String certificationValidUntil;
-
-    // 계약 상태
-    @NotNull(message = "계약 상태는 필수입니다")
-    private ContractStatus contractStatus;
-
-    // 사업자등록증 번호
-    private String businessRegistrationNumber;
-
-    // 직인 정보
-    private String sealInfo;
 
     // 초기 계정 ID
     @NotBlank(message = "초기 계정 ID는 필수입니다")

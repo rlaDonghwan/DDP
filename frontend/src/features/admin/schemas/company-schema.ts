@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /**
- * 사업자번호 형식 검증 정규식 (123-45-67890 형식)
+ * 사업자번호 형식 검증 정규식 (123-45-67890 형식, 하이픈 선택적)
  */
-const BUSINESS_NUMBER_REGEX = /^\d{3}-\d{2}-\d{5}$/;
+const BUSINESS_NUMBER_REGEX = /^\d{3}-?\d{2}-?\d{5}$/;
 
 /**
  * 업체 등록 폼 스키마
@@ -34,7 +34,7 @@ export const createCompanySchema = z.object({
     .string()
     .min(1, "전화번호를 입력해주세요")
     .regex(
-      /^0\d{1,2}-\d{3,4}-\d{4}$/,
+      /^0\d{1,2}-?\d{3,4}-?\d{4}$/,
       "올바른 전화번호 형식이 아닙니다 (예: 02-1234-5678 또는 010-1234-5678)"
     ),
   address: z
@@ -45,16 +45,6 @@ export const createCompanySchema = z.object({
     .string()
     .min(1, "지역을 선택해주세요")
     .max(50, "지역은 최대 50자까지 입력 가능합니다"),
-  certificationValidUntil: z
-    .string()
-    .min(1, "인증 유효 기간을 입력해주세요"),
-  contractStatus: z.enum(["active", "pending", "expired"], {
-    message: "계약 상태를 선택해주세요",
-  }),
-  businessRegistrationNumber: z
-    .string()
-    .min(1, "사업자등록증 번호를 입력해주세요"),
-  sealInfo: z.string().min(1, "직인 정보를 입력해주세요"),
   initialAccountId: z
     .string()
     .min(1, "초기 계정 ID를 입력해주세요")
@@ -105,7 +95,7 @@ export const updateCompanySchema = z.object({
   phone: z
     .string()
     .regex(
-      /^0\d{1,2}-\d{3,4}-\d{4}$/,
+      /^0\d{1,2}-?\d{3,4}-?\d{4}$/,
       "올바른 전화번호 형식이 아닙니다 (예: 02-1234-5678 또는 010-1234-5678)"
     )
     .optional(),

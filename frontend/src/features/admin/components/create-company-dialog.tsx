@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createCompanySchema,
@@ -51,15 +45,70 @@ export function CreateCompanyDialog({
     formState: { errors },
     reset,
     setValue,
-    watch,
   } = useForm<CreateCompanyFormData>({
     resolver: zodResolver(createCompanySchema),
-    defaultValues: {
-      contractStatus: "pending",
-    },
   });
 
-  const contractStatus = watch("contractStatus");
+  /**
+   * 사업자번호 자동 포맷 함수
+   */
+  const formatBusinessNumber = (value: string): string => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^\d]/g, "");
+
+    // 길이에 따라 포맷 적용: 123-45-67890
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 5) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 5)}-${numbers.slice(5, 10)}`;
+    }
+  };
+
+  /**
+   * 사업자번호 입력 핸들러
+   */
+  const handleBusinessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatBusinessNumber(e.target.value);
+    setValue("businessNumber", formatted);
+  };
+
+  /**
+   * 전화번호 자동 포맷 함수
+   */
+  const formatPhoneNumber = (value: string): string => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^\d]/g, "");
+
+    // 길이에 따라 포맷 적용
+    if (numbers.length <= 2) {
+      return numbers;
+    } else if (numbers.length <= 6) {
+      // 02-1234 형식 또는 010-123 형식
+      if (numbers.startsWith("02")) {
+        return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
+      }
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else if (numbers.length <= 10) {
+      // 02-1234-5678 형식 또는 010-1234-567 형식
+      if (numbers.startsWith("02")) {
+        return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+      }
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+    } else {
+      // 010-1234-5678 형식
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  /**
+   * 전화번호 입력 핸들러
+   */
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setValue("phone", formatted);
+  };
 
   /**
    * 폼 제출 핸들러
@@ -70,16 +119,18 @@ export function CreateCompanyDialog({
       await companiesApi.createCompany(data);
 
       // 성공 시 목록 새로고침
-      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "companies"] });
 
       // 다이얼로그 닫기 및 폼 리셋
       onOpenChange(false);
       reset();
 
-      alert("업체가 성공적으로 등록되었습니다.");
+      // 성공 토스트
+      toast.success("업체가 성공적으로 등록되었습니다.");
     } catch (error) {
       console.error("업체 등록 실패:", error);
-      alert("업체 등록에 실패했습니다. 다시 시도해주세요.");
+      // 실패 토스트
+      toast.error("업체 등록에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
     }
@@ -134,6 +185,7 @@ export function CreateCompanyDialog({
                   <Input
                     id="businessNumber"
                     {...register("businessNumber")}
+                    onChange={handleBusinessNumberChange}
                     placeholder="123-45-67890"
                   />
                   {errors.businessNumber && (
@@ -185,6 +237,7 @@ export function CreateCompanyDialog({
                   <Input
                     id="phone"
                     {...register("phone")}
+                    onChange={handlePhoneChange}
                     placeholder="02-1234-5678"
                   />
                   {errors.phone && (
@@ -220,91 +273,6 @@ export function CreateCompanyDialog({
                 {errors.address && (
                   <p className="text-sm text-red-600">{errors.address.message}</p>
                 )}
-              </div>
-            </div>
-
-            {/* 인증 및 계약 정보 */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900">
-                인증 및 계약 정보
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="certificationValidUntil">
-                    인증 유효 기간 <span className="text-red-600">*</span>
-                  </Label>
-                  <Input
-                    id="certificationValidUntil"
-                    type="date"
-                    {...register("certificationValidUntil")}
-                  />
-                  {errors.certificationValidUntil && (
-                    <p className="text-sm text-red-600">
-                      {errors.certificationValidUntil.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contractStatus">
-                    계약 상태 <span className="text-red-600">*</span>
-                  </Label>
-                  <Select
-                    value={contractStatus}
-                    onValueChange={(value) =>
-                      setValue("contractStatus", value as "active" | "pending" | "expired")
-                    }
-                  >
-                    <SelectTrigger id="contractStatus">
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">대기</SelectItem>
-                      <SelectItem value="active">활성</SelectItem>
-                      <SelectItem value="expired">만료</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.contractStatus && (
-                    <p className="text-sm text-red-600">
-                      {errors.contractStatus.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="businessRegistrationNumber">
-                    사업자등록증 번호 <span className="text-red-600">*</span>
-                  </Label>
-                  <Input
-                    id="businessRegistrationNumber"
-                    {...register("businessRegistrationNumber")}
-                    placeholder="등록증 번호 입력"
-                  />
-                  {errors.businessRegistrationNumber && (
-                    <p className="text-sm text-red-600">
-                      {errors.businessRegistrationNumber.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="sealInfo">
-                    직인 정보 <span className="text-red-600">*</span>
-                  </Label>
-                  <Input
-                    id="sealInfo"
-                    {...register("sealInfo")}
-                    placeholder="직인 정보 입력"
-                  />
-                  {errors.sealInfo && (
-                    <p className="text-sm text-red-600">
-                      {errors.sealInfo.message}
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
 
