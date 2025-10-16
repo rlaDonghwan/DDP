@@ -18,7 +18,7 @@ export const operatorApi = {
     console.log("API 호출 시작: 업체 목록 조회");
 
     try {
-      const response = await api.get<Operator[]>("/api/v1/operators", {
+      const response = await api.get<Operator[]>("/api/v1/public/operators", {
         params: filter,
       });
 
@@ -45,7 +45,9 @@ export const operatorApi = {
     console.log("API 호출 시작: 업체 상세 조회");
 
     try {
-      const response = await api.get<Operator>(`/api/v1/operators/${id}`);
+      const response = await api.get<Operator>(
+        `/api/v1/public/operators/${id}`
+      );
 
       const endTime = performance.now();
       console.log(
@@ -75,7 +77,7 @@ export const operatorApi = {
       const { latitude, longitude, radius = 10, serviceType } = request;
 
       const response = await api.get<Operator[]>(
-        "/api/v1/operators/nearby",
+        "/api/v1/public/operators/nearby",
         {
           params: {
             lat: latitude,
@@ -112,23 +114,23 @@ export const operatorApi = {
 
     try {
       const response = await api.get<OperatorAvailability>(
-        `/api/v1/operators/${operatorId}/availability`
+        `/api/v1/public/operators/${operatorId}/availability`
       );
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 업체 예약 가능 일정 조회 (${(endTime - startTime).toFixed(
-          2
-        )}ms)`
+        `API 호출 완료: 업체 예약 가능 일정 조회 (${(
+          endTime - startTime
+        ).toFixed(2)}ms)`
       );
 
       return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 업체 예약 가능 일정 조회 (${(endTime - startTime).toFixed(
-          2
-        )}ms)`
+        `API 호출 실패: 업체 예약 가능 일정 조회 (${(
+          endTime - startTime
+        ).toFixed(2)}ms)`
       );
       throw error;
     }

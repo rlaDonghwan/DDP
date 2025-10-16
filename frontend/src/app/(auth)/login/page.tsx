@@ -1,5 +1,6 @@
 import { Header } from "@/components/landing/header";
 import { LoginForm } from "@/features/auth/components/login-form";
+import Link from "next/link";
 
 /**
  * 사용자/업체 로그인 페이지
@@ -51,7 +52,20 @@ export default function LoginPage() {
           </div>
 
           {/* Right form card */}
-          <LoginForm userType="user" />
+          <div className="space-y-4">
+            <LoginForm userType="user" />
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                기업 회원이신가요?{" "}
+                <Link
+                  href="/company/login"
+                  className="font-semibold text-indigo-600 hover:text-indigo-500"
+                >
+                  기업 회원 로그인
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

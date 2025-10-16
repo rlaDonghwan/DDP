@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
   const protectedPaths = ["/admin", "/company", "/user"];
 
   // 공개 경로 (로그인 페이지 등)
-  const publicPaths = ["/login", "/admin/login"];
+  const publicPaths = ["/login", "/admin/login", "/company/login"];
   const isPublicPath = publicPaths.some(
     (path) => request.nextUrl.pathname === path
   );
