@@ -8,6 +8,11 @@ spring:
   application:
     name: company-service
 
+  # Jackson 설정 (Enum 대소문자 무시)
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+
   # PostgreSQL 데이터베이스 설정
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/ddp_company}
