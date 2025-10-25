@@ -29,4 +29,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 전화번호로 사용자 조회
     Optional<User> findByPhone(String phone);
+
+    // 업체 ID와 역할로 사용자 조회 (COMPANY 역할 전용)
+    Optional<User> findByCompanyIdAndRole(Long companyId, UserRole role);
 }

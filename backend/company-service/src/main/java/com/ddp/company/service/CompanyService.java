@@ -104,14 +104,14 @@ public class CompanyService {
         long startTime = System.currentTimeMillis();
 
         try {
-            // 1. 사업자등록번호 중복 확인
-            if (companyRepository.existsByBusinessNumber(request.getBusinessNumber())) {
+            // 1. 사업자등록번호 중복 확인 (삭제되지 않은 업체만)
+            if (companyRepository.existsByBusinessNumberAndDeletedAtIsNull(request.getBusinessNumber())) {
                 log.warn("업체 등록 실패: 이미 등록된 사업자등록번호 - {}", request.getBusinessNumber());
                 return ApiResponse.failure("이미 등록된 사업자등록번호입니다.");
             }
 
-            // 2. 이메일 중복 확인
-            if (companyRepository.existsByEmail(request.getEmail())) {
+            // 2. 이메일 중복 확인 (삭제되지 않은 업체만)
+            if (companyRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
                 log.warn("업체 등록 실패: 이미 등록된 이메일 - {}", request.getEmail());
                 return ApiResponse.failure("이미 등록된 이메일입니다.");
             }
@@ -275,19 +275,37 @@ public class CompanyService {
     }
 
     /**
-     * 업체 삭제
+     * 업체 삭제 (Soft Delete)
      */
     public ApiResponse deleteCompany(Long id) {
-        log.info("API 호출 시작: 업체 삭제 - ID: {}", id);
+        log.info("API 호출 시작: 업체 삭제 (Soft Delete) - ID: {}", id);
         long startTime = System.currentTimeMillis();
 
         try {
             Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("업체를 찾을 수 없습니다: " + id));
 
-            companyRepository.delete(company);
+            // 이미 삭제된 업체인지 확인
+            if (company.isDeleted()) {
+                log.warn("업체 삭제 실패: 이미 삭제된 업체 - ID: {}", id);
+                return ApiResponse.failure("이미 삭제된 업체입니다.");
+            }
 
-            log.info("API 호출 완료: 업체 삭제 - ID: {}, 업체명: {} ({}ms)",
+            // 1. 업체 Soft Delete 수행 (관리자 ID는 임시로 1L 사용, 추후 Spring Security에서 가져오기)
+            company.softDelete(1L);
+            companyRepository.save(company);
+
+            // 2. auth-service 호출하여 업체 계정 비활성화
+            try {
+                authServiceClient.deactivateCompanyAccount(id);
+                log.info("업체 계정 비활성화 성공 - 업체 ID: {}", id);
+            } catch (Exception authError) {
+                log.error("auth-service 호출 실패 - 업체 ID: {}, 오류: {}",
+                    id, authError.getMessage(), authError);
+                // auth-service 호출 실패해도 업체 삭제는 유지
+            }
+
+            log.info("API 호출 완료: 업체 삭제 (Soft Delete) - ID: {}, 업체명: {} ({}ms)",
                 id, company.getName(), System.currentTimeMillis() - startTime);
 
             return ApiResponse.success("업체가 삭제되었습니다.");

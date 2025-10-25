@@ -1,6 +1,7 @@
 package com.ddp.auth.controller;
 
 import com.ddp.auth.dto.request.CreateCompanyAccountRequest;
+import com.ddp.auth.dto.response.ApiResponse;
 import com.ddp.auth.dto.response.CreateCompanyAccountResponse;
 import com.ddp.auth.service.CompanyAccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,25 @@ public class CompanyAccountController {
             request.getPassword(),
             request.getPhone()
         );
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * 업체 계정 비활성화 (company-service에서 업체 삭제 시 호출)
+     */
+    @PostMapping("/{companyId}/deactivate")
+    @Operation(summary = "업체 계정 비활성화", description = "업체 삭제 시 해당 업체의 로그인 계정을 비활성화합니다")
+    public ResponseEntity<ApiResponse> deactivateCompanyAccount(
+        @PathVariable Long companyId
+    ) {
+        log.debug("업체 계정 비활성화 요청 - 업체 ID: {}", companyId);
+
+        ApiResponse response = companyAccountService.deactivateCompanyAccount(companyId);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);

@@ -1,5 +1,6 @@
 package com.ddp.auth.service;
 
+import com.ddp.auth.dto.response.ApiResponse;
 import com.ddp.auth.dto.response.CreateCompanyAccountResponse;
 import com.ddp.auth.entity.AccountStatus;
 import com.ddp.auth.entity.User;
@@ -61,7 +62,8 @@ public class CompanyAccountService {
                 .name(companyName)
                 .phone(phone)
                 .address(null) // 업체 주소는 company-service에서 관리
-                .licenseNumber(companyId) // company ID를 licenseNumber 필드에 저장
+                .companyId(Long.parseLong(companyId)) // company ID를 companyId 필드에 저장
+                .licenseNumber(null) // 업체는 운전면허 없음
                 .role(UserRole.COMPANY)
                 .accountStatus(AccountStatus.ACTIVE)
                 .build();
@@ -76,6 +78,39 @@ public class CompanyAccountService {
         } catch (Exception e) {
             log.error("API 호출 실패: 업체 계정 생성 - 업체 ID: {}, 오류: {}", companyId, e.getMessage(), e);
             return CreateCompanyAccountResponse.failure("업체 계정 생성 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 업체 계정 비활성화 (company-service에서 업체 삭제 시 호출)
+     */
+    public ApiResponse deactivateCompanyAccount(Long companyId) {
+        log.info("API 호출 시작: 업체 계정 비활성화 - 업체 ID: {}", companyId);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            // 1. 업체 ID와 COMPANY 역할로 사용자 조회
+            Optional<User> companyUser = userRepository.findByCompanyIdAndRole(companyId, UserRole.COMPANY);
+
+            if (companyUser.isEmpty()) {
+                log.warn("업체 계정 비활성화 실패: 업체 계정을 찾을 수 없음 - 업체 ID: {}", companyId);
+                return ApiResponse.failure("업체 계정을 찾을 수 없습니다.");
+            }
+
+            User user = companyUser.get();
+
+            // 2. 계정 상태를 DEACTIVATED로 변경
+            user.updateAccountStatus(AccountStatus.DEACTIVATED);
+            userRepository.save(user);
+
+            log.info("API 호출 완료: 업체 계정 비활성화 - 사용자 ID: {}, 업체 ID: {} ({}ms)",
+                user.getUserId(), companyId, System.currentTimeMillis() - startTime);
+
+            return ApiResponse.success("업체 계정이 비활성화되었습니다.");
+
+        } catch (Exception e) {
+            log.error("API 호출 실패: 업체 계정 비활성화 - 업체 ID: {}, 오류: {}", companyId, e.getMessage(), e);
+            return ApiResponse.failure("업체 계정 비활성화 중 오류가 발생했습니다.");
         }
     }
 

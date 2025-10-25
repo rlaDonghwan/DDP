@@ -117,6 +117,14 @@ public class Company {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    // 삭제 시간 (Soft Delete)
+    @Column
+    private LocalDateTime deletedAt;
+
+    // 삭제자 ID (관리자 ID)
+    @Column
+    private Long deletedBy;
+
     // 서비스 이력 목록 (1:N 관계)
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -131,4 +139,20 @@ public class Company {
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Customer> customers = new ArrayList<>();
+
+    /**
+     * 업체 소프트 삭제 수행
+     */
+    public void softDelete(Long adminId) {
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = adminId;
+        this.status = CompanyStatus.REJECTED; // 삭제된 업체는 REJECTED 상태로 변경
+    }
+
+    /**
+     * 삭제 여부 확인
+     */
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 }

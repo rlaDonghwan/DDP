@@ -43,9 +43,13 @@ public class User {
     @Column
     private String address;
 
-    // 운전면허 번호 (음주운전 방지 프로그램용)
+    // 운전면허 번호 (음주운전 방지 프로그램용 - USER 역할 전용)
     @Column(unique = true)
     private String licenseNumber;
+
+    // 업체 ID (COMPANY 역할 전용)
+    @Column
+    private Long companyId;
 
     // 사용자 역할
     @Enumerated(EnumType.STRING)
@@ -84,5 +88,12 @@ public class User {
      */
     public void updatePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
+    }
+
+    /**
+     * 계정 상태 업데이트 메서드
+     */
+    public void updateAccountStatus(AccountStatus newStatus) {
+        this.accountStatus = newStatus;
     }
 }

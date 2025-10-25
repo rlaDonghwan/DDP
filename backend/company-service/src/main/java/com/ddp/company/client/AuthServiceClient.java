@@ -1,8 +1,10 @@
 package com.ddp.company.client;
 
 import com.ddp.company.dto.request.CreateCompanyAccountRequest;
+import com.ddp.company.dto.response.ApiResponse;
 import com.ddp.company.dto.response.CreateCompanyAccountResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -15,4 +17,10 @@ public interface AuthServiceClient {
      */
     @PostMapping
     CreateCompanyAccountResponse createCompanyAccount(@RequestBody CreateCompanyAccountRequest request);
+
+    /**
+     * 업체 계정 비활성화 (auth-service 호출)
+     */
+    @PostMapping("/{companyId}/deactivate")
+    ApiResponse deactivateCompanyAccount(@PathVariable("companyId") Long companyId);
 }

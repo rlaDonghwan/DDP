@@ -658,9 +658,11 @@ export function CompanyDetailModal({
                       <AlertCircle className="h-5 w-5 text-red-600" />
                       업체 삭제 확인
                     </AlertDialogTitle>
-                    <AlertDialogDescription className="space-y-3 pt-2">
-                      <p>정말로 이 업체를 삭제하시겠습니까?</p>
-                      <p className="text-red-600 font-semibold">
+                    <AlertDialogDescription>
+                      정말로 이 업체를 삭제하시겠습니까?
+                    </AlertDialogDescription>
+                    <div className="space-y-3 pt-2">
+                      <p className="text-sm text-red-600 font-semibold">
                         이 작업은 되돌릴 수 없습니다.
                       </p>
                       <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
@@ -669,7 +671,7 @@ export function CompanyDetailModal({
                           {company.name}
                         </p>
                       </div>
-                    </AlertDialogDescription>
+                    </div>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>취소</AlertDialogCancel>

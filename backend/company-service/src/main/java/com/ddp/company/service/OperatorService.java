@@ -33,13 +33,13 @@ public class OperatorService {
         long startTime = System.currentTimeMillis();
 
         try {
-            // 승인된 업체만 조회
+            // 승인된 업체만 조회 (삭제되지 않은 업체만)
             List<Company> companies;
 
             if (region != null && !region.isEmpty()) {
-                companies = companyRepository.findByStatusAndRegion(CompanyStatus.APPROVED, region);
+                companies = companyRepository.findByStatusAndRegionAndDeletedAtIsNull(CompanyStatus.APPROVED, region);
             } else {
-                companies = companyRepository.findByStatus(CompanyStatus.APPROVED);
+                companies = companyRepository.findByStatusAndDeletedAtIsNull(CompanyStatus.APPROVED);
             }
 
             // DTO 변환
@@ -72,8 +72,8 @@ public class OperatorService {
                 return OperatorListResponse.failure();
             }
 
-            // 승인된 업체 모두 조회
-            List<Company> allCompanies = companyRepository.findByStatus(CompanyStatus.APPROVED);
+            // 승인된 업체 모두 조회 (삭제되지 않은 업체만)
+            List<Company> allCompanies = companyRepository.findByStatusAndDeletedAtIsNull(CompanyStatus.APPROVED);
 
             // 거리 계산 및 필터링
             List<OperatorDto> nearbyOperators = new ArrayList<>();
@@ -150,8 +150,8 @@ public class OperatorService {
         long startTime = System.currentTimeMillis();
 
         try {
-            // 승인된 업체 중 이름으로 검색
-            List<Company> companies = companyRepository.findByStatusAndNameContaining(
+            // 승인된 업체 중 이름으로 검색 (삭제되지 않은 업체만)
+            List<Company> companies = companyRepository.findByStatusAndNameContainingAndDeletedAtIsNull(
                 CompanyStatus.APPROVED, keyword);
 
             // DTO 변환
