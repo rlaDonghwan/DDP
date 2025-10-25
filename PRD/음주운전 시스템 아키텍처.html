@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>시스템 아키텍처</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .gradient-bg {
+        background: linear-gradient(-45deg, #020617, #0f172a, #1e293b);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .component,
+      .connector {
+        transition: all 0.3s ease-in-out;
+      }
+
+      .highlight {
+        transform: scale(1.05);
+        box-shadow: 0 0 24px rgba(14, 165, 233, 0.35); /* sky-500 glow */
+        border-color: #0ea5e9 !important; /* sky-500 */
+      }
+
+      .highlight-text {
+        color: #67e8f9 !important;
+      }
+      .highlight-connector path {
+        stroke: #22d3ee !important;
+        opacity: 1;
+      }
+      .highlight-connector text {
+        fill: #67e8f9 !important;
+      }
+
+      .group-box {
+        stroke-dasharray: 8, 6;
+        transition: all 0.3s ease-in-out;
+      }
+      .highlight-group {
+        stroke: #0ea5e9 !important; /* sky-500 */
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-white text-slate-800 min-h-screen flex items-center justify-center p-4"
+  >
+    <div
+      class="w-full max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden"
+    >
+      <header class="p-6 border-b border-slate-200 text-center">
+        <h1 class="text-2xl md:text-3xl font-bold text-sky-700 tracking-tight">
+          System Architecture
+        </h1>
+        <p class="text-slate-600 mt-2">음주운전 방지장치 통합운영관리시스템</p>
+      </header>
+
+      <main class="p-4 md:p-8">
+        <!-- Diagram Section -->
+        <div class="max-w-7xl mx-auto">
+          <svg
+            id="architecture-svg"
+            viewBox="0 0 1000 650"
+            class="w-full h-auto"
+          >
+            <!-- Definitions for markers -->
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="8"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#475569" />
+              </marker>
+            </defs>
+
+            <!-- Group Boxes -->
+            <rect
+              class="group-box"
+              data-id="frontend-group"
+              x="10"
+              y="10"
+              width="220"
+              height="580"
+              rx="15"
+              fill="none"
+              stroke="#cbd5e1"
+              stroke-width="2"
+            />
+            <text
+              x="120"
+              y="30"
+              fill="#64748b"
+              font-size="14"
+              font-weight="bold"
+              text-anchor="middle"
+            >
+              Front-End
+            </text>
+
+            <rect
+              class="group-box"
+              data-id="backend-group"
+              x="250"
+              y="10"
+              width="460"
+              height="580"
+              rx="15"
+              fill="none"
+              stroke="#cbd5e1"
+              stroke-width="2"
+            />
+            <text
+              x="480"
+              y="30"
+              fill="#64748b"
+              font-size="14"
+              font-weight="bold"
+              text-anchor="middle"
+            >
+              Back-End (MSA)
+            </text>
+
+            <rect
+              class="group-box"
+              data-id="database-group"
+              x="730"
+              y="10"
+              width="260"
+              height="340"
+              rx="15"
+              fill="none"
+              stroke="#cbd5e1"
+              stroke-width="2"
+            />
+            <text
+              x="860"
+              y="30"
+              fill="#64748b"
+              font-size="14"
+              font-weight="bold"
+              text-anchor="middle"
+            >
+              Database Layer
+            </text>
+
+            <rect
+              class="group-box"
+              data-id="external-group"
+              x="730"
+              y="370"
+              width="260"
+              height="220"
+              rx="15"
+              fill="none"
+              stroke="#cbd5e1"
+              stroke-width="2"
+            />
+            <text
+              x="860"
+              y="390"
+              fill="#64748b"
+              font-size="14"
+              font-weight="bold"
+              text-anchor="middle"
+            >
+              External Services
+            </text>
+
+            <!-- Components -->
+            <g class="component" data-id="user">
+              <rect
+                x="50"
+                y="270"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="120"
+                y="305"
+                font-size="16"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Users
+              </text>
+            </g>
+
+            <g class="component" data-id="gateway">
+              <rect
+                x="310"
+                y="270"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="380"
+                y="305"
+                font-size="16"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                API Gateway
+              </text>
+            </g>
+
+            <!-- Infrastructure Services -->
+            <g class="component" data-id="eureka-server">
+              <rect
+                x="280"
+                y="60"
+                width="130"
+                height="50"
+                rx="8"
+                fill="#e0f2fe"
+                stroke="#0ea5e9"
+                stroke-width="2"
+              />
+              <text
+                x="345"
+                y="90"
+                font-size="13"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Eureka Server
+              </text>
+            </g>
+            <g class="component" data-id="config-service">
+              <rect
+                x="280"
+                y="130"
+                width="130"
+                height="50"
+                rx="8"
+                fill="#e0f2fe"
+                stroke="#0ea5e9"
+                stroke-width="2"
+              />
+              <text
+                x="345"
+                y="160"
+                font-size="13"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Config Service
+              </text>
+            </g>
+
+            <!-- Business Services -->
+            <g class="component" data-id="auth-service">
+              <rect
+                x="510"
+                y="60"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="580"
+                y="95"
+                font-size="14"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Auth Service
+              </text>
+            </g>
+            <g class="component" data-id="company-service">
+              <rect
+                x="510"
+                y="160"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="580"
+                y="195"
+                font-size="14"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Company Service
+              </text>
+            </g>
+            <g class="component" data-id="reservation-service">
+              <rect
+                x="510"
+                y="260"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="580"
+                y="295"
+                font-size="14"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Reservation Service
+              </text>
+            </g>
+            <g class="component" data-id="payment-service">
+              <rect
+                x="510"
+                y="360"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="580"
+                y="395"
+                font-size="14"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Payment Service
+              </text>
+            </g>
+
+            <g class="component" data-id="db-postgres">
+              <ellipse
+                cx="860"
+                cy="160"
+                rx="90"
+                ry="50"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="860"
+                y="165"
+                font-size="15"
+                fill="#0f172a"
+                font-weight="bold"
+                text-anchor="middle"
+              >
+                PostgreSQL
+              </text>
+            </g>
+
+            <g class="component" data-id="mock-tcs">
+              <rect
+                x="790"
+                y="420"
+                width="140"
+                height="60"
+                rx="8"
+                fill="#f8fafc"
+                stroke="#94a3b8"
+                stroke-width="2"
+              />
+              <text
+                x="860"
+                y="455"
+                font-size="14"
+                fill="#0f172a"
+                text-anchor="middle"
+              >
+                Mock TCS API
+              </text>
+            </g>
+
+            <!-- Connectors -->
+            <g class="connector" data-id="user_gateway">
+              <path
+                d="M190 300 L310 300"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <text
+                x="245"
+                y="295"
+                font-size="12"
+                fill="#94a3b8"
+                text-anchor="middle"
+              >
+                HTTPS
+              </text>
+            </g>
+
+            <!-- Gateway to Infrastructure Services -->
+            <g class="connector" data-id="gateway_infra">
+              <path
+                d="M380 270 L345 110"
+                stroke="#0ea5e9"
+                stroke-width="2"
+                stroke-dasharray="5,5"
+                fill="none"
+              />
+              <text
+                x="370"
+                y="180"
+                font-size="11"
+                fill="#0ea5e9"
+                text-anchor="middle"
+              ></text>
+            </g>
+
+            <!-- Gateway to Business Services -->
+            <g class="connector" data-id="gateway_services">
+              <path
+                d="M450 300 L510 90"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M450 300 L510 190"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M450 300 L510 290"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M450 300 L510 390"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <text
+                x="475"
+                y="250"
+                font-size="12"
+                fill="#94a3b8"
+                text-anchor="middle"
+              >
+                Routing
+              </text>
+            </g>
+
+            <!-- Business Services to Database -->
+            <g class="connector" data-id="services_db">
+              <path
+                d="M650 90 L770 140"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M650 190 L770 165"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M650 290 L770 180"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <path
+                d="M650 390 L770 195"
+                stroke="#475569"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <text
+                x="700"
+                y="135"
+                font-size="11"
+                fill="#94a3b8"
+                text-anchor="middle"
+              >
+                JPA/SQL
+              </text>
+            </g>
+
+            <!-- Auth Service to TCS Mock -->
+            <g class="connector" data-id="auth_mock">
+              <path
+                d="M650 90 L790 435"
+                stroke="#475569"
+                stroke-width="2"
+                stroke-dasharray="5,5"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <text
+                x="720"
+                y="250"
+                font-size="11"
+                fill="#94a3b8"
+                text-anchor="middle"
+              >
+                License Verify
+              </text>
+            </g>
+          </svg>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const svg = document.getElementById("architecture-svg");
+
+      // 호버 하이라이트 효과
+      svg.addEventListener("mouseover", (e) => {
+        const targetEl = e.target.closest(".component, .group-box");
+        if (!targetEl) return;
+
+        const id = targetEl.dataset.id;
+        svg.querySelectorAll(".component, .group-box").forEach((el) => {
+          if (el.dataset.id === id) {
+            el.classList.add("highlight");
+          }
+        });
+      });
+
+      svg.addEventListener("mouseout", (e) => {
+        const targetEl = e.target.closest(".component, .group-box");
+        if (!targetEl) return;
+
+        svg
+          .querySelectorAll(".highlight")
+          .forEach((el) => el.classList.remove("highlight"));
+      });
+    </script>
+  </body>
+</html>

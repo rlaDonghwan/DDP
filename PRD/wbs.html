@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WBS (Work Breakdown Structure)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #fff;
+        color: #222;
+      }
+      .wbs-wrapper {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+      }
+      .wbs-header-grad {
+        background: linear-gradient(90deg, #2563eb, #0ea5e9);
+      }
+      .table-header {
+        background: #f1f5f9;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .task-row {
+        font-size: 13px;
+      }
+      .task-row:nth-child(even) {
+        background: #fafafa;
+      }
+      .task-row:hover {
+        background: #eef6ff;
+      }
+      .level-1 {
+        font-weight: 600;
+        background: #e0f2fe !important;
+      }
+      .level-2 {
+        padding-left: 16px;
+      }
+      .level-3 {
+        padding-left: 32px;
+        font-size: 12px;
+      }
+      .gantt-area {
+        position: relative;
+      }
+      .gantt-grid {
+        position: relative;
+      }
+      .gantt-grid::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          to right,
+          rgba(0, 0, 0, 0.04) 0 1px,
+          transparent 1px 70px
+        );
+        pointer-events: none;
+      }
+      .gantt-bar {
+        position: absolute;
+        height: 20px;
+        top: 6px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      .gantt-bar:hover {
+        transform: translateY(-2px);
+      }
+      .bar-parent {
+        opacity: 0.4;
+        border: 1px dashed rgba(0, 0, 0, 0.35);
+        background: linear-gradient(135deg, #cbd5e1, #e2e8f0);
+        color: #1e293b;
+      }
+      /* 상태별 색상 */
+      .bar-default {
+        background: #3b82f6;
+      }
+      .bar-completed {
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+      }
+      .bar-in-progress {
+        background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      }
+      .bar-planned {
+        background: linear-gradient(135deg, #64748b, #94a3b8);
+      }
+      .tooltip {
+        position: absolute;
+        z-index: 50;
+        background: #1e293b;
+        color: #fff;
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.3);
+        transform: translate(-50%, -8px);
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s;
+      }
+      .gantt-bar:hover .tooltip {
+        opacity: 1;
+      }
+      .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+      }
+      .mini-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+      }
+      .mini-legend i {
+        width: 14px;
+        height: 14px;
+        display: inline-block;
+        border-radius: 4px;
+      }
+      .mini-legend .done {
+        background: #16a34a;
+      }
+      .mini-legend .prog {
+        background: #0284c7;
+      }
+      .mini-legend .plan {
+        background: #64748b;
+      }
+      .week-labels {
+        font-size: 10px;
+        color: #475569;
+        font-weight: 500;
+      }
+      .week-cell {
+        border-right: 1px solid #cbd5e1;
+        min-height: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+      }
+      .week-cell:last-child {
+        border-right: none;
+      }
+      .week-number {
+        font-weight: 600;
+        font-size: 11px;
+        color: #1e293b;
+      }
+      .week-dates {
+        font-size: 9px;
+        color: #64748b;
+      }
+      .now-marker {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dc2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+      }
+      .shadow-inset {
+        box-shadow: inset 0 1px 0 #e2e8f0;
+      }
+      @media (max-width: 900px) {
+        .col-static {
+          min-width: 380px;
+        }
+      }
+    </style>
+  </head>
+  <body class="p-6 lg:p-8">
+    <div class="max-w-[1800px] mx-auto wbs-wrapper overflow-hidden">
+      <div class="wbs-header-grad text-white p-6 pb-5">
+        <h1 class="text-2xl font-bold tracking-tight">프로젝트 WBS</h1>
+        <p class="text-white/80 text-sm mt-1">
+          음주운전 방지장치 통합운영관리시스템
+        </p>
+        <div class="mini-legend flex gap-6 mt-4 flex-wrap">
+          <span class="text-white/90 font-semibold"
+            >타임라인: W1 ~ W15 (2025.09.01 ~ 2025.12.14)</span
+          >
+          <span class="flex items-center gap-1"><i class="done"></i> 완료</span>
+          <span class="flex items-center gap-1"
+            ><i class="prog"></i> 진행중</span
+          >
+          <span class="flex items-center gap-1"><i class="plan"></i> 예정</span>
+        </div>
+      </div>
+
+      <!-- Table + Gantt -->
+      <div class="overflow-x-auto border-t border-slate-200">
+        <div
+          class="min-w-[1430px] grid"
+          style="grid-template-columns: 380px 1fr"
+        >
+          <!-- Static Columns Header -->
+          <div
+            class="grid col-static sticky-header"
+            style="grid-template-columns: 70px 1fr 60px"
+          >
+            <div class="table-header px-2 py-2 border-r border-slate-200">
+              WBS
+            </div>
+            <div class="table-header px-3 py-2 border-r border-slate-200">
+              작업명
+            </div>
+            <div class="table-header px-2 py-2">기간(일)</div>
+          </div>
+          <!-- Timeline Header -->
+          <div
+            class="sticky-header bg-gradient-to-b from-slate-50 to-white border-b-2 border-slate-300 relative overflow-hidden"
+          >
+            <div
+              id="week-labels"
+              class="flex week-labels"
+              style="height: 50px"
+            ></div>
+          </div>
+          <!-- Data Rows (Static Part) -->
+          <div id="static-rows" class="col-static"></div>
+          <!-- Timeline Rows -->
+          <div id="timeline-rows" class="relative gantt-area"></div>
+        </div>
+      </div>
+
+      <div
+        class="p-4 text-xs text-slate-500 flex justify-between gap-4 flex-wrap"
+      >
+        <div>※ 상위(Parent) 작업 바는 점선/옅은색 요약 영역입니다.</div>
+        <div>자동 계산: 하위 작업들의 시작~종료를 기반으로 상위 기간 산출.</div>
+      </div>
+    </div>
+
+    <script>
+      // 원본 데이터 (WBS명 안의 앞 번호가 코드로 활용됨)
+      const rawTasks = [
+        {
+          level: 1,
+          name: "1.0 프로젝트 관리",
+          duration: 5,
+          status: "완료",
+          담당자: "PM",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "1.1 착수 회의",
+          duration: 1,
+          status: "완료",
+          담당자: "PM",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "1.2 프로젝트 계획 수립",
+          duration: 2,
+          status: "완료",
+          담당자: "PM",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "1.3 주간 보고",
+          duration: 1,
+          status: "진행중",
+          담당자: "PM",
+          비고: "매주 월요일",
+        },
+        {
+          level: 2,
+          name: "1.4 이슈 관리",
+          duration: 1,
+          status: "진행중",
+          담당자: "PM",
+          비고: "",
+        },
+        {
+          level: 1,
+          name: "2.0 분석",
+          duration: 10,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "2.1 요구사항 분석",
+          duration: 3,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "2.1.1 요구사항 정의서 작성",
+          duration: 2,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "2.1.2 메뉴 구조도 작성",
+          duration: 1,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "2.2 프로세스 분석",
+          duration: 2,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "2.2.1 프로세스 정의서 작성",
+          duration: 2,
+          status: "완료",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "2.3 아키텍처 분석",
+          duration: 3,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "2.3.1 아키텍처 정의서 작성",
+          duration: 3,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "2.4 데이터 모델링 분석",
+          duration: 2,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "2.4.1 데이터 정의서 작성",
+          duration: 2,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 1,
+          name: "3.0 설계",
+          duration: 15,
+          status: "완료",
+          담당자: "전체",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "3.1 화면(UI/UX) 설계",
+          duration: 5,
+          status: "완료",
+          담당자: "Front-End",
+          비고: "Figma, Shadcn/ui",
+        },
+        {
+          level: 3,
+          name: "3.1.1 와이어프레임 작성",
+          duration: 2,
+          status: "완료",
+          담당자: "Front-End",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "3.1.2 UI 디자인 시스템 정의",
+          duration: 3,
+          status: "완료",
+          담당자: "Front-End",
+          비고: "Tailwind CSS 기반",
+        },
+        {
+          level: 2,
+          name: "3.2 API 설계",
+          duration: 5,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "Swagger",
+        },
+        {
+          level: 3,
+          name: "3.2.1 REST API 명세서 작성",
+          duration: 5,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "3.3 데이터베이스 설계",
+          duration: 5,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "3.3.1 물리 ERD 설계",
+          duration: 3,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "PostgreSQL, MongoDB",
+        },
+        {
+          level: 3,
+          name: "3.3.2 테이블 생성 스크립트 작성",
+          duration: 2,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 1,
+          name: "4.0 구현",
+          duration: 60,
+          status: "완료",
+          담당자: "개발",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "4.1 개발 환경 구축",
+          duration: 5,
+          status: "완료",
+          담당자: "전체",
+          비고: "Docker, Kubernetes",
+        },
+        {
+          level: 3,
+          name: "4.1.1 Git Repository 생성",
+          duration: 1,
+          status: "완료",
+          담당자: "PM",
+          비고: "GitHub",
+        },
+        {
+          level: 3,
+          name: "4.1.2 Docker-compose 환경 구성",
+          duration: 2,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 3,
+          name: "4.1.3 CI/CD 파이프라인 구축",
+          duration: 2,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "GitHub Actions",
+        },
+        {
+          level: 2,
+          name: "4.2 프론트엔드 개발",
+          duration: 5,
+          status: "완료",
+          담당자: "Front-End",
+          비고: "Next.js, React",
+        },
+        {
+          level: 2,
+          name: "4.3 백엔드 개발",
+          duration: 10,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "Spring Boot",
+        },
+        {
+          level: 3,
+          name: "4.3.1 사용자/인증 서비스 개발",
+          duration: 7,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "Spring Security, JWT",
+        },
+        {
+          level: 3,
+          name: "4.3.2 장치/업체 서비스 개발",
+          duration: 8,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "4.4 외부 연동(Mock) 개발",
+          duration: 5,
+          status: "완료",
+          담당자: "Back-End",
+          비고: "Spring Boot",
+        },
+        {
+          level: 1,
+          name: "5.0 테스트 및 배포",
+          duration: 15,
+          status: "진행중",
+          담당자: "전체",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "5.1 단위/통합 테스트 및 버그 수정",
+          duration: 7,
+          status: "진행중",
+          담당자: "개발",
+          비고: "JUnit, Postman",
+        },
+        {
+          level: 2,
+          name: "5.2 시나리오 테스트",
+          duration: 5,
+          status: "예정",
+          담당자: "기획/분석",
+          비고: "",
+        },
+        {
+          level: 2,
+          name: "5.3 최종 배포 및 문서화",
+          duration: 3,
+          status: "예정",
+          담당자: "전체",
+          비고: "Kubernetes, 사용자 매뉴얼",
+        },
+      ];
+
+      // 1) Leaf 판별 (하위 level 존재 여부)
+      rawTasks.forEach((t, i) => {
+        t.children = i + 1 < rawTasks.length && rawTasks[i + 1].level > t.level;
+      });
+
+      // 2) Leaf 기준 startDay/endDay 순차 할당
+      let dayCursor = 0;
+      rawTasks.forEach((t, i) => {
+        if (!t.children) {
+          t.startDay = dayCursor;
+          t.endDay = dayCursor + t.duration; // exclusive
+          dayCursor += t.duration;
+        }
+      });
+
+      // 3) Parent duration 계산 (자식들의 min~max)
+      for (let i = rawTasks.length - 1; i >= 0; i--) {
+        const t = rawTasks[i];
+        if (t.children) {
+          let minStart = Infinity;
+          let maxEnd = -Infinity;
+          let j = i + 1;
+          while (j < rawTasks.length && rawTasks[j].level > t.level) {
+            if (rawTasks[j].startDay !== undefined) {
+              minStart = Math.min(minStart, rawTasks[j].startDay);
+              maxEnd = Math.max(maxEnd, rawTasks[j].endDay);
+            }
+            j++;
+          }
+          if (minStart !== Infinity) {
+            t.startDay = minStart;
+            t.endDay = maxEnd;
+            t.calcDuration = t.endDay - t.startDay;
+          }
+        }
+      }
+
+      const totalDays = Math.max(1, dayCursor); // leaf 합산, 0 방지
+      const weeks = 15; // 고정 15주 표시
+      const totalWeekDays = weeks * 7; // 15주 = 105일 (고정 기간)
+      const startDate = new Date(2025, 7, 27); // 2025년 8월 27일 시작 (0=1월, 7=8월)
+
+      // 날짜 포맷 함수 (MM.DD)
+      function formatDate(date) {
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${month}.${day}`;
+      }
+
+      // --- Header Week 라벨 ---
+      const weekLabelsEl = document.getElementById("week-labels");
+      for (let w = 0; w < weeks; w++) {
+        const weekStart = new Date(startDate);
+        weekStart.setDate(startDate.getDate() + w * 7);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const div = document.createElement("div");
+        div.className = "week-cell";
+        div.style.width = "70px";
+        div.innerHTML = `
+          <div class="week-number">W${w + 1}</div>
+          <div class="week-dates">${formatDate(weekStart)}-${formatDate(
+          weekEnd
+        )}</div>
+        `;
+        weekLabelsEl.appendChild(div);
+      }
+      weekLabelsEl.style.width = weeks * 70 + "px";
+
+      // --- Static Rows & Timeline Rows ---
+      const staticRowsEl = document.getElementById("static-rows");
+      const timelineRowsEl = document.getElementById("timeline-rows");
+      timelineRowsEl.style.minWidth = weeks * 70 + "px";
+      timelineRowsEl.classList.add("gantt-grid");
+
+      function parseCode(name) {
+        return name.split(" ")[0] || "";
+      }
+      // 상태 배지는 사용하지 않음 (주차 중심 표시)
+
+      rawTasks.forEach((t) => {
+        // Static cols row
+        const row = document.createElement("div");
+        row.className =
+          "grid task-row border-b border-slate-200 last:border-b-0";
+        row.style.gridTemplateColumns = "70px 1fr 60px";
+        const code = parseCode(t.name);
+        const title = t.name.replace(/^\S+\s*/, "");
+        row.innerHTML = `
+        <div class="px-2 py-2 ${
+          t.level === 1 ? "font-semibold" : ""
+        }">${code}</div>
+        <div class="px-3 py-2 ${
+          t.level === 1 ? "level-1" : t.level === 2 ? "level-2" : "level-3"
+        }">${title}</div>
+        <div class="px-2 py-2 text-center text-xs">${
+          t.children ? t.calcDuration || t.duration : t.duration
+        }</div>`;
+        staticRowsEl.appendChild(row);
+
+        // Timeline row container
+        const tlRow = document.createElement("div");
+        tlRow.className =
+          "relative border-b border-slate-200 last:border-b-0 h-[32px]";
+
+        if (t.startDay !== undefined) {
+          const bar = document.createElement("div");
+          const duration = t.children ? t.calcDuration : t.duration;
+
+          // 시작일과 종료일이 105일을 넘지 않도록 제한
+          const clampedStart = Math.min(t.startDay, totalWeekDays - 1);
+          const clampedEnd = Math.min(t.startDay + duration, totalWeekDays);
+          const clampedDuration = clampedEnd - clampedStart;
+
+          // 105일 기준 퍼센트 계산
+          let left = (clampedStart / totalWeekDays) * 100;
+          let width = (clampedDuration / totalWeekDays) * 100;
+
+          // 추가 가드: 0~100% 사이로 보정
+          left = Math.max(0, Math.min(100, left));
+          width = Math.max(0, Math.min(100 - left, width));
+
+          // 주차 범위 계산 (1~15)
+          const startW = Math.max(
+            1,
+            Math.min(15, Math.floor(clampedStart / 7) + 1)
+          );
+          const endW = Math.max(1, Math.min(15, Math.ceil(clampedEnd / 7)));
+
+          // 상태별 클래스 결정
+          let barClass = "gantt-bar ";
+          if (t.children) {
+            barClass += "bar-parent";
+          } else {
+            if (t.status === "완료") {
+              barClass += "bar-completed";
+            } else if (t.status === "진행중") {
+              barClass += "bar-in-progress";
+            } else {
+              barClass += "bar-planned";
+            }
+          }
+
+          bar.className = barClass;
+          bar.style.left = left + "%";
+          bar.style.width = width + "%";
+          bar.dataset.name = t.name;
+          bar.innerHTML = `<div class="tooltip">${
+            t.name
+          }<br/>${clampedDuration}일 (W${startW} ~ W${endW})<br/>상태: ${
+            t.status
+          }${t.비고 ? "<br/>" + t.비고 : ""}</div>`;
+          tlRow.appendChild(bar);
+        }
+        timelineRowsEl.appendChild(tlRow);
+      });
+
+      // 오늘(NOW) 마커 옵션 (원한다면 날짜 기반 로직 추가 가능)
+      // const now = document.createElement('div'); now.className='now-marker'; now.style.left='30%'; timelineRowsEl.appendChild(now);
+    </script>
+  </body>
+</html>

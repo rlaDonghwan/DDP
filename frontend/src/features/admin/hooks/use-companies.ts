@@ -101,3 +101,21 @@ export function useCompanyDetail(id: string) {
     refetch,
   };
 }
+
+/**
+ * 업체 삭제 훅
+ */
+export function useDeleteCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (companyId: string) => companiesApi.deleteCompany(companyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "companies"] });
+      toast.success("업체가 삭제되었습니다");
+    },
+    onError: () => {
+      toast.error("업체 삭제에 실패했습니다");
+    },
+  });
+}

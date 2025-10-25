@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle } from "lucide-react";
 import { CreateCompanyDialog } from "@/features/admin/components/create-company-dialog";
+import { CompanyDetailModal } from "@/features/admin/components/company-detail-modal";
 
 /**
  * 업체 관리 페이지
@@ -48,8 +49,14 @@ import { CreateCompanyDialog } from "@/features/admin/components/create-company-
 export default function AdminCompaniesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedCompanyIdForDetail, setSelectedCompanyIdForDetail] = useState<
+    string | null
+  >(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const { companies, totalCount, isLoading, error } = useCompanies();
   const approveMutation = useApproveCompany();
@@ -249,7 +256,9 @@ export default function AdminCompaniesPage() {
                                 <Button
                                   size="sm"
                                   variant="default"
-                                  onClick={() => approveMutation.mutate(company.id)}
+                                  onClick={() =>
+                                    approveMutation.mutate(company.id)
+                                  }
                                   disabled={approveMutation.isPending}
                                 >
                                   <CheckCircle className="h-4 w-4 mr-1" />
@@ -260,7 +269,9 @@ export default function AdminCompaniesPage() {
                                     <Button
                                       size="sm"
                                       variant="destructive"
-                                      onClick={() => setSelectedCompanyId(company.id)}
+                                      onClick={() =>
+                                        setSelectedCompanyId(company.id)
+                                      }
                                     >
                                       <XCircle className="h-4 w-4 mr-1" />
                                       거절
@@ -268,14 +279,19 @@ export default function AdminCompaniesPage() {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>업체 거절</AlertDialogTitle>
+                                      <AlertDialogTitle>
+                                        업체 거절
+                                      </AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        이 업체를 거절하시겠습니까? 거절 사유를 입력해주세요.
+                                        이 업체를 거절하시겠습니까? 거절 사유를
+                                        입력해주세요.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <div className="space-y-4 py-4">
                                       <div className="space-y-2">
-                                        <Label htmlFor="reason">거절 사유</Label>
+                                        <Label htmlFor="reason">
+                                          거절 사유
+                                        </Label>
                                         <Textarea
                                           id="reason"
                                           value={rejectionReason}
@@ -298,7 +314,10 @@ export default function AdminCompaniesPage() {
                                       </AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() => {
-                                          if (selectedCompanyId && rejectionReason.trim()) {
+                                          if (
+                                            selectedCompanyId &&
+                                            rejectionReason.trim()
+                                          ) {
                                             rejectMutation.mutate({
                                               companyId: selectedCompanyId,
                                               reason: rejectionReason,
@@ -320,7 +339,14 @@ export default function AdminCompaniesPage() {
                               </>
                             )}
                             {company.status !== "pending" && (
-                              <Button variant="ghost" size="sm">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedCompanyIdForDetail(company.id);
+                                  setIsDetailModalOpen(true);
+                                }}
+                              >
                                 상세
                               </Button>
                             )}
@@ -340,6 +366,18 @@ export default function AdminCompaniesPage() {
       <CreateCompanyDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+      />
+
+      {/* 업체 상세 모달 */}
+      <CompanyDetailModal
+        open={isDetailModalOpen}
+        onOpenChange={(open) => {
+          setIsDetailModalOpen(open);
+          if (!open) {
+            setSelectedCompanyIdForDetail(null);
+          }
+        }}
+        companyId={selectedCompanyIdForDetail}
       />
     </div>
   );
