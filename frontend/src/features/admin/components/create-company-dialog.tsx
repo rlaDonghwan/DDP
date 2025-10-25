@@ -16,21 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Building2,
-  FileText,
-  Shield,
-  UserCircle,
-  Calendar,
-} from "lucide-react";
+import { Building2, Shield, UserCircle } from "lucide-react";
 import {
   createCompanySchema,
   type CreateCompanyFormData,
@@ -330,111 +317,6 @@ export function CreateCompanyDialog({
                       {errors.address.message}
                     </p>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 사업자 정보 */}
-            <Card className="border-green-200 bg-green-50/30">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2 text-green-900">
-                  <FileText className="h-5 w-5" />
-                  사업자 정보
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="businessRegistrationNumber"
-                      className="text-sm font-medium"
-                    >
-                      사업자등록증 번호 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="businessRegistrationNumber"
-                      {...register("businessRegistrationNumber")}
-                      placeholder="등록증 번호 입력"
-                      className="bg-white"
-                    />
-                    {errors.businessRegistrationNumber && (
-                      <p className="text-sm text-red-600">
-                        {errors.businessRegistrationNumber.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="sealInfo" className="text-sm font-medium">
-                      직인 정보 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="sealInfo"
-                      {...register("sealInfo")}
-                      placeholder="직인 정보 입력"
-                      className="bg-white"
-                    />
-                    {errors.sealInfo && (
-                      <p className="text-sm text-red-600">
-                        {errors.sealInfo.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="certificationValidUntil"
-                      className="text-sm font-medium flex items-center gap-2"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      인증 유효 기간 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="certificationValidUntil"
-                      type="date"
-                      {...register("certificationValidUntil")}
-                      className="bg-white"
-                    />
-                    {errors.certificationValidUntil && (
-                      <p className="text-sm text-red-600">
-                        {errors.certificationValidUntil.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="contractStatus"
-                      className="text-sm font-medium"
-                    >
-                      계약 상태 <span className="text-red-600">*</span>
-                    </Label>
-                    <Select
-                      onValueChange={(value) =>
-                        setValue(
-                          "contractStatus",
-                          value as "active" | "pending" | "expired"
-                        )
-                      }
-                      value={watch("contractStatus")}
-                    >
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="계약 상태 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">활성</SelectItem>
-                        <SelectItem value="pending">대기</SelectItem>
-                        <SelectItem value="expired">만료</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.contractStatus && (
-                      <p className="text-sm text-red-600">
-                        {errors.contractStatus.message}
-                      </p>
-                    )}
-                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -45,23 +45,6 @@ export const createCompanySchema = z.object({
     .string()
     .min(1, "지역을 선택해주세요")
     .max(50, "지역은 최대 50자까지 입력 가능합니다"),
-  certificationValidUntil: z
-    .string()
-    .min(1, "인증 유효 기간을 선택해주세요")
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "올바른 날짜 형식이 아닙니다 (YYYY-MM-DD)"),
-  contractStatus: z.enum(["active", "pending", "expired"], {
-    message: "계약 상태를 선택해주세요",
-  }),
-  businessRegistrationNumber: z
-    .string()
-    .min(1, "사업자등록증 번호를 입력해주세요")
-    .min(5, "사업자등록증 번호는 최소 5자 이상이어야 합니다")
-    .max(50, "사업자등록증 번호는 최대 50자까지 입력 가능합니다"),
-  sealInfo: z
-    .string()
-    .min(1, "직인 정보를 입력해주세요")
-    .min(2, "직인 정보는 최소 2자 이상이어야 합니다")
-    .max(100, "직인 정보는 최대 100자까지 입력 가능합니다"),
   initialAccountId: z
     .string()
     .min(1, "초기 계정 ID를 입력해주세요")
