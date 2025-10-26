@@ -91,11 +91,6 @@ const menuItems = {
       url: "/company/devices",
       icon: Wrench,
     },
-    {
-      title: "업체 정보",
-      url: "/company/profile",
-      icon: Building2,
-    },
   ],
   admin: [
     {
