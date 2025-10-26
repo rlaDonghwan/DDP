@@ -34,15 +34,28 @@ export function useCreateSubjectAccount() {
           description: response.message || "계정이 성공적으로 생성되었습니다.",
         });
       } else {
+        // success가 false인 경우 (서버에서 비즈니스 로직 실패)
         toast.error("계정 생성 실패", {
           description: response.message || "계정 생성에 실패했습니다.",
         });
       }
     },
     onError: (err: any) => {
+      // HTTP 에러 발생 시 (400, 500 등)
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "계정 생성 중 오류가 발생했습니다.";
+
+      console.error("계정 생성 에러:", {
+        status: err?.response?.status,
+        statusText: err?.response?.statusText,
+        data: err?.response?.data,
+        message: err?.message,
+      });
+
       toast.error("계정 생성 오류", {
-        description:
-          err?.response?.data?.message || "계정 생성 중 오류가 발생했습니다.",
+        description: errorMessage,
       });
     },
   });

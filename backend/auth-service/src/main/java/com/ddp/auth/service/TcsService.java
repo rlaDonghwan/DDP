@@ -16,7 +16,7 @@ public class TcsService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${tcs.api.url:http://localhost:8085/api/tcs}")
+    @Value("${tcs.api.url:http://localhost:8085/api/v1/tcs}")
     private String tcsApiUrl;
 
     // 운전면허 검증

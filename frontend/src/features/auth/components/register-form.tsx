@@ -117,6 +117,35 @@ export function RegisterForm() {
   });
 
   /**
+   * 전화번호 자동 포맷팅 함수
+   * 입력된 숫자를 010-1234-5678 형식으로 변환
+   */
+  const formatPhoneNumber = (value: string): string => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^\d]/g, "");
+
+    // 길이에 따라 하이픈 추가
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else if (numbers.length <= 11) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+    }
+
+    // 11자리 초과 시 자르기
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  /**
+   * 전화번호 입력 핸들러
+   */
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    phoneForm.setValue("phoneNumber", formatted);
+  };
+
+  /**
    * 인증번호 전송 (CoolSMS API)
    */
   const sendVerificationCode = async () => {
@@ -130,9 +159,8 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
 
-      // 전화번호 포맷: 010-1234-5678
-      const formattedPhone = phoneNumber.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
-      await authApi.sendVerificationCode(formattedPhone);
+      // 전화번호는 이미 포맷팅되어 있음 (010-1234-5678)
+      await authApi.sendVerificationCode(phoneNumber);
 
       setIsCodeSent(true);
       setCountdown(180); // 3분
@@ -174,16 +202,15 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
 
-      // 전화번호 포맷: 010-1234-5678
-      const formattedPhone = data.phoneNumber.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
-      const response = await authApi.verifyCode(formattedPhone, data.verificationCode);
+      // 전화번호는 이미 포맷팅되어 있음 (010-1234-5678)
+      const response = await authApi.verifyCode(data.phoneNumber, data.verificationCode);
 
       // verificationToken 저장 (회원가입 완료 시 사용)
       if (response.verificationToken) {
         setVerificationToken(response.verificationToken);
       }
 
-      setVerifiedPhoneNumber(formattedPhone);
+      setVerifiedPhoneNumber(data.phoneNumber);
       setCurrentStep("license");
       toast.success("휴대폰 인증이 완료되었습니다");
     } catch (error) {
@@ -323,7 +350,8 @@ export function RegisterForm() {
                     id="phoneNumber"
                     type="tel"
                     placeholder="010-1234-5678"
-                    {...phoneForm.register("phoneNumber")}
+                    value={phoneForm.watch("phoneNumber")}
+                    onChange={handlePhoneNumberChange}
                     className="flex-1"
                     disabled={isLoading || isCodeSent}
                   />

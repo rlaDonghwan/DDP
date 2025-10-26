@@ -43,7 +43,9 @@ export const adminDuiApi = {
     licenseNumber: string
   ): Promise<{ success: boolean; message: string }> {
     const startTime = performance.now();
-    console.log("API 호출 시작: 음주운전자 계정 생성");
+    console.log("API 호출 시작: 음주운전자 계정 생성", {
+      licenseNumber,
+    });
 
     try {
       const res = await api.post<{ success: boolean; message: string }>(
@@ -55,16 +57,26 @@ export const adminDuiApi = {
       console.log(
         `API 호출 완료: 음주운전자 계정 생성 (${(endTime - startTime).toFixed(
           2
-        )}ms)`
+        )}ms)`,
+        {
+          success: res.data.success,
+          message: res.data.message,
+        }
       );
 
       return res.data;
-    } catch (error) {
+    } catch (error: any) {
       const endTime = performance.now();
-      console.log(
+      console.error(
         `API 호출 실패: 음주운전자 계정 생성 (${(endTime - startTime).toFixed(
           2
-        )}ms)`
+        )}ms)`,
+        {
+          status: error?.response?.status,
+          statusText: error?.response?.statusText,
+          responseData: error?.response?.data,
+          message: error?.message,
+        }
       );
       throw error;
     }

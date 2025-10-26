@@ -23,8 +23,8 @@ spring:
 # TCS Mock API 설정
 tcs:
   api:
-    url: http://localhost:8085/api/tcs # TCS Mock API URL
-    # url: http://tcs-mock-service:8085/api/tcs # Docker 환경용
+    url: http://localhost:8085/api/v1/tcs # TCS Mock API URL
+    # url: http://tcs-mock-service:8085/api/v1/tcs # Docker 환경용
 
 # SMS 인증 설정
 sms:
