@@ -6,7 +6,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,52 +54,15 @@ public class Company {
     @Column(nullable = false)
     private String region;
 
-    // 위도
-    @Column
-    private Double latitude;
-
-    // 경도
-    @Column
-    private Double longitude;
-
-    // 영업시간
-    @Column
-    private String businessHours;
-
-    // 업체 소개
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
     // 평점 (0-5)
     @Column
     @Builder.Default
     private Double rating = 0.0;
 
-    // 리뷰 수
-    @Column
-    @Builder.Default
-    private Integer reviewCount = 0;
-
     // 업체 상태
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CompanyStatus status;
-
-    // 승인일
-    @Column
-    private LocalDateTime approvedAt;
-
-    // 반려 사유
-    @Column
-    private String rejectedReason;
-
-    // 초기 계정 ID
-    @Column
-    private String initialAccountId;
-
-    // 초기 비밀번호
-    @Column
-    private String initialPassword;
 
     // 관리 중인 장치 수
     @Column
@@ -111,6 +73,14 @@ public class Company {
     @Column
     @Builder.Default
     private Integer customerCount = 0;
+
+    // 초기 계정 ID (승인 전까지 임시 저장, 승인 후 null로 설정)
+    @Column
+    private String initialAccountId;
+
+    // 초기 비밀번호 (승인 전까지 임시 저장, 승인 후 null로 설정)
+    @Column
+    private String initialPassword;
 
     // 생성 시간
     @CreatedDate

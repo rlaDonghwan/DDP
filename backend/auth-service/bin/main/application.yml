@@ -23,5 +23,12 @@ spring:
 # TCS Mock API 설정
 tcs:
   api:
-    base-url: http://localhost:8085 # TCS Mock Service URL
-    # base-url: http://tcs-mock-service:8085 # Docker 환경용
+    url: http://localhost:8085/api/v1/tcs # TCS Mock API URL
+    # url: http://tcs-mock-service:8085/api/v1/tcs # Docker 환경용
+
+# SMS 인증 설정
+sms:
+  verification:
+    expiration-seconds: 180 # 인증번호 만료 시간 (3분)
+  verification-token:
+    expiration-seconds: 600 # 인증 토큰 만료 시간 (10분)

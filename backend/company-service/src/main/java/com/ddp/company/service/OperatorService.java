@@ -59,60 +59,6 @@ public class OperatorService {
     }
 
     /**
-     * 주변 업체 검색 (위치 기반)
-     */
-    public OperatorListResponse getNearbyOperators(Double latitude, Double longitude, Double radiusKm) {
-        log.info("API 호출 시작: 주변 업체 검색 - 위도: {}, 경도: {}, 반경: {}km", latitude, longitude, radiusKm);
-        long startTime = System.currentTimeMillis();
-
-        try {
-            // 위치 정보 유효성 검증
-            if (!LocationUtils.isValidLatitude(latitude) || !LocationUtils.isValidLongitude(longitude)) {
-                log.warn("주변 업체 검색 실패: 잘못된 위치 정보 - 위도: {}, 경도: {}", latitude, longitude);
-                return OperatorListResponse.failure();
-            }
-
-            // 승인된 업체 모두 조회 (삭제되지 않은 업체만)
-            List<Company> allCompanies = companyRepository.findByStatusAndDeletedAtIsNull(CompanyStatus.APPROVED);
-
-            // 거리 계산 및 필터링
-            List<OperatorDto> nearbyOperators = new ArrayList<>();
-
-            for (Company company : allCompanies) {
-                // 업체에 위치 정보가 없으면 스킵
-                if (company.getLatitude() == null || company.getLongitude() == null) {
-                    continue;
-                }
-
-                // 거리 계산
-                double distance = LocationUtils.calculateDistance(
-                    latitude, longitude,
-                    company.getLatitude(), company.getLongitude()
-                );
-
-                // 반경 내에 있는 업체만 포함
-                if (distance <= radiusKm) {
-                    OperatorDto dto = OperatorDto.fromEntityWithDistance(company,
-                        Math.round(distance * 10.0) / 10.0); // 소수점 1자리까지
-                    nearbyOperators.add(dto);
-                }
-            }
-
-            // 거리순 정렬
-            nearbyOperators.sort(Comparator.comparing(OperatorDto::getDistance));
-
-            log.info("API 호출 완료: 주변 업체 검색 - 총 {}개 조회 ({}ms)",
-                nearbyOperators.size(), System.currentTimeMillis() - startTime);
-
-            return OperatorListResponse.success(nearbyOperators.size(), nearbyOperators);
-
-        } catch (Exception e) {
-            log.error("API 호출 실패: 주변 업체 검색 - {}", e.getMessage(), e);
-            return OperatorListResponse.failure();
-        }
-    }
-
-    /**
      * 업체 상세 조회 (공개)
      */
     public OperatorDto getOperatorById(Long id) {

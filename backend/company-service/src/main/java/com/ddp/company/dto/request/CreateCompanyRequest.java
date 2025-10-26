@@ -43,11 +43,11 @@ public class CreateCompanyRequest {
     @NotBlank(message = "지역은 필수입니다")
     private String region;
 
-    // 초기 계정 ID
+    // 초기 계정 ID (승인 시 사용)
     @NotBlank(message = "초기 계정 ID는 필수입니다")
     private String initialAccountId;
 
-    // 초기 비밀번호
+    // 초기 비밀번호 (승인 시 사용)
     @NotBlank(message = "초기 비밀번호는 필수입니다")
     private String initialPassword;
 }

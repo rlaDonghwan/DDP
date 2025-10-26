@@ -48,8 +48,6 @@ public class CompanyDetailDto {
             .address(company.getAddress())
             .region(company.getRegion())
             .status(mapStatusToString(company.getStatus()))
-            .approvedAt(company.getApprovedAt() != null ? company.getApprovedAt().toString() : null)
-            .rejectedReason(company.getRejectedReason())
             .deviceCount(company.getDeviceCount())
             .customerCount(company.getCustomerCount())
             .createdAt(company.getCreatedAt().toString())

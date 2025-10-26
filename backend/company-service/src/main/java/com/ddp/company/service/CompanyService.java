@@ -17,8 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -126,10 +124,10 @@ public class CompanyService {
                 .address(request.getAddress())
                 .region(request.getRegion())
                 .status(CompanyStatus.PENDING)  // 기본 상태: 대기 중
-                .initialAccountId(request.getInitialAccountId())
-                .initialPassword(request.getInitialPassword())  // 사용자가 입력한 비밀번호 저장
                 .deviceCount(0)
                 .customerCount(0)
+                .initialAccountId(request.getInitialAccountId())  // 초기 계정 정보 임시 저장
+                .initialPassword(request.getInitialPassword())     // 초기 비밀번호 임시 저장
                 .build();
 
             // 4. 저장
@@ -138,8 +136,6 @@ public class CompanyService {
             log.info("API 호출 완료: 업체 등록 - ID: {}, 업체명: {} ({}ms)",
                 savedCompany.getId(), savedCompany.getName(), System.currentTimeMillis() - startTime);
 
-            // 5. TODO: auth-service 호출하여 업체 계정 생성
-            // createCompanyAccount(request.getInitialAccountId(), request.getInitialPassword(), savedCompany.getId());
 
             return ApiResponse.success("업체가 성공적으로 등록되었습니다.");
 
@@ -152,7 +148,7 @@ public class CompanyService {
     /**
      * 업체 승인
      */
-    public ApiResponse approveCompany(Long companyId) {
+    public ApiResponse approveCompany(Long companyId, String accountId, String password) {
         log.info("API 호출 시작: 업체 승인 - ID: {}", companyId);
         long startTime = System.currentTimeMillis();
 
@@ -160,37 +156,48 @@ public class CompanyService {
             Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("업체를 찾을 수 없습니다: " + companyId));
 
+            // 저장된 초기 계정 정보 확인
+            if (company.getInitialAccountId() == null || company.getInitialPassword() == null) {
+                log.error("업체 승인 실패: 초기 계정 정보가 없습니다 - 업체 ID: {}", companyId);
+                return ApiResponse.failure("초기 계정 정보가 없습니다. 업체를 다시 등록해주세요.");
+            }
+
             // 업체 승인 처리
             company.setStatus(CompanyStatus.APPROVED);
-            company.setApprovedAt(LocalDateTime.now());
-            company.setRejectedReason(null);
-            companyRepository.save(company);
 
             // auth-service에 업체 로그인 계정 생성 요청
             try {
+                // 저장된 초기 계정 정보 사용
                 CreateCompanyAccountRequest accountRequest = CreateCompanyAccountRequest.builder()
                     .companyId(String.valueOf(company.getId()))
                     .companyName(company.getName())
+                    .accountId(company.getInitialAccountId())  // 저장된 계정 ID 사용
                     .email(company.getEmail())
-                    .password(company.getInitialPassword()) // 업체 등록 시 설정한 비밀번호 사용
+                    .password(company.getInitialPassword()) // 저장된 비밀번호 사용
                     .phone(company.getPhone())
                     .build();
 
                 CreateCompanyAccountResponse accountResponse = authServiceClient.createCompanyAccount(accountRequest);
 
                 if (accountResponse.isSuccess()) {
-                    log.info("업체 로그인 계정 생성 성공 - 업체 ID: {}, 사용자 ID: {}",
-                        companyId, accountResponse.getUserId());
+                    log.info("업체 로그인 계정 생성 성공 - 업체 ID: {}, 계정 ID: {}, 사용자 ID: {}",
+                        companyId, company.getInitialAccountId(), accountResponse.getUserId());
+                    
+                    // 계정 생성 성공 시 임시 저장된 계정 정보 삭제
+                    company.setInitialAccountId(null);
+                    company.setInitialPassword(null);
                 } else {
-                    log.warn("업체 로그인 계정 생성 실패 - 업체 ID: {}, 사유: {}",
-                        companyId, accountResponse.getMessage());
+                    log.warn("업체 로그인 계정 생성 실패 - 업체 ID: {}, 계정 ID: {}, 사유: {}",
+                        companyId, company.getInitialAccountId(), accountResponse.getMessage());
                     // 계정 생성 실패해도 업체 승인은 유지 (수동으로 계정 생성 가능)
                 }
             } catch (Exception authError) {
-                log.error("auth-service 호출 실패 - 업체 ID: {}, 오류: {}",
-                    companyId, authError.getMessage(), authError);
+                log.error("auth-service 호출 실패 - 업체 ID: {}, 계정 ID: {}, 오류: {}",
+                    companyId, company.getInitialAccountId(), authError.getMessage(), authError);
                 // auth-service 호출 실패해도 업체 승인은 유지
             }
+
+            companyRepository.save(company);
 
             log.info("API 호출 완료: 업체 승인 - ID: {}, 업체명: {} ({}ms)",
                 companyId, company.getName(), System.currentTimeMillis() - startTime);
@@ -216,8 +223,6 @@ public class CompanyService {
 
             // 업체 거절 처리
             company.setStatus(CompanyStatus.REJECTED);
-            company.setRejectedReason(reason);
-            company.setApprovedAt(null);
             companyRepository.save(company);
 
             log.info("API 호출 완료: 업체 거절 - ID: {}, 업체명: {}, 사유: {} ({}ms)",

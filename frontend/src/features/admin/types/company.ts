@@ -21,8 +21,6 @@ export interface Company {
   address: string;
   region: string; // 지역 (서울, 경기 등)
   status: CompanyStatus;
-  approvedAt?: string | null; // 승인일 (ISO)
-  rejectedReason?: string | null; // 반려 사유
   deviceCount: number; // 관리 중인 장치 수
   customerCount: number; // 담당 고객(대상자) 수
   createdAt: string;
@@ -104,8 +102,8 @@ export interface CreateCompanyRequest {
   phone: string;
   address: string;
   region: string;
-  initialAccountId: string; // 초기 계정 ID
-  initialPassword: string; // 초기 비밀번호
+  initialAccountId: string;
+  initialPassword: string;
 }
 
 /**
@@ -114,7 +112,6 @@ export interface CreateCompanyRequest {
 export interface ApproveCompanyRequest {
   companyId: string;
   status: "approved" | "rejected";
-  rejectedReason?: string; // 반려 시 필수
 }
 
 /**

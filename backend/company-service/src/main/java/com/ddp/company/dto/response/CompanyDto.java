@@ -25,8 +25,6 @@ public class CompanyDto {
     private String address;
     private String region;
     private String status;
-    private String approvedAt;
-    private String rejectedReason;
     private Integer deviceCount;
     private Integer customerCount;
     private String createdAt;
@@ -44,8 +42,6 @@ public class CompanyDto {
             .address(company.getAddress())
             .region(company.getRegion())
             .status(mapStatusToString(company.getStatus()))
-            .approvedAt(company.getApprovedAt() != null ? company.getApprovedAt().toString() : null)
-            .rejectedReason(company.getRejectedReason())
             .deviceCount(company.getDeviceCount())
             .customerCount(company.getCustomerCount())
             .createdAt(company.getCreatedAt().toString())

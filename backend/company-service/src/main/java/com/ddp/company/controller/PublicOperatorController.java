@@ -38,22 +38,6 @@ public class PublicOperatorController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 주변 업체 검색 (위치 기반)
-     */
-    @GetMapping("/nearby")
-    @Operation(summary = "주변 업체 검색", description = "현재 위치 기반으로 주변 업체를 검색합니다 (인증 불필요)")
-    public ResponseEntity<OperatorListResponse> getNearbyOperators(
-        @RequestParam Double latitude,
-        @RequestParam Double longitude,
-        @RequestParam(required = false, defaultValue = "10.0") Double radius
-    ) {
-        log.debug("주변 업체 검색 요청 - 위도: {}, 경도: {}, 반경: {}km", latitude, longitude, radius);
-
-        OperatorListResponse response = operatorService.getNearbyOperators(latitude, longitude, radius);
-
-        return ResponseEntity.ok(response);
-    }
 
     /**
      * 업체 상세 조회 (공개)

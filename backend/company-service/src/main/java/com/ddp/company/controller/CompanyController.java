@@ -115,7 +115,8 @@ public class CompanyController {
             return ResponseEntity.status(403).body(ApiResponse.failure("권한이 없습니다."));
         }
 
-        ApiResponse response = companyService.approveCompany(id);
+        // 저장된 계정 정보를 사용하여 승인 (null 전달)
+        ApiResponse response = companyService.approveCompany(id, null, null);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);

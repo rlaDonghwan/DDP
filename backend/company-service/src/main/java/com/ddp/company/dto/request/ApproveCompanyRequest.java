@@ -23,4 +23,10 @@ public class ApproveCompanyRequest {
 
     // 반려 사유 (반려 시 필수)
     private String rejectedReason;
+
+    // 업체 계정 ID (승인 시 필수)
+    private String accountId;
+
+    // 업체 계정 비밀번호 (승인 시 필수)
+    private String password;
 }

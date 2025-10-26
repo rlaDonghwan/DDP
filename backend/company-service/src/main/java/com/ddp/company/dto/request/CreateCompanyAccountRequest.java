@@ -14,6 +14,7 @@ public class CreateCompanyAccountRequest {
 
     private String companyId;
     private String companyName;
+    private String accountId;  // 로그인 계정 ID (사용자 입력)
     private String email;
     private String password;
     private String phone;
