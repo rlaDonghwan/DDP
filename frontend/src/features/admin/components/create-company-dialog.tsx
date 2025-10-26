@@ -336,7 +336,7 @@ export function CreateCompanyDialog({
                   업체에 전달 후 변경을 권장합니다.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="initialAccountId"
@@ -357,25 +357,48 @@ export function CreateCompanyDialog({
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="initialPassword"
-                      className="text-sm font-medium"
-                    >
-                      초기 비밀번호 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="initialPassword"
-                      type="password"
-                      {...register("initialPassword")}
-                      placeholder="8자 이상"
-                      className="bg-white"
-                    />
-                    {errors.initialPassword && (
-                      <p className="text-sm text-red-600">
-                        {errors.initialPassword.message}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="initialPassword"
+                        className="text-sm font-medium"
+                      >
+                        비밀번호 <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="initialPassword"
+                        type="password"
+                        {...register("initialPassword")}
+                        placeholder="8자 이상, 대소문자, 숫자, 특수문자 포함"
+                        className="bg-white"
+                      />
+                      {errors.initialPassword && (
+                        <p className="text-sm text-red-600">
+                          {errors.initialPassword.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="passwordConfirm"
+                        className="text-sm font-medium"
+                      >
+                        비밀번호 확인 <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="passwordConfirm"
+                        type="password"
+                        {...register("passwordConfirm")}
+                        placeholder="비밀번호 재입력"
+                        className="bg-white"
+                      />
+                      {errors.passwordConfirm && (
+                        <p className="text-sm text-red-600">
+                          {errors.passwordConfirm.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

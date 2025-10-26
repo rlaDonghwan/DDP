@@ -98,6 +98,10 @@ public class Company {
     @Column
     private String initialAccountId;
 
+    // 초기 비밀번호
+    @Column
+    private String initialPassword;
+
     // 관리 중인 장치 수
     @Column
     @Builder.Default

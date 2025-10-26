@@ -127,6 +127,7 @@ public class CompanyService {
                 .region(request.getRegion())
                 .status(CompanyStatus.PENDING)  // 기본 상태: 대기 중
                 .initialAccountId(request.getInitialAccountId())
+                .initialPassword(request.getInitialPassword())  // 사용자가 입력한 비밀번호 저장
                 .deviceCount(0)
                 .customerCount(0)
                 .build();
@@ -171,7 +172,7 @@ public class CompanyService {
                     .companyId(String.valueOf(company.getId()))
                     .companyName(company.getName())
                     .email(company.getEmail())
-                    .password(company.getInitialAccountId() + "!@#") // 임시 비밀번호 (추후 변경 필요)
+                    .password(company.getInitialPassword()) // 업체 등록 시 설정한 비밀번호 사용
                     .phone(company.getPhone())
                     .build();
 
