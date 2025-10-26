@@ -64,3 +64,12 @@ export interface OperatorAvailability {
     timeSlots: string[]; // 예약 가능한 시간대 ["09:00", "10:00", ...]
   }[];
 }
+
+/**
+ * 업체 목록 조회 응답 (백엔드 형식)
+ */
+export interface OperatorListResponse {
+  success: boolean;
+  totalCount: number;
+  operators: Operator[];
+}

@@ -15,15 +15,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Shield, UserCircle } from "lucide-react";
+import { Building2, Shield, UserCircle, MapPin } from "lucide-react";
 import {
   createCompanySchema,
   type CreateCompanyFormData,
 } from "../schemas/company-schema";
 import { companiesApi } from "../api/companies-api";
 import { useQueryClient } from "@tanstack/react-query";
+import AddressSearchModal from "@/components/shared/address-search-modal";
 
 interface CreateCompanyDialogProps {
   open: boolean;
@@ -40,6 +40,12 @@ export function CreateCompanyDialog({
 }: CreateCompanyDialogProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [addressData, setAddressData] = useState<{
+    zipcode?: string;
+    address?: string;
+    addressDetail?: string;
+  }>({});
 
   const {
     register,
@@ -123,6 +129,39 @@ export function CreateCompanyDialog({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
     setValue("phone", formatted);
+  };
+
+  /**
+   * 주소에서 지역 추출 함수
+   */
+  const extractRegionFromAddress = (address: string): string => {
+    const match = address.match(
+      /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/
+    );
+    return match ? match[1] : "기타";
+  };
+
+  /**
+   * 주소 선택 핸들러
+   */
+  const handleAddressSelect = (data: {
+    address?: string;
+    addressDetail?: string;
+    zipcode?: string;
+  }) => {
+    setAddressData(data);
+
+    // address와 region 필드 자동 설정
+    if (data.address) {
+      const fullAddress = `${data.zipcode || ""} ${data.address} ${
+        data.addressDetail || ""
+      }`.trim();
+      setValue("address", fullAddress);
+
+      // 주소에서 지역 자동 추출
+      const region = extractRegionFromAddress(data.address);
+      setValue("region", region);
+    }
   };
 
   /**
@@ -264,57 +303,59 @@ export function CreateCompanyDialog({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">
-                      전화번호 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="phone"
-                      {...register("phone")}
-                      onChange={handlePhoneChange}
-                      placeholder="02-1234-5678"
-                      className="bg-white"
-                    />
-                    {errors.phone && (
-                      <p className="text-sm text-red-600">
-                        {errors.phone.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="region" className="text-sm font-medium">
-                      지역 <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="region"
-                      {...register("region")}
-                      placeholder="예: 서울"
-                      className="bg-white"
-                    />
-                    {errors.region && (
-                      <p className="text-sm text-red-600">
-                        {errors.region.message}
-                      </p>
-                    )}
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    전화번호 <span className="text-red-600">*</span>
+                  </Label>
+                  <Input
+                    id="phone"
+                    {...register("phone")}
+                    onChange={handlePhoneChange}
+                    placeholder="02-1234-5678"
+                    className="bg-white"
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-red-600">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address" className="text-sm font-medium">
+                  <Label className="text-sm font-medium">
                     주소 <span className="text-red-600">*</span>
                   </Label>
-                  <Textarea
-                    id="address"
-                    {...register("address")}
-                    placeholder="서울특별시 강남구..."
-                    rows={2}
-                    className="bg-white resize-none"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="주소 검색 버튼을 클릭하세요"
+                      value={
+                        addressData.address
+                          ? `${addressData.zipcode || ""} ${
+                              addressData.address
+                            } ${addressData.addressDetail || ""}`.trim()
+                          : ""
+                      }
+                      readOnly
+                      className="bg-gray-50 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsAddressModalOpen(true)}
+                      className="bg-Navy text-black hover:bg-Navy hover:opacity-90"
+                    >
+                      <MapPin className="h-4 w-4 mr-1" />
+                      주소 검색
+                    </Button>
+                  </div>
                   {errors.address && (
                     <p className="text-sm text-red-600">
                       {errors.address.message}
+                    </p>
+                  )}
+                  {addressData.address && (
+                    <p className="text-xs text-gray-500">
+                      지역: {watch("region")} (자동 추출)
                     </p>
                   )}
                 </div>
@@ -420,6 +461,14 @@ export function CreateCompanyDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* 주소 검색 모달 */}
+      <AddressSearchModal
+        open={isAddressModalOpen}
+        onOpenChange={setIsAddressModalOpen}
+        initialAddress={addressData.address}
+        onSelect={handleAddressSelect}
+      />
     </Dialog>
   );
 }

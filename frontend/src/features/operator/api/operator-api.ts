@@ -4,6 +4,7 @@ import type {
   OperatorFilter,
   NearbyOperatorsRequest,
   OperatorAvailability,
+  OperatorListResponse,
 } from "../types/operator";
 
 /**
@@ -18,16 +19,20 @@ export const operatorApi = {
     console.log("API 호출 시작: 업체 목록 조회");
 
     try {
-      const response = await api.get<Operator[]>("/api/v1/public/operators", {
-        params: filter,
-      });
+      const response = await api.get<OperatorListResponse>(
+        "/api/v1/public/operators",
+        {
+          params: filter,
+        }
+      );
 
       const endTime = performance.now();
       console.log(
         `API 호출 완료: 업체 목록 조회 (${(endTime - startTime).toFixed(2)}ms)`
       );
 
-      return response.data;
+      // 백엔드 응답 형식에서 operators 배열 추출
+      return response.data.operators;
     } catch (error) {
       const endTime = performance.now();
       console.log(
@@ -76,12 +81,12 @@ export const operatorApi = {
     try {
       const { latitude, longitude, radius = 10, serviceType } = request;
 
-      const response = await api.get<Operator[]>(
+      const response = await api.get<OperatorListResponse>(
         "/api/v1/public/operators/nearby",
         {
           params: {
-            lat: latitude,
-            lng: longitude,
+            latitude,
+            longitude,
             radius,
             serviceType,
           },
@@ -93,7 +98,8 @@ export const operatorApi = {
         `API 호출 완료: 주변 업체 검색 (${(endTime - startTime).toFixed(2)}ms)`
       );
 
-      return response.data;
+      // 백엔드 응답 형식에서 operators 배열 추출
+      return response.data.operators;
     } catch (error) {
       const endTime = performance.now();
       console.log(
