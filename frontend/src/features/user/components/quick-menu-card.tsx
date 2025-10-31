@@ -33,7 +33,7 @@ export function QuickMenuCard() {
       title: "예약 신청하기",
       description: "장치 설치 또는 점검 예약을 신청합니다",
       icon: CalendarPlus,
-      href: "/user/reservations/new",
+      href: "/user/operators/search",
       color: "bg-green-50 hover:bg-green-100 border-green-200",
       iconColor: "text-green-600",
     },

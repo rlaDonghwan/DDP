@@ -25,40 +25,28 @@ export type ReservationStatus =
  * 예약 정보
  */
 export interface Reservation {
-  id: string;
+  reservationId: string; // 예약 ID (백엔드 필드명에 맞춤)
   userId: string; // 사용자 ID
-  userName: string; // 사용자 이름
-  userPhone: string; // 사용자 연락처
-  operatorId: string; // 업체 ID
-  operatorName: string; // 업체명
-  operatorAddress: string; // 업체 주소
-  operatorPhone: string; // 업체 연락처
+  userName?: string; // 사용자 이름 (백엔드는 반환하지 않음, 별도 조회 필요)
+  userPhone?: string; // 사용자 연락처 (백엔드는 반환하지 않음, 별도 조회 필요)
+  companyId: string; // 업체 ID (백엔드 필드명에 맞춤)
+  operatorName?: string; // 업체명 (백엔드는 반환하지 않음, 별도 조회 필요)
+  operatorAddress?: string; // 업체 주소 (백엔드는 반환하지 않음, 별도 조회 필요)
+  operatorPhone?: string; // 업체 연락처 (백엔드는 반환하지 않음, 별도 조회 필요)
   serviceType: ReservationServiceType; // 서비스 타입
-  reservationDate: string; // 예약 날짜 및 시간 (ISO 8601)
+  requestedDate: string; // 예약 날짜 및 시간 (백엔드 필드명에 맞춤)
+  reservationDate?: string; // 레거시 호환성 (requestedDate와 동일)
+  confirmedDate?: string; // 확정 일시
+  completedDate?: string; // 완료 일시
   status: ReservationStatus; // 예약 상태
+  vehicleInfo?: string; // 차량 정보
   notes?: string; // 요청사항
-  rejectionReason?: string; // 거절 사유 (REJECTED 상태인 경우)
+  rejectedReason?: string; // 거절 사유 (REJECTED 상태인 경우)
+  cancelledReason?: string; // 취소 사유
+  cancelledAt?: string; // 취소 일시
+  rejectedAt?: string; // 거절 일시
   createdAt: string; // 생성일 (ISO 8601)
   updatedAt: string; // 수정일 (ISO 8601)
-}
-
-/**
- * 예약 생성 요청
- */
-export interface CreateReservationRequest {
-  operatorId: string; // 업체 ID
-  serviceType: ReservationServiceType; // 서비스 타입
-  reservationDate: string; // 예약 날짜 및 시간 (ISO 8601)
-  notes?: string; // 요청사항
-}
-
-/**
- * 예약 생성 응답
- */
-export interface CreateReservationResponse {
-  success: boolean;
-  message: string;
-  reservation?: Reservation;
 }
 
 /**

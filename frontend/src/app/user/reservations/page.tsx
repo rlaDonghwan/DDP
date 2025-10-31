@@ -178,7 +178,7 @@ export default function ReservationsPage() {
                 new Date(a.createdAt).getTime()
             )
             .map((reservation) => (
-              <Card key={reservation.id}>
+              <Card key={reservation.reservationId}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export default function ReservationsPage() {
                     <span className="font-medium">예약 일시:</span>
                     <span>
                       {formatKoreanDate(
-                        reservation.reservationDate,
+                        reservation.requestedDate || reservation.reservationDate || "",
                         "yyyy년 MM월 dd일 HH:mm"
                       )}
                     </span>
@@ -212,6 +212,12 @@ export default function ReservationsPage() {
                     <Phone className="w-4 h-4 flex-shrink-0" />
                     <span>{reservation.operatorPhone}</span>
                   </div>
+                  {reservation.vehicleInfo && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-medium">차량:</span>
+                      <span>{reservation.vehicleInfo}</span>
+                    </div>
+                  )}
                   {reservation.notes && (
                     <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-1">
@@ -222,13 +228,13 @@ export default function ReservationsPage() {
                       </p>
                     </div>
                   )}
-                  {reservation.rejectionReason && (
+                  {reservation.rejectedReason && (
                     <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
                       <p className="text-sm font-medium text-red-700 mb-1">
                         거절 사유
                       </p>
                       <p className="text-sm text-red-600">
-                        {reservation.rejectionReason}
+                        {reservation.rejectedReason}
                       </p>
                     </div>
                   )}
@@ -259,7 +265,7 @@ export default function ReservationsPage() {
                             <AlertDialogCancel>돌아가기</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() =>
-                                handleCancelReservation(reservation.id)
+                                handleCancelReservation(reservation.reservationId)
                               }
                             >
                               취소 확인

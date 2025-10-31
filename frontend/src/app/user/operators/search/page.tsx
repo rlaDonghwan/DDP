@@ -56,12 +56,6 @@ export default function OperatorSearchPage() {
     }
   };
 
-  /**
-   * 예약 페이지로 이동
-   */
-  const handleReservation = (operatorId: string) => {
-    router.push(`/user/reservations/new?operatorId=${operatorId}`);
-  };
 
   return (
     <div className="space-y-6">
@@ -189,12 +183,7 @@ export default function OperatorSearchPage() {
                   </p>
                 )}
                 <div className="pt-2">
-                  <Button
-                    onClick={() => handleReservation(operator.id)}
-                    className="w-full"
-                  >
-                    예약하기
-                  </Button>
+                  <Button className="w-full">예약하기</Button>
                 </div>
               </CardContent>
             </Card>

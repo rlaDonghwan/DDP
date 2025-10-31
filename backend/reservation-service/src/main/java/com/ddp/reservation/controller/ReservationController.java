@@ -127,9 +127,9 @@ public class ReservationController {
         }
     }
 
-    // 예약 취소
-    @DeleteMapping("/{id}")
-    @Operation(summary = "예약 취소", description = "사용자가 예약을 취소합니다")
+    // 예약 취소 (PATCH - 권장)
+    @PatchMapping("/{id}/cancel")
+    @Operation(summary = "예약 취소", description = "사용자가 예약을 취소합니다 (상태 변경)")
     public ResponseEntity<ReservationResponse> cancelReservation(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role,
@@ -161,6 +161,38 @@ public class ReservationController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("예약 취소 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    // 예약 삭제 (관리자 전용 - 실제 DB에서 삭제)
+    @DeleteMapping("/{id}")
+    @Operation(summary = "예약 삭제 (관리자 전용)", description = "예약을 완전히 삭제합니다 (복구 불가)")
+    public ResponseEntity<Void> deleteReservation(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id
+    ) {
+        log.info("예약 삭제 요청 - 예약 ID: {}, 관리자 ID: {}", id, userId);
+
+        // 권한 검증: ADMIN만 삭제 가능
+        if (!"ADMIN".equals(role)) {
+            log.warn("권한 없음 - 예약 삭제는 ADMIN 역할만 가능: userId={}, role={}", userId, role);
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            // 예약 삭제 (실제 DB에서 제거)
+            reservationService.deleteReservation(id);
+
+            log.info("예약 삭제 완료 - 예약 ID: {}", id);
+            return ResponseEntity.noContent().build();
+
+        } catch (IllegalArgumentException e) {
+            log.error("예약 삭제 실패: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("예약 삭제 실패: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }

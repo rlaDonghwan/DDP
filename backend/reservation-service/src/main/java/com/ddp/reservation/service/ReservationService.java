@@ -299,4 +299,30 @@ public class ReservationService {
             throw new RuntimeException("예약 완료 처리에 실패했습니다.", e);
         }
     }
+
+    // 예약 삭제 (관리자 전용 - 실제 DB에서 제거)
+    public void deleteReservation(Long reservationId) {
+        log.info("API 호출 시작: 예약 삭제 (Hard Delete) - 예약 ID: {}", reservationId);
+
+        long startTime = System.currentTimeMillis();
+
+        try {
+            // 예약 존재 여부 확인
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다: " + reservationId));
+
+            // 실제 DB에서 삭제 (Hard Delete)
+            reservationRepository.delete(reservation);
+
+            log.info("API 호출 완료: 예약 삭제 - 예약 ID: {} ({}ms)",
+                    reservationId, System.currentTimeMillis() - startTime);
+
+        } catch (IllegalArgumentException e) {
+            log.error("예약 삭제 실패: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("예약 삭제 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("예약 삭제에 실패했습니다.", e);
+        }
+    }
 }

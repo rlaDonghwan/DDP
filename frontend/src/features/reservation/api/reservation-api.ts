@@ -1,8 +1,6 @@
 import api from "@/lib/axios";
 import type {
   Reservation,
-  CreateReservationRequest,
-  CreateReservationResponse,
   CancelReservationRequest,
   ConfirmReservationRequest,
   RejectReservationRequest,
@@ -12,36 +10,6 @@ import type {
  * 예약(Reservation) API 함수 모음
  */
 export const reservationApi = {
-  /**
-   * 예약 생성 (사용자)
-   */
-  createReservation: async (
-    data: CreateReservationRequest
-  ): Promise<CreateReservationResponse> => {
-    const startTime = performance.now();
-    console.log("API 호출 시작: 예약 생성");
-
-    try {
-      const response = await api.post<CreateReservationResponse>(
-        "/api/v1/reservations",
-        data
-      );
-
-      const endTime = performance.now();
-      console.log(
-        `API 호출 완료: 예약 생성 (${(endTime - startTime).toFixed(2)}ms)`
-      );
-
-      return response.data;
-    } catch (error) {
-      const endTime = performance.now();
-      console.log(
-        `API 호출 실패: 예약 생성 (${(endTime - startTime).toFixed(2)}ms)`
-      );
-      throw error;
-    }
-  },
-
   /**
    * 내 예약 목록 조회 (사용자)
    */

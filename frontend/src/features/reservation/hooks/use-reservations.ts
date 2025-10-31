@@ -3,7 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { reservationApi } from "../api/reservation-api";
 import type {
-  CreateReservationRequest,
   CancelReservationRequest,
 } from "../types/reservation";
 import { toast } from "sonner";
@@ -33,32 +32,6 @@ export function useReservation(id: string | undefined) {
     staleTime: 1000 * 60 * 2, // 2분 동안 fresh 상태 유지
     gcTime: 1000 * 60 * 5, // 5분 동안 캐시 보관
     retry: 1,
-  });
-}
-
-/**
- * 예약 생성 훅
- */
-export function useCreateReservation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateReservationRequest) =>
-      reservationApi.createReservation(data),
-    onSuccess: () => {
-      // 예약 목록 캐시 무효화 (재조회)
-      queryClient.invalidateQueries({ queryKey: ["myReservations"] });
-      toast.success("예약이 신청되었습니다", {
-        description: "업체 확인 후 예약이 확정됩니다.",
-      });
-    },
-    onError: (error: any) => {
-      const message =
-        error.response?.data?.message || "예약 신청에 실패했습니다";
-      toast.error("예약 실패", {
-        description: message,
-      });
-    },
   });
 }
 
