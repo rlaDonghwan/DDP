@@ -38,7 +38,7 @@ public class OperatorDto {
             .email(company.getEmail())
             .certificationStatus(mapStatusToString(company.getStatus()))
             .rating(company.getRating())
-            .services(List.of("INSTALL", "REPAIR", "INSPECTION")) // 기본값 (추후 확장 가능)
+            .services(List.of("INSTALLATION", "REPAIR", "INSPECTION", "MAINTENANCE")) // 제공 서비스 목록
             .createdAt(company.getCreatedAt().toString())
             .updatedAt(company.getUpdatedAt().toString())
             .build();

@@ -5,7 +5,11 @@
 /**
  * 예약 서비스 타입
  */
-export type ReservationServiceType = "INSTALL" | "REPAIR" | "INSPECTION";
+export type ReservationServiceType =
+  | "INSTALLATION" // 설치
+  | "REPAIR" // 수리
+  | "INSPECTION" // 검교정
+  | "MAINTENANCE"; // 유지보수
 
 /**
  * 예약 상태

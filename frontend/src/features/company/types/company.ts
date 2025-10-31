@@ -25,7 +25,12 @@ export interface Company {
 /**
  * 서비스 타입
  */
-export type ServiceType = "INSTALLATION" | "REPAIR" | "INSPECTION" | "ALL";
+export type ServiceType =
+  | "INSTALLATION" // 설치
+  | "REPAIR" // 수리
+  | "INSPECTION" // 검교정
+  | "MAINTENANCE" // 유지보수
+  | "ALL"; // 전체
 
 /**
  * 인증 상태

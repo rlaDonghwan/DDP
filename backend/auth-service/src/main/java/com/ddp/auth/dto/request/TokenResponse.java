@@ -54,13 +54,16 @@ public class TokenResponse {
     
     @Schema(description = "사용자 역할")
     private String role;
-    
+
+    @Schema(description = "업체 ID (COMPANY 역할 전용)")
+    private Long companyId;
+
     // 만료 시간 상수
     private static final Long ACCESS_TOKEN_EXPIRES_IN = 1800L; // 30분
     private static final Long REFRESH_TOKEN_EXPIRES_IN = 604800L; // 7일
 
     // 성공 응답 생성 (로그인 성공)
-    public static TokenResponse success(String accessToken, String refreshToken, Long userId, String email, String name, String role) {
+    public static TokenResponse success(String accessToken, String refreshToken, Long userId, String email, String name, String role, Long companyId) {
         return TokenResponse.builder()
                 .success(true)
                 .message("로그인 성공")
@@ -73,11 +76,12 @@ public class TokenResponse {
                 .email(email)
                 .name(name)
                 .role(role)
+                .companyId(companyId)
                 .build();
     }
 
     // 성공 응답 생성 (토큰 갱신 성공)
-    public static TokenResponse successRefresh(String accessToken, String refreshToken, Long userId, String email, String name, String role) {
+    public static TokenResponse successRefresh(String accessToken, String refreshToken, Long userId, String email, String name, String role, Long companyId) {
         return TokenResponse.builder()
                 .success(true)
                 .message("토큰 갱신 성공")
@@ -90,11 +94,12 @@ public class TokenResponse {
                 .email(email)
                 .name(name)
                 .role(role)
+                .companyId(companyId)
                 .build();
     }
 
     // 성공 응답 생성 (토큰 검증 성공) - 리프레시 토큰 없음
-    public static TokenResponse successValidation(String accessToken, Long userId, String email, String name, String role) {
+    public static TokenResponse successValidation(String accessToken, Long userId, String email, String name, String role, Long companyId) {
         return TokenResponse.builder()
                 .success(true)
                 .message("토큰 검증 성공")
@@ -104,6 +109,7 @@ public class TokenResponse {
                 .email(email)
                 .name(name)
                 .role(role)
+                .companyId(companyId)
                 .build();
     }
 

@@ -51,7 +51,8 @@ public class AuthController {
                 response.getUserId(),
                 response.getEmail(),
                 response.getName(),
-                response.getRole()
+                response.getRole(),
+                response.getCompanyId() // 업체 ID
             );
             
             return ResponseEntity.ok(cookieResponse);
@@ -163,7 +164,8 @@ public class AuthController {
                 response.getUserId(),
                 response.getEmail(),
                 response.getName(),
-                response.getRole()
+                response.getRole(),
+                response.getCompanyId() // 업체 ID
             );
             
             return ResponseEntity.ok(cookieResponse);

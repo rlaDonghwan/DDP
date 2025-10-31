@@ -18,7 +18,7 @@ export const updateCompanyProfileSchema = z.object({
   email: z.string().email("올바른 이메일 형식이 아닙니다").optional(),
   address: z.string().min(1, "주소를 입력하세요").optional(),
   detailAddress: z.string().optional(),
-  serviceTypes: z.array(z.enum(["INSTALLATION", "REPAIR", "INSPECTION", "ALL"])).optional(),
+  serviceTypes: z.array(z.enum(["INSTALLATION", "REPAIR", "INSPECTION", "MAINTENANCE", "ALL"])).optional(),
   businessHours: z
     .object({
       weekday: z.string().min(1, "평일 영업시간을 입력하세요"),

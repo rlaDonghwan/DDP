@@ -41,8 +41,9 @@ export default function NewReservationPage() {
   const searchParams = useSearchParams();
   const operatorId = searchParams.get("operatorId");
 
-  const { data: operator, isLoading: operatorLoading } =
-    useOperator(operatorId || undefined);
+  const { data: operator, isLoading: operatorLoading } = useOperator(
+    operatorId || undefined
+  );
   const createReservationMutation = useCreateReservation();
 
   const {
@@ -65,16 +66,29 @@ export default function NewReservationPage() {
   const serviceType = watch("serviceType");
 
   /**
+   * 서비스 타입 정규화 (레거시 값을 표준 값으로 변환)
+   */
+  const normalizeServiceType = (type: string): ReservationServiceType => {
+    if (type === "INSTALL") return "INSTALLATION";
+    return type as ReservationServiceType;
+  };
+
+  /**
    * 서비스 타입 한글 변환
    */
-  const getServiceTypeLabel = (type: ReservationServiceType): string => {
-    switch (type) {
-      case "INSTALL":
+  const getServiceTypeLabel = (type: string): string => {
+    const normalized = normalizeServiceType(type);
+    switch (normalized) {
+      case "INSTALLATION":
         return "설치";
       case "REPAIR":
         return "수리";
       case "INSPECTION":
         return "검교정";
+      case "MAINTENANCE":
+        return "유지보수";
+      default:
+        return type; // 알 수 없는 타입은 그대로 표시
     }
   };
 
@@ -226,24 +240,22 @@ export default function NewReservationPage() {
               <RadioGroup
                 value={serviceType}
                 onValueChange={(value) =>
-                  setValue(
-                    "serviceType",
-                    value as ReservationServiceType,
-                    { shouldValidate: true }
-                  )
+                  setValue("serviceType", normalizeServiceType(value), {
+                    shouldValidate: true,
+                  })
                 }
               >
-                {operator.services.map((service) => (
-                  <div
-                    key={service}
-                    className="flex items-center space-x-2"
-                  >
-                    <RadioGroupItem value={service} id={service} />
-                    <Label htmlFor={service} className="cursor-pointer">
-                      {getServiceTypeLabel(service)}
-                    </Label>
-                  </div>
-                ))}
+                {operator.services.map((service) => {
+                  const normalizedService = normalizeServiceType(service);
+                  return (
+                    <div key={service} className="flex items-center space-x-2">
+                      <RadioGroupItem value={normalizedService} id={service} />
+                      <Label htmlFor={service} className="cursor-pointer">
+                        {getServiceTypeLabel(service)}
+                      </Label>
+                    </div>
+                  );
+                })}
               </RadioGroup>
               {errors.serviceType && (
                 <p className="text-sm text-red-600">

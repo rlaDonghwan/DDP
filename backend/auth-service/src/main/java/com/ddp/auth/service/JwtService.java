@@ -38,13 +38,21 @@ public class JwtService {
             Date expiryDate = new Date(now.getTime() + jwtConfig.getExpirationMs());
             String jti = UUID.randomUUID().toString(); // JWT ID 생성
 
-            String token = Jwts.builder()
+            JwtBuilder jwtBuilder = Jwts.builder()
                     .setSubject(user.getEmail()) // 토큰 주체 (이메일)
                     .setId(jti) // JWT ID (블랙리스트용)
                     .claim("userId", user.getUserId()) // 사용자 ID
                     .claim("email", user.getEmail()) // 이메일
                     .claim("name", user.getName()) // 사용자 이름
-                    .claim("role", user.getRole().name()) // 사용자 역할
+                    .claim("role", user.getRole().name()); // 사용자 역할
+
+            // COMPANY 역할인 경우 companyId 추가
+            if ("COMPANY".equals(user.getRole().name()) && user.getCompanyId() != null) {
+                jwtBuilder.claim("companyId", user.getCompanyId());
+                log.debug("JWT에 companyId 추가: {}", user.getCompanyId());
+            }
+
+            String token = jwtBuilder
                     .setIssuer(jwtConfig.getIssuer()) // 발급자
                     .setIssuedAt(now) // 발급 시간
                     .setExpiration(expiryDate) // 만료 시간
@@ -168,6 +176,7 @@ public class JwtService {
                     .email(claims.getSubject())
                     .name(claims.get("name", String.class))
                     .role(claims.get("role", String.class))
+                    .companyId(claims.get("companyId", Long.class)) // COMPANY 역할인 경우 포함
                     .jti(claims.getId())
                     .issuedAt(claims.getIssuedAt())
                     .expiration(claims.getExpiration())

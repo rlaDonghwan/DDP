@@ -31,6 +31,7 @@ dependencies {
 
     // Config Client
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

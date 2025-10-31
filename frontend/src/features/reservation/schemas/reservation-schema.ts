@@ -5,8 +5,8 @@ import { z } from "zod";
  */
 export const createReservationSchema = z.object({
   operatorId: z.string().min(1, "업체를 선택해주세요"),
-  serviceType: z.enum(["INSTALL", "REPAIR", "INSPECTION"], {
-    required_error: "서비스 타입을 선택해주세요",
+  serviceType: z.enum(["INSTALLATION", "REPAIR", "INSPECTION", "MAINTENANCE"], {
+    message: "서비스 타입을 선택해주세요",
   }),
   reservationDate: z.string().min(1, "예약 날짜를 선택해주세요"),
   reservationTime: z.string().min(1, "예약 시간을 선택해주세요"),

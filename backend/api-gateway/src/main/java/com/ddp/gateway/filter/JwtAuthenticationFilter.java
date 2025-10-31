@@ -57,16 +57,25 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             String email = claims.getSubject();
             String name = claims.get("name", String.class);
             String role = claims.get("role", String.class);
+            Long companyId = claims.get("companyId", Long.class); // COMPANY 역할인 경우 포함
 
-            log.debug("JWT 검증 성공 - userId: {}, role: {}, path: {}", userId, role, path);
+            log.debug("JWT 검증 성공 - userId: {}, role: {}, companyId: {}, path: {}",
+                      userId, role, companyId, path);
 
-            // 헤더에 사용자 정보 추가
-            ServerHttpRequest mutatedRequest = request.mutate()
+            // 헤더 빌더 생성
+            ServerHttpRequest.Builder requestBuilder = request.mutate()
                 .header("X-User-Id", String.valueOf(userId))
                 .header("X-User-Email", email)
                 .header("X-User-Name", name)
-                .header("X-User-Role", role)
-                .build();
+                .header("X-User-Role", role);
+
+            // COMPANY 역할인 경우 X-Company-Id 헤더 추가
+            if ("COMPANY".equals(role) && companyId != null) {
+                requestBuilder.header("X-Company-Id", String.valueOf(companyId));
+                log.debug("X-Company-Id 헤더 추가: {}", companyId);
+            }
+
+            ServerHttpRequest mutatedRequest = requestBuilder.build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
 

@@ -58,7 +58,7 @@ public class AuthService {
                     user.getUserId(), System.currentTimeMillis() - startTime);
 
             return TokenResponse.success(accessToken, refreshToken, user.getUserId(), user.getEmail(),
-                    user.getName(), user.getRole().name());
+                    user.getName(), user.getRole().name(), user.getCompanyId());
 
         } catch (Exception e) {
             log.error("로그인 처리 중 오류 발생: {}", e.getMessage(), e);
@@ -86,7 +86,7 @@ public class AuthService {
                     userInfo.getUserId(), System.currentTimeMillis() - startTime);
 
             return TokenResponse.successValidation(token, userInfo.getUserId(), userInfo.getEmail(),
-                    userInfo.getName(), userInfo.getRole());
+                    userInfo.getName(), userInfo.getRole(), userInfo.getCompanyId());
 
         } catch (Exception e) {
             log.error("토큰 검증 중 오류 발생: {}", e.getMessage(), e);
@@ -119,7 +119,10 @@ public class AuthService {
             log.info("API 호출 완료: 사용자 로그아웃 - 사용자 ID: {} ({}ms)",
                     userInfo.getUserId(), System.currentTimeMillis() - startTime);
 
-            return TokenResponse.success(null, null, null, null, "로그아웃이 완료되었습니다.", null);
+            return TokenResponse.builder()
+                    .success(true)
+                    .message("로그아웃이 완료되었습니다.")
+                    .build();
 
         } catch (Exception e) {
             log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage(), e);
@@ -161,9 +164,9 @@ public class AuthService {
             
             log.info("API 호출 완료: 토큰 갱신 - 사용자 ID: {} ({}ms)",
                     userId, System.currentTimeMillis() - startTime);
-            
-            return TokenResponse.successRefresh(newAccessToken, newRefreshToken, 
-                    user.getUserId(), user.getEmail(), user.getName(), user.getRole().name());
+
+            return TokenResponse.successRefresh(newAccessToken, newRefreshToken,
+                    user.getUserId(), user.getEmail(), user.getName(), user.getRole().name(), user.getCompanyId());
             
         } catch (Exception e) {
             log.error("토큰 갱신 중 오류 발생: {}", e.getMessage(), e);
@@ -199,7 +202,10 @@ public class AuthService {
             log.info("API 호출 완료: 전체 로그아웃 - 사용자 ID: {} ({}ms)",
                     userInfo.getUserId(), System.currentTimeMillis() - startTime);
 
-            return TokenResponse.success(null, null, null, null, "모든 기기에서 로그아웃이 완료되었습니다.", null);
+            return TokenResponse.builder()
+                    .success(true)
+                    .message("모든 기기에서 로그아웃이 완료되었습니다.")
+                    .build();
 
         } catch (Exception e) {
             log.error("전체 로그아웃 처리 중 오류 발생: {}", e.getMessage(), e);

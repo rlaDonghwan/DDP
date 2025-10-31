@@ -5,7 +5,11 @@
 /**
  * 업체 서비스 타입
  */
-export type OperatorServiceType = "INSTALL" | "REPAIR" | "INSPECTION";
+export type OperatorServiceType =
+  | "INSTALLATION" // 설치
+  | "REPAIR" // 수리
+  | "INSPECTION" // 검교정
+  | "MAINTENANCE"; // 유지보수
 
 /**
  * 업체 인증 상태

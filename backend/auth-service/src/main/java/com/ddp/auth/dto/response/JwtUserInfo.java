@@ -26,6 +26,9 @@ public class JwtUserInfo {
     // 사용자 역할
     private String role;
 
+    // 업체 ID (COMPANY 역할 전용)
+    private Long companyId;
+
     // JWT ID (블랙리스트용)
     private String jti;
 
