@@ -50,6 +50,26 @@ export interface Reservation {
 }
 
 /**
+ * 예약 생성 요청
+ */
+export interface CreateReservationRequest {
+  companyId: string; // 업체 ID (백엔드 필드명에 맞춤)
+  serviceType: ReservationServiceType; // 서비스 타입
+  requestedDate: string; // 예약 날짜 및 시간 (ISO 8601, 백엔드 필드명에 맞춤)
+  vehicleInfo?: string; // 차량 번호 (한국 번호판 형식: 123가1234)
+  notes?: string; // 요청사항
+}
+
+/**
+ * 예약 생성 응답
+ */
+export interface CreateReservationResponse {
+  success: boolean;
+  message: string;
+  reservation?: Reservation;
+}
+
+/**
  * 예약 목록 필터
  */
 export interface ReservationFilter {
