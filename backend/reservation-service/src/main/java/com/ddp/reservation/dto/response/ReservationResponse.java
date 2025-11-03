@@ -67,7 +67,27 @@ public class ReservationResponse {
     @Schema(description = "수정 일시", example = "2025-10-30T09:00:00")
     private LocalDateTime updatedAt;
 
-    // 엔티티를 DTO로 변환하는 정적 팩토리 메서드
+    // 사용자 정보 (업체가 예약 조회 시 필요)
+    @Schema(description = "사용자 이름", example = "홍길동")
+    private String userName;
+
+    @Schema(description = "사용자 전화번호", example = "010-1234-5678")
+    private String userPhone;
+
+    @Schema(description = "사용자 주소", example = "서울시 강남구")
+    private String userAddress;
+
+    // 업체 정보 (사용자가 예약 조회 시 필요)
+    @Schema(description = "업체명", example = "ABC 정비소")
+    private String companyName;
+
+    @Schema(description = "업체 주소", example = "서울시 서초구")
+    private String companyAddress;
+
+    @Schema(description = "업체 전화번호", example = "02-1234-5678")
+    private String companyPhone;
+
+    // 엔티티를 DTO로 변환하는 정적 팩토리 메서드 (기본)
     public static ReservationResponse from(Reservation reservation) {
         return ReservationResponse.builder()
                 .reservationId(reservation.getReservationId())
@@ -87,5 +107,23 @@ public class ReservationResponse {
                 .createdAt(reservation.getCreatedAt())
                 .updatedAt(reservation.getUpdatedAt())
                 .build();
+    }
+
+    // 엔티티를 DTO로 변환하는 정적 팩토리 메서드 (사용자 정보 포함 - 업체용)
+    public static ReservationResponse withUserInfo(Reservation reservation, String userName, String userPhone, String userAddress) {
+        ReservationResponse response = from(reservation);
+        response.setUserName(userName);
+        response.setUserPhone(userPhone);
+        response.setUserAddress(userAddress);
+        return response;
+    }
+
+    // 엔티티를 DTO로 변환하는 정적 팩토리 메서드 (업체 정보 포함 - 사용자용)
+    public static ReservationResponse withCompanyInfo(Reservation reservation, String companyName, String companyAddress, String companyPhone) {
+        ReservationResponse response = from(reservation);
+        response.setCompanyName(companyName);
+        response.setCompanyAddress(companyAddress);
+        response.setCompanyPhone(companyPhone);
+        return response;
     }
 }

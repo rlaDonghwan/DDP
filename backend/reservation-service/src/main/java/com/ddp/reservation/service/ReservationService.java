@@ -1,6 +1,11 @@
 package com.ddp.reservation.service;
 
+import com.ddp.reservation.client.AuthServiceClient;
+import com.ddp.reservation.client.CompanyServiceClient;
+import com.ddp.reservation.dto.CompanyDto;
+import com.ddp.reservation.dto.UserDto;
 import com.ddp.reservation.dto.request.CreateReservationRequest;
+import com.ddp.reservation.dto.response.ReservationResponse;
 import com.ddp.reservation.entity.Reservation;
 import com.ddp.reservation.entity.ReservationStatus;
 import com.ddp.reservation.repository.ReservationRepository;
@@ -11,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 // 예약 서비스
 @Service
@@ -22,6 +27,8 @@ import java.util.Optional;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final AuthServiceClient authServiceClient;
+    private final CompanyServiceClient companyServiceClient;
 
     // 예약 생성 (사용자)
     public Reservation createReservation(Long userId, CreateReservationRequest request) {
@@ -62,7 +69,109 @@ public class ReservationService {
         return reservationRepository.findById(reservationId);
     }
 
-    // 사용자의 예약 목록 조회
+    // 사용자의 예약 목록 조회 (업체 정보 포함)
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> findByUserIdWithCompanyInfo(Long userId) {
+        log.info("API 호출 시작: 사용자 예약 목록 조회 (업체 정보 포함) - 사용자 ID: {}", userId);
+
+        long startTime = System.currentTimeMillis();
+
+        // 1. 예약 목록 조회
+        List<Reservation> reservations = reservationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+
+        // 2. 고유한 업체 ID 추출
+        Set<Long> companyIds = reservations.stream()
+                .map(Reservation::getCompanyId)
+                .collect(Collectors.toSet());
+
+        // 3. 업체 정보 배치 조회 (Map으로 캐싱)
+        Map<Long, CompanyDto> companyMap = new HashMap<>();
+        for (Long companyId : companyIds) {
+            try {
+                CompanyDto company = companyServiceClient.getCompanyById(companyId);
+                if (company != null) {
+                    companyMap.put(companyId, company);
+                }
+            } catch (Exception e) {
+                log.warn("업체 정보 조회 실패 (계속 진행): companyId={}, error={}", companyId, e.getMessage());
+            }
+        }
+
+        // 4. ReservationResponse 생성 (업체 정보 포함)
+        List<ReservationResponse> responses = reservations.stream()
+                .map(reservation -> {
+                    CompanyDto company = companyMap.get(reservation.getCompanyId());
+                    if (company != null) {
+                        return ReservationResponse.withCompanyInfo(
+                                reservation,
+                                company.getName(),
+                                company.getAddress(),
+                                company.getPhone()
+                        );
+                    } else {
+                        return ReservationResponse.from(reservation);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        log.info("API 호출 완료: 사용자 예약 목록 조회 - {} 건 ({}ms)",
+                responses.size(), System.currentTimeMillis() - startTime);
+
+        return responses;
+    }
+
+    // 업체의 예약 목록 조회 (사용자 정보 포함)
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> findByCompanyIdWithUserInfo(Long companyId) {
+        log.info("API 호출 시작: 업체 예약 목록 조회 (사용자 정보 포함) - 업체 ID: {}", companyId);
+
+        long startTime = System.currentTimeMillis();
+
+        // 1. 예약 목록 조회
+        List<Reservation> reservations = reservationRepository.findByCompanyIdOrderByCreatedAtDesc(companyId);
+
+        // 2. 고유한 사용자 ID 추출
+        Set<Long> userIds = reservations.stream()
+                .map(Reservation::getUserId)
+                .collect(Collectors.toSet());
+
+        // 3. 사용자 정보 배치 조회 (Map으로 캐싱)
+        Map<Long, UserDto> userMap = new HashMap<>();
+        for (Long userId : userIds) {
+            try {
+                UserDto user = authServiceClient.getUserById(userId);
+                if (user != null) {
+                    userMap.put(userId, user);
+                }
+            } catch (Exception e) {
+                log.warn("사용자 정보 조회 실패 (계속 진행): userId={}, error={}", userId, e.getMessage());
+            }
+        }
+
+        // 4. ReservationResponse 생성 (사용자 정보 포함)
+        List<ReservationResponse> responses = reservations.stream()
+                .map(reservation -> {
+                    UserDto user = userMap.get(reservation.getUserId());
+                    if (user != null) {
+                        return ReservationResponse.withUserInfo(
+                                reservation,
+                                user.getName(),
+                                user.getPhone(),
+                                user.getAddress()
+                        );
+                    } else {
+                        return ReservationResponse.from(reservation);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        log.info("API 호출 완료: 업체 예약 목록 조회 - {} 건 ({}ms)",
+                responses.size(), System.currentTimeMillis() - startTime);
+
+        return responses;
+    }
+
+    // 사용자의 예약 목록 조회 (레거시 - 엔티티 반환)
     @Transactional(readOnly = true)
     public List<Reservation> findByUserId(Long userId) {
         log.info("API 호출 시작: 사용자 예약 목록 조회 - 사용자 ID: {}", userId);
@@ -77,7 +186,7 @@ public class ReservationService {
         return reservations;
     }
 
-    // 업체의 예약 목록 조회
+    // 업체의 예약 목록 조회 (레거시 - 엔티티 반환)
     @Transactional(readOnly = true)
     public List<Reservation> findByCompanyId(Long companyId) {
         log.info("API 호출 시작: 업체 예약 목록 조회 - 업체 ID: {}", companyId);

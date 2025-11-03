@@ -7,13 +7,7 @@ import {
   useCancelReservation,
 } from "@/features/reservation/hooks/use-reservations";
 import type { ReservationStatus } from "@/features/reservation/types/reservation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { formatKoreanDate } from "@/lib/date-utils";
-import { Calendar, MapPin, Phone, Plus } from "lucide-react";
+import { Calendar, MapPin, Phone, Plus, Building } from "lucide-react";
 
 /**
  * 예약 내역 페이지
@@ -46,9 +40,9 @@ import { Calendar, MapPin, Phone, Plus } from "lucide-react";
 export default function ReservationsPage() {
   const router = useRouter();
   const { user } = useSession();
-  const [statusFilter, setStatusFilter] = useState<
-    ReservationStatus | "ALL"
-  >("ALL");
+  const [statusFilter, setStatusFilter] = useState<ReservationStatus | "ALL">(
+    "ALL"
+  );
 
   const { data: reservations, isLoading } = useMyReservations(user?.id);
   const cancelReservationMutation = useCancelReservation();
@@ -77,6 +71,7 @@ export default function ReservationsPage() {
   const getServiceTypeLabel = (type: string): string => {
     switch (type) {
       case "INSTALL":
+      case "INSTALLATION":
         return "설치";
       case "REPAIR":
         return "수리";
@@ -109,48 +104,57 @@ export default function ReservationsPage() {
   return (
     <div className="space-y-6">
       {/* 페이지 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             나의 예약 내역
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-sm text-gray-600 mt-1">
             예약 현황을 확인하고 관리할 수 있습니다
           </p>
         </div>
-        <Button onClick={() => router.push("/user/operators/search")}>
-          <Plus className="w-4 h-4 mr-2" />
-          새 예약
+        <Button
+          onClick={() => router.push("/user/operators/search")}
+          className="w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />새 예약
         </Button>
       </div>
 
       {/* 필터 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>필터</CardTitle>
-          <CardDescription>예약 상태로 필터링하세요</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium">예약 상태:</label>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) =>
-                setStatusFilter(value as ReservationStatus | "ALL")
-              }
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="전체" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="PENDING">신청</SelectItem>
-                <SelectItem value="CONFIRMED">확정</SelectItem>
-                <SelectItem value="REJECTED">거절</SelectItem>
-                <SelectItem value="CANCELLED">취소</SelectItem>
-                <SelectItem value="COMPLETED">완료</SelectItem>
-              </SelectContent>
-            </Select>
+      <Card className="border-0 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">
+                상태 필터
+              </span>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as ReservationStatus | "ALL")
+                }
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="전체" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">전체</SelectItem>
+                  <SelectItem value="PENDING">신청</SelectItem>
+                  <SelectItem value="CONFIRMED">확정</SelectItem>
+                  <SelectItem value="REJECTED">거절</SelectItem>
+                  <SelectItem value="CANCELLED">취소</SelectItem>
+                  <SelectItem value="COMPLETED">완료</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-gray-600">
+              총{" "}
+              <span className="font-semibold text-gray-900">
+                {filteredReservations.length}
+              </span>
+              건
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -159,11 +163,9 @@ export default function ReservationsPage() {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-48" />
-              </CardHeader>
-              <CardContent>
+            <Card key={i} className="border-0 shadow-sm">
+              <CardContent className="pt-6">
+                <Skeleton className="h-6 w-48 mb-4" />
                 <Skeleton className="h-20 w-full" />
               </CardContent>
             </Card>
@@ -178,49 +180,69 @@ export default function ReservationsPage() {
                 new Date(a.createdAt).getTime()
             )
             .map((reservation) => (
-              <Card key={reservation.reservationId}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-3">
-                      {reservation.operatorName}
+              <Card
+                key={reservation.reservationId}
+                className="border-0 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <CardContent className="pt-6">
+                  {/* 헤더 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b">
+                    <div className="flex items-center gap-3">
+                      <Building className="h-5 w-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {reservation.operatorName}
+                      </h3>
                       {getStatusBadge(reservation.status)}
-                    </CardTitle>
-                    <Badge variant="outline">
-                      {getServiceTypeLabel(reservation.serviceType)}
-                    </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Badge variant="outline" className="font-normal">
+                        {getServiceTypeLabel(reservation.serviceType)}
+                      </Badge>
+                      <span>·</span>
+                      <span>
+                        {formatKoreanDate(reservation.createdAt, "MM/dd")}
+                      </span>
+                    </div>
                   </div>
-                  <CardDescription>
-                    신청일: {formatKoreanDate(reservation.createdAt)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">예약 일시:</span>
-                    <span>
-                      {formatKoreanDate(
-                        reservation.requestedDate || reservation.reservationDate || "",
-                        "yyyy년 MM월 dd일 HH:mm"
-                      )}
-                    </span>
+
+                  {/* 본문 */}
+                  <div className="py-4 space-y-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="font-medium text-gray-900">
+                        {formatKoreanDate(
+                          reservation.requestedDate ||
+                            reservation.reservationDate ||
+                            "",
+                          "yyyy년 MM월 dd일 HH:mm"
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-3 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <span>{reservation.operatorAddress}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <Phone className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span>{reservation.operatorPhone}</span>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>{reservation.operatorAddress}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="w-4 h-4 flex-shrink-0" />
-                    <span>{reservation.operatorPhone}</span>
-                  </div>
+
+                  {/* 추가 정보 */}
                   {reservation.vehicleInfo && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="font-medium">차량:</span>
-                      <span>{reservation.vehicleInfo}</span>
+                    <div className="py-3 px-4 bg-blue-50 rounded-lg mb-3">
+                      <p className="text-xs font-medium text-blue-900 mb-1">
+                        차량 정보
+                      </p>
+                      <p className="text-sm text-blue-800">
+                        {reservation.vehicleInfo}
+                      </p>
                     </div>
                   )}
+
                   {reservation.notes && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-1">
+                    <div className="py-3 px-4 bg-gray-50 rounded-lg mb-3">
+                      <p className="text-xs font-medium text-gray-700 mb-1">
                         요청사항
                       </p>
                       <p className="text-sm text-gray-600">
@@ -228,24 +250,28 @@ export default function ReservationsPage() {
                       </p>
                     </div>
                   )}
+
                   {reservation.rejectedReason && (
-                    <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                      <p className="text-sm font-medium text-red-700 mb-1">
+                    <div className="py-3 px-4 bg-red-50 rounded-lg border border-red-100 mb-3">
+                      <p className="text-xs font-medium text-red-800 mb-1">
                         거절 사유
                       </p>
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-red-700">
                         {reservation.rejectedReason}
                       </p>
                     </div>
                   )}
+
+                  {/* 액션 버튼 */}
                   {(reservation.status === "PENDING" ||
                     reservation.status === "CONFIRMED") && (
-                    <div className="pt-2">
+                    <div className="pt-3 border-t">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="destructive"
+                            variant="outline"
                             size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                             disabled={cancelReservationMutation.isPending}
                           >
                             예약 취소
@@ -265,8 +291,11 @@ export default function ReservationsPage() {
                             <AlertDialogCancel>돌아가기</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() =>
-                                handleCancelReservation(reservation.reservationId)
+                                handleCancelReservation(
+                                  reservation.reservationId
+                                )
                               }
+                              className="bg-red-600 hover:bg-red-700"
                             >
                               취소 확인
                             </AlertDialogAction>
@@ -280,8 +309,9 @@ export default function ReservationsPage() {
             ))}
         </div>
       ) : (
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardContent className="py-20 text-center">
+            <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500 mb-4">
               {statusFilter === "ALL"
                 ? "예약 내역이 없습니다"

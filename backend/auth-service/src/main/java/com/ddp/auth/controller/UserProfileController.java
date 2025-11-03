@@ -28,7 +28,7 @@ public class UserProfileController {
     private final JwtService jwtService;
 
     /**
-     * 사용자 프로필 조회
+     * 사용자 프로필 조회 (자신의 프로필)
      * GET /api/v1/users/profile
      */
     @GetMapping("/profile")
@@ -45,6 +45,28 @@ public class UserProfileController {
 
             // 프로필 조회
             UserProfileResponse profile = userProfileService.getProfile(userId);
+            return ResponseEntity.ok(profile);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("프로필 조회 실패: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("프로필 조회 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 사용자 프로필 조회 (ID로 조회, 내부 서비스 호출용)
+     * GET /api/v1/users/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<UserProfileResponse> getUserById(@PathVariable Long id) {
+        log.debug("사용자 ID로 프로필 조회 요청: userId={}", id);
+
+        try {
+            // 프로필 조회
+            UserProfileResponse profile = userProfileService.getProfile(id);
             return ResponseEntity.ok(profile);
 
         } catch (IllegalArgumentException e) {

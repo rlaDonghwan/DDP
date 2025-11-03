@@ -100,7 +100,7 @@ export const companyApi = {
     try {
       const params = status ? { status } : {};
       const response = await apiClient.get<Reservation[]>(
-        "/company/reservations",
+        "/api/v1/reservations/company",
         { params }
       );
 
@@ -120,27 +120,27 @@ export const companyApi = {
   },
 
   /**
-   * 예약 승인
+   * 예약 확정
    */
   approveReservation: async (reservationId: string): Promise<Reservation> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 예약 승인");
+    console.log("API 호출 시작: 예약 확정");
 
     try {
       const response = await apiClient.post<Reservation>(
-        `/company/reservations/${reservationId}/approve`
+        `/api/v1/reservations/company/${reservationId}/confirm`
       );
 
       const endTime = performance.now();
       console.log(
-        `API 호출 완료: 예약 승인 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 완료: 예약 확정 (${(endTime - startTime).toFixed(2)}ms)`
       );
 
       return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
-        `API 호출 실패: 예약 승인 (${(endTime - startTime).toFixed(2)}ms)`
+        `API 호출 실패: 예약 확정 (${(endTime - startTime).toFixed(2)}ms)`
       );
       throw error;
     }
@@ -158,7 +158,7 @@ export const companyApi = {
 
     try {
       const response = await apiClient.post<Reservation>(
-        `/company/reservations/${reservationId}/reject`,
+        `/api/v1/reservations/company/${reservationId}/reject`,
         { reason }
       );
 
@@ -186,7 +186,7 @@ export const companyApi = {
 
     try {
       const response = await apiClient.post<Reservation>(
-        `/company/reservations/${reservationId}/complete`
+        `/api/v1/reservations/company/${reservationId}/complete`
       );
 
       const endTime = performance.now();

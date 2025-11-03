@@ -95,6 +95,29 @@ public class CompanyService {
     }
 
     /**
+     * 업체 기본 정보 조회 (내부 서비스용)
+     * Feign Client에서 호출하기 위한 간소화된 메서드
+     */
+    @Transactional(readOnly = true)
+    public CompanyDto getCompanyBasicInfo(Long id) {
+        log.debug("내부 서비스 호출: 업체 기본 정보 조회 - ID: {}", id);
+
+        try {
+            Company company = companyRepository.findById(id).orElse(null);
+            if (company == null) {
+                log.warn("업체를 찾을 수 없습니다: ID={}", id);
+                return null;
+            }
+
+            return CompanyDto.fromEntity(company);
+
+        } catch (Exception e) {
+            log.error("업체 기본 정보 조회 실패: ID={}, error={}", id, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * 업체 등록
      */
     public ApiResponse createCompany(CreateCompanyRequest request) {
