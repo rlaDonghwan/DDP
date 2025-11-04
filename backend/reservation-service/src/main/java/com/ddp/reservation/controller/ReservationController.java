@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 // 예약 컨트롤러 (사용자용)
 @RestController
@@ -74,13 +73,8 @@ public class ReservationController {
         }
 
         try {
-            // 예약 목록 조회
-            List<Reservation> reservations = reservationService.findByUserId(userId);
-
-            // 응답 변환
-            List<ReservationResponse> responses = reservations.stream()
-                    .map(ReservationResponse::from)
-                    .collect(Collectors.toList());
+            // 예약 목록 조회 (업체 정보 포함)
+            List<ReservationResponse> responses = reservationService.findByUserIdWithCompanyInfo(userId);
 
             return ResponseEntity.ok(responses);
 
