@@ -190,7 +190,7 @@ export default function ReservationsPage() {
                     <div className="flex items-center gap-3">
                       <Building className="h-5 w-5 text-blue-600" />
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {reservation.operatorName}
+                        {reservation.companyName || "업체 정보 없음"}
                       </h3>
                       {getStatusBadge(reservation.status)}
                     </div>
@@ -210,21 +210,24 @@ export default function ReservationsPage() {
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
                       <span className="font-medium text-gray-900">
+                        예약 날짜:{" "}
                         {formatKoreanDate(
-                          reservation.requestedDate ||
-                            reservation.reservationDate ||
-                            "",
+                          reservation.requestedDate,
                           "yyyy년 MM월 dd일 HH:mm"
                         )}
                       </span>
                     </div>
                     <div className="flex items-start gap-3 text-sm text-gray-600">
                       <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <span>{reservation.operatorAddress}</span>
+                      <span>
+                        {reservation.companyAddress || "주소 정보 없음"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-600">
                       <Phone className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                      <span>{reservation.operatorPhone}</span>
+                      <span>
+                        {reservation.companyPhone || "전화번호 정보 없음"}
+                      </span>
                     </div>
                   </div>
 

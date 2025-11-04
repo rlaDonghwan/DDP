@@ -27,16 +27,15 @@ export type ReservationStatus =
 export interface Reservation {
   reservationId: string; // 예약 ID (백엔드 필드명에 맞춤)
   userId: string; // 사용자 ID
-  userName?: string; // 사용자 이름
-  userPhone?: string; // 사용자 연락처
-  userAddress?: string; // 사용자 주소
+  userName?: string; // 사용자 이름 (업체가 조회 시 포함)
+  userPhone?: string; // 사용자 연락처 (업체가 조회 시 포함)
+  userAddress?: string; // 사용자 주소 (업체가 조회 시 포함)
   companyId: string; // 업체 ID (백엔드 필드명에 맞춤)
-  operatorName?: string; // 업체명
-  operatorAddress?: string; // 업체 주소
-  operatorPhone?: string; // 업체 연락처
+  companyName?: string; // 업체명 (사용자가 조회 시 포함)
+  companyAddress?: string; // 업체 주소 (사용자가 조회 시 포함)
+  companyPhone?: string; // 업체 연락처 (사용자가 조회 시 포함)
   serviceType: ReservationServiceType; // 서비스 타입
   requestedDate: string; // 예약 날짜 및 시간 (백엔드 필드명에 맞춤)
-  reservationDate?: string; // 레거시 호환성 (requestedDate와 동일)
   confirmedDate?: string; // 확정 일시
   completedDate?: string; // 완료 일시
   status: ReservationStatus; // 예약 상태

@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
   MapPin,
+  Phone,
   User,
   CheckCircle,
   XCircle,
@@ -220,11 +221,16 @@ export default function CompanyReservationsPage() {
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
                     <span className="font-medium text-gray-900">
+                      예약 날짜:{" "}
                       {formatKoreanDate(
                         reservation.requestedDate,
                         "yyyy년 MM월 dd일 HH:mm"
                       )}
                     </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <Phone className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <span>{reservation.userPhone || "전화번호 정보 없음"}</span>
                   </div>
                   <div className="flex items-start gap-3 text-sm text-gray-600">
                     <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
