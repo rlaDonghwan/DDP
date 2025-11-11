@@ -11,59 +11,88 @@ spring:
   cloud:
     gateway:
       routes:
-        # Auth Service 사용자 라우팅
-        - id: auth-service-users
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/v1/users/**
+      # ==================== Auth Service ====================
+      # Auth Service 사용자 라우팅
+      - id: auth-service-users
+        uri: lb://auth-service
+        predicates:
+        - Path=/api/v1/users/**
 
-        # Auth Service JWT 라우팅
-        - id: auth-service-jwt
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/v1/auth/**
+      # Auth Service JWT 라우팅
+      - id: auth-service-jwt
+        uri: lb://auth-service
+        predicates:
+        - Path=/api/v1/auth/**
 
-        # TCS Mock Service 라우팅 (공개 API)
-        - id: tcs-mock-service
-          uri: lb://tcs-mock-service
-          predicates:
-            - Path=/api/v1/tcs/**
+      # ==================== TCS Mock Service ====================
+      # TCS Mock Service 라우팅 (공개 API)
+      - id: tcs-mock-service
+        uri: lb://tcs-mock-service
+        predicates:
+        - Path=/api/v1/tcs/**
 
-        # Company Service 관리자 API
-        - id: company-service-admin
-          uri: lb://company-service
-          predicates:
-            - Path=/api/v1/admin/companies/**
+      # ==================== Company Service ====================
+      # Company Service 관리자 API
+      - id: company-service-admin
+        uri: lb://company-service
+        predicates:
+        - Path=/api/v1/admin/companies/**
 
-        # Company Service 공개 API
-        - id: company-service-public
-          uri: lb://company-service
-          predicates:
-            - Path=/api/v1/public/operators/**
+      # Company Service 업체 포털 API
+      - id: company-service-portal
+        uri: lb://company-service
+        predicates:
+        - Path=/api/v1/company/portal/**
 
-        # Reservation Service 사용자 API
-        - id: reservation-service-user
-          uri: lb://reservation-service
-          predicates:
-            - Path=/api/v1/reservations/**
+      # Company Service 서비스 기록 API
+      - id: company-service-records
+        uri: lb://company-service
+        predicates:
+        - Path=/api/v1/company/service-records/**
 
-        # Reservation Service 업체 API
-        - id: reservation-service-company
-          uri: lb://reservation-service
-          predicates:
-            - Path=/api/v1/company/reservations/**
+      # Company Service 내부 API
+      - id: company-service-internal
+        uri: lb://company-service
+        predicates:
+        - Path=/api/v1/companies/**
 
-        # Device Service API (장치 관리)
-        - id: device-service
-          uri: lb://device-service
-          predicates:
-            - Path=/api/v1/devices/**
+      # Company Service 공개 API
+      - id: company-service-public
+        uri: lb://company-service
+        predicates:
+        - Path=/api/v1/public/operators/**
 
-        # Device Service API (로그 관리)
-        - id: device-service-logs
-          uri: lb://device-service
-          predicates:
-            - Path=/api/v1/logs/**
+      # ==================== Reservation Service ====================
+      # Reservation Service 관리자 API
+      - id: reservation-service-admin
+        uri: lb://reservation-service
+        predicates:
+        - Path=/api/v1/admin/reservations/**
+
+      # Reservation Service 사용자 API
+      - id: reservation-service-user
+        uri: lb://reservation-service
+        predicates:
+        - Path=/api/v1/reservations/**
+
+      # Reservation Service 업체 API
+      - id: reservation-service-company
+        uri: lb://reservation-service
+        predicates:
+        - Path=/api/v1/reservations/company/**
+
+      # ==================== Device Service ====================
+      # Device Service API (장치 관리)
+      - id: device-service
+        uri: lb://device-service
+        predicates:
+        - Path=/api/v1/devices/**
+
+      # Device Service API (로그 관리)
+      - id: device-service-logs
+        uri: lb://device-service
+        predicates:
+        - Path=/api/v1/logs/**
 
 # JWT 설정 (auth-service와 동일한 시크릿 사용)
 jwt:
