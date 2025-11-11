@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 // 장치 서비스
 @Service
@@ -218,4 +219,5 @@ public class DeviceService {
             throw new RuntimeException("장치 조회에 실패했습니다.", e);
         }
     }
+
 }

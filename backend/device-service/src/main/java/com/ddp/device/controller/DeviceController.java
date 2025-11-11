@@ -1,8 +1,12 @@
 package com.ddp.device.controller;
 
 import com.ddp.device.dto.request.RegisterDeviceRequest;
+import com.ddp.device.dto.request.RegisterInspectionRequest;
+import com.ddp.device.dto.request.RegisterRepairRequest;
 import com.ddp.device.dto.response.DeviceResponse;
 import com.ddp.device.dto.response.DeviceWithLogStatsResponse;
+import com.ddp.device.dto.response.InspectionRecordResponse;
+import com.ddp.device.dto.response.RepairRecordResponse;
 import com.ddp.device.entity.Device;
 import com.ddp.device.service.DeviceService;
 import io.swagger.v3.oas.annotations.Operation;

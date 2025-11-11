@@ -105,7 +105,6 @@ export interface AssignedDevice {
   id: string;
   serialNumber: string; // 장치 시리얼 번호
   model: string; // 모델명
-  manufacturer: string; // 제조사
   status: string; // 장치 상태
   installationDate: string; // 설치일 (ISO 날짜)
   installedBy: string; // 설치 업체명

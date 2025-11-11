@@ -47,12 +47,14 @@ export default function OperatorSearchPage() {
    */
   const getServiceTypeLabel = (type: OperatorServiceType): string => {
     switch (type) {
-      case "INSTALL":
+      case "INSTALLATION":
         return "설치";
       case "REPAIR":
         return "수리";
       case "INSPECTION":
         return "검교정";
+      case "MAINTENANCE":
+        return "유지보수";
     }
   };
 

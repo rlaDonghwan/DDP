@@ -104,16 +104,6 @@ public class Company {
     @Builder.Default
     private List<ServiceRecord> serviceHistory = new ArrayList<>();
 
-    // 관리 중인 장치 목록 (1:N 관계)
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ManagedDevice> managedDevices = new ArrayList<>();
-
-    // 담당 고객 목록 (1:N 관계)
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Customer> customers = new ArrayList<>();
-
     /**
      * 업체 소프트 삭제 수행
      */

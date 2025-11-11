@@ -406,21 +406,26 @@ public class ReservationService {
                     // INSTALLATION: device-service 호출하여 장치 등록
                     handleInstallationCompletion(reservation, request, companyId);
                 } else if (reservation.getServiceType() == ServiceType.INSPECTION) {
-                    // INSPECTION: device-service 호출하여 검·교정 이력 등록 (추후 구현)
-                    log.info("검·교정 완료 처리 - 예약 ID: {}, 장치 ID: {}", reservationId, request.getDeviceId());
-                    // TODO: device-service에 검·교정 이력 등록 API 구현 후 호출
+                    // INSPECTION: device-service 호출하여 검·교정 이력 등록
+                    handleInspectionCompletion(reservation, request, companyId);
                 } else if (reservation.getServiceType() == ServiceType.REPAIR ||
                            reservation.getServiceType() == ServiceType.MAINTENANCE) {
-                    // REPAIR/MAINTENANCE: device-service 호출하여 수리 이력 등록 (추후 구현)
-                    log.info("수리/유지보수 완료 처리 - 예약 ID: {}, 장치 ID: {}", reservationId, request.getRepairDeviceId());
-                    // TODO: device-service에 수리 이력 등록 API 구현 후 호출
+                    // REPAIR/MAINTENANCE: device-service 호출하여 수리 이력 등록
+                    handleRepairCompletion(reservation, request, companyId);
                 }
             } catch (Exception e) {
                 log.error("서비스 타입별 처리 중 오류 발생: {}", e.getMessage(), e);
                 // 예약 완료는 성공했지만 후속 처리 실패 - 경고 로그만 남기고 계속 진행
             }
 
-            // TODO: 모든 경우 ServiceRecord 생성 (company-service 호출)
+            // ServiceRecord 생성 (모든 서비스 타입)
+            try {
+                createServiceRecord(reservation, request, companyId);
+            } catch (Exception e) {
+                log.error("ServiceRecord 생성 실패: {}", e.getMessage(), e);
+                // ServiceRecord 생성 실패해도 예약 완료는 성공으로 처리
+            }
+
             // TODO: 알림 발송 (notification-service 호출)
 
             log.info("API 호출 완료: 예약 완료 - 예약 ID: {} ({}ms)",
@@ -490,5 +495,137 @@ public class ReservationService {
                     reservation.getReservationId(), request.getDeviceSerialNumber(), e.getMessage(), e);
             throw new RuntimeException("장치 등록에 실패했습니다: " + e.getMessage(), e);
         }
+    }
+
+    // 검·교정 완료 처리
+    private void handleInspectionCompletion(Reservation reservation, CompleteReservationRequest request, Long companyId) {
+        log.info("검·교정 완료 처리 시작 - 예약 ID: {}, 장치 ID: {}", reservation.getReservationId(), request.getDeviceId());
+
+        try {
+            // 검·교정 이력 등록 요청 DTO 생성
+            com.ddp.reservation.client.dto.RegisterInspectionRequest inspectionRequest =
+                    com.ddp.reservation.client.dto.RegisterInspectionRequest.builder()
+                            .deviceId(request.getDeviceId())
+                            .inspectionDate(request.getCompletedDate().toLocalDate()) // 완료일을 검사일로 사용
+                            .inspectorId(companyId) // 검사 업체
+                            .result(request.getInspectionResult() != null ? request.getInspectionResult().name() : "PASS")
+                            .notes(request.getNotes())
+                            .nextInspectionDate(request.getNextInspectionDate())
+                            .cost(request.getCost() != null ? request.getCost().longValue() : null)
+                            .build();
+
+            // device-service 호출
+            com.ddp.reservation.client.dto.InspectionRecordResponse inspectionResponse =
+                    deviceServiceClient.registerInspection(request.getDeviceId(), inspectionRequest);
+
+            log.info("검·교정 이력 등록 완료 - 이력 ID: {}, 장치 ID: {}, 결과: {}",
+                    inspectionResponse.getId(), inspectionResponse.getDeviceId(), inspectionResponse.getResult());
+
+        } catch (Exception e) {
+            log.error("검·교정 이력 등록 실패 - 예약 ID: {}, 장치 ID: {}, 오류: {}",
+                    reservation.getReservationId(), request.getDeviceId(), e.getMessage(), e);
+            throw new RuntimeException("검·교정 이력 등록에 실패했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    // 수리/유지보수 완료 처리
+    private void handleRepairCompletion(Reservation reservation, CompleteReservationRequest request, Long companyId) {
+        log.info("수리/유지보수 완료 처리 시작 - 예약 ID: {}, 장치 ID: {}", reservation.getReservationId(), request.getRepairDeviceId());
+
+        try {
+            // 수리 이력 등록 요청 DTO 생성
+            com.ddp.reservation.client.dto.RegisterRepairRequest repairRequest =
+                    com.ddp.reservation.client.dto.RegisterRepairRequest.builder()
+                            .deviceId(request.getRepairDeviceId())
+                            .repairDate(request.getCompletedDate().toLocalDate()) // 완료일을 수리일로 사용
+                            .repairerId(companyId) // 수리 업체
+                            .workDescription(request.getWorkDescription())
+                            .replacedParts(request.getReplacedParts())
+                            .cost(request.getCost() != null ? request.getCost().longValue() : null)
+                            .notes(request.getNotes())
+                            .build();
+
+            // device-service 호출
+            com.ddp.reservation.client.dto.RepairRecordResponse repairResponse =
+                    deviceServiceClient.registerRepair(request.getRepairDeviceId(), repairRequest);
+
+            log.info("수리 이력 등록 완료 - 이력 ID: {}, 장치 ID: {}, 작업 내용: {}",
+                    repairResponse.getId(), repairResponse.getDeviceId(), repairResponse.getWorkDescription());
+
+        } catch (Exception e) {
+            log.error("수리 이력 등록 실패 - 예약 ID: {}, 장치 ID: {}, 오류: {}",
+                    reservation.getReservationId(), request.getRepairDeviceId(), e.getMessage(), e);
+            throw new RuntimeException("수리 이력 등록에 실패했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    // ServiceRecord 생성 - company-service 호출
+    private void createServiceRecord(Reservation reservation, CompleteReservationRequest request, Long companyId) {
+        log.info("ServiceRecord 생성 시작 - 예약 ID: {}, 서비스 타입: {}", reservation.getReservationId(), reservation.getServiceType());
+
+        try {
+            // 서비스 타입별 설명 생성
+            String description = generateServiceDescription(reservation, request);
+
+            // 장치 ID 및 시리얼 번호 추출
+            Long deviceId = extractDeviceId(reservation, request);
+            String deviceSerialNumber = extractDeviceSerialNumber(request);
+
+            // ServiceRecord 생성 요청 DTO
+            com.ddp.reservation.client.dto.CreateServiceRecordRequest serviceRecordRequest =
+                    com.ddp.reservation.client.dto.CreateServiceRecordRequest.builder()
+                            .type(reservation.getServiceType().name())
+                            .subjectId(reservation.getUserId())
+                            .subjectName("사용자 " + reservation.getUserId()) // TODO: 실제 사용자 이름 조회
+                            .deviceId(deviceId)
+                            .deviceSerialNumber(deviceSerialNumber)
+                            .description(description)
+                            .performedAt(request.getCompletedDate())
+                            .performedBy("업체 " + companyId) // TODO: 실제 업체 이름 조회
+                            .cost(request.getCost())
+                            .companyId(companyId)
+                            .build();
+
+            // company-service 호출
+            com.ddp.reservation.client.dto.ServiceRecordResponse serviceRecordResponse =
+                    companyServiceClient.createServiceRecord(serviceRecordRequest);
+
+            log.info("ServiceRecord 생성 완료 - 이력 ID: {}, 타입: {}",
+                    serviceRecordResponse.getId(), serviceRecordResponse.getType());
+
+        } catch (Exception e) {
+            log.error("ServiceRecord 생성 실패 - 예약 ID: {}, 오류: {}",
+                    reservation.getReservationId(), e.getMessage(), e);
+            throw new RuntimeException("ServiceRecord 생성에 실패했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    // 서비스 타입별 설명 생성
+    private String generateServiceDescription(Reservation reservation, CompleteReservationRequest request) {
+        return switch (reservation.getServiceType()) {
+            case INSTALLATION -> String.format("장치 설치 완료 - 모델: %s, S/N: %s",
+                    request.getModelName(), request.getDeviceSerialNumber());
+            case INSPECTION -> String.format("검·교정 완료 - 결과: %s, 다음 검사일: %s",
+                    request.getInspectionResult(), request.getNextInspectionDate());
+            case REPAIR, MAINTENANCE -> String.format("수리/유지보수 완료 - %s",
+                    request.getWorkDescription());
+        };
+    }
+
+    // 장치 ID 추출 (서비스 타입별)
+    private Long extractDeviceId(Reservation reservation, CompleteReservationRequest request) {
+        return switch (reservation.getServiceType()) {
+            case INSTALLATION -> null; // 설치는 장치가 아직 없음
+            case INSPECTION -> request.getDeviceId();
+            case REPAIR, MAINTENANCE -> request.getRepairDeviceId();
+        };
+    }
+
+    // 장치 시리얼 번호 추출
+    private String extractDeviceSerialNumber(CompleteReservationRequest request) {
+        if (request.getDeviceSerialNumber() != null) {
+            return request.getDeviceSerialNumber();
+        }
+        return "N/A";
     }
 }

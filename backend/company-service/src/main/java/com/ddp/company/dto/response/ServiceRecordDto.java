@@ -49,7 +49,7 @@ public class ServiceRecordDto {
             case INSTALLATION -> "installation";
             case REPAIR -> "repair";
             case INSPECTION -> "inspection";
-            case REPLACEMENT -> "replacement";
+            case MAINTENANCE -> "maintenance";
         };
     }
 }

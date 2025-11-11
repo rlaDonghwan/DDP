@@ -131,7 +131,7 @@ export default function CompanyReservationsPage() {
    */
   const getServiceTypeText = (type: string) => {
     const typeMap = {
-      INSTALL: "설치",
+      MAINTENANCE: "유지보수",
       INSTALLATION: "설치",
       REPAIR: "수리",
       INSPECTION: "점검",

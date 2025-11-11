@@ -7,7 +7,9 @@ import com.ddp.company.dto.request.UpdateCompanyRequest;
 import com.ddp.company.dto.response.*;
 import com.ddp.company.entity.Company;
 import com.ddp.company.entity.CompanyStatus;
+import com.ddp.company.entity.ServiceType;
 import com.ddp.company.repository.CompanyRepository;
+import com.ddp.company.repository.ServiceRecordRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +33,7 @@ import java.util.stream.Collectors;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final ServiceRecordRepository serviceRecordRepository;
     private final AuthServiceClient authServiceClient;
 
     /**
@@ -343,6 +349,74 @@ public class CompanyService {
             log.error("API 호출 실패: 업체 삭제 - ID: {}, 오류: {}", id, e.getMessage(), e);
             return ApiResponse.failure("업체 삭제 중 오류가 발생했습니다.");
         }
+    }
+
+    /**
+     * 업체 통계 조회
+     */
+    @Transactional(readOnly = true)
+    public CompanyStatsDto getCompanyStats(Long companyId) {
+        log.info("API 호출 시작: 업체 통계 조회 - 업체 ID: {}", companyId);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            // 업체 존재 확인
+            if (!companyRepository.existsById(companyId)) {
+                log.warn("업체를 찾을 수 없습니다: ID={}", companyId);
+                return null;
+            }
+
+            // 이번 달 시작/종료 시간 계산
+            YearMonth currentMonth = YearMonth.now();
+            LocalDateTime monthStart = currentMonth.atDay(1).atStartOfDay();
+            LocalDateTime monthEnd = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+            // 통계 데이터 수집
+            long totalServiceCount = serviceRecordRepository.countByCompanyId(companyId);
+            long installationCount = serviceRecordRepository.countByCompanyIdAndType(companyId, ServiceType.INSTALLATION);
+            long inspectionCount = serviceRecordRepository.countByCompanyIdAndType(companyId, ServiceType.INSPECTION);
+            long repairCount = serviceRecordRepository.countByCompanyIdAndType(companyId, ServiceType.REPAIR);
+            long maintenanceCount = serviceRecordRepository.countByCompanyIdAndType(companyId, ServiceType.MAINTENANCE);
+
+            BigDecimal totalRevenue = serviceRecordRepository.sumCostByCompanyId(companyId);
+            long thisMonthServiceCount = serviceRecordRepository.countByCompanyIdAndPerformedAtBetween(companyId, monthStart, monthEnd);
+            BigDecimal thisMonthRevenue = serviceRecordRepository.sumCostByCompanyIdAndPerformedAtBetween(companyId, monthStart, monthEnd);
+            BigDecimal averageServiceCost = serviceRecordRepository.avgCostByCompanyId(companyId);
+
+            CompanyStatsDto stats = CompanyStatsDto.builder()
+                .totalServiceCount(totalServiceCount)
+                .installationCount(installationCount)
+                .inspectionCount(inspectionCount)
+                .repairCount(repairCount)
+                .maintenanceCount(maintenanceCount)
+                .totalRevenue(totalRevenue != null ? totalRevenue : BigDecimal.ZERO)
+                .thisMonthServiceCount(thisMonthServiceCount)
+                .thisMonthRevenue(thisMonthRevenue != null ? thisMonthRevenue : BigDecimal.ZERO)
+                .averageServiceCost(averageServiceCost != null ? averageServiceCost : BigDecimal.ZERO)
+                .build();
+
+            log.info("API 호출 완료: 업체 통계 조회 - 업체 ID: {} ({}ms)",
+                companyId, System.currentTimeMillis() - startTime);
+
+            return stats;
+
+        } catch (Exception e) {
+            log.error("API 호출 실패: 업체 통계 조회 - 업체 ID: {}, 오류: {}", companyId, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 업체명 조회 (공개 API용, 서비스 간 통신용)
+     */
+    @Transactional(readOnly = true)
+    public String getCompanyNameById(Long id) {
+        log.debug("업체명 조회 - ID: {}", id);
+
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("업체를 찾을 수 없습니다: " + id));
+
+        return company.getName();
     }
 
     /**

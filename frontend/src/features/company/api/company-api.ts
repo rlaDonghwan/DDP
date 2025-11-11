@@ -74,7 +74,9 @@ export const companyApi = {
     console.log("API 호출 시작: 업체 통계 조회");
 
     try {
-      const response = await apiClient.get<CompanyStats>("/company/stats");
+      const response = await apiClient.get<CompanyStats>(
+        "/api/v1/company/portal/stats"
+      );
 
       const endTime = performance.now();
       console.log(

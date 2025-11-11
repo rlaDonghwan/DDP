@@ -50,13 +50,26 @@ export interface BusinessHours {
  * 업체 통계
  */
 export interface CompanyStats {
-  totalReservations: number;
-  pendingReservations: number;
-  completedReservations: number;
-  totalCustomers: number;
-  totalDevices: number;
-  monthlyRevenue: number;
-  averageRating: number;
+  // 총 서비스 건수
+  totalServiceCount: number;
+
+  // 서비스 타입별 건수
+  installationCount: number;
+  inspectionCount: number;
+  repairCount: number;
+  maintenanceCount: number;
+
+  // 총 매출
+  totalRevenue: number;
+
+  // 이번 달 서비스 건수
+  thisMonthServiceCount: number;
+
+  // 이번 달 매출
+  thisMonthRevenue: number;
+
+  // 평균 서비스 비용
+  averageServiceCost: number;
 }
 
 /**

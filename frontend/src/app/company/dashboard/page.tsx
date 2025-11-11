@@ -1,6 +1,9 @@
 "use client";
 
-import { useCompanyStats, useCompanyReservations } from "@/features/company/hooks/use-company";
+import {
+  useCompanyStats,
+  useCompanyReservations,
+} from "@/features/company/hooks/use-company";
 import {
   Card,
   CardContent,
@@ -35,7 +38,7 @@ export default function CompanyDashboardPage() {
    * 오늘 날짜의 예약 필터링
    */
   const todayReservations = reservations?.filter((reservation) => {
-    const reservationDate = new Date(reservation.preferredDate);
+    const reservationDate = new Date(reservation.requestedDate);
     const today = new Date();
     return (
       reservationDate.getFullYear() === today.getFullYear() &&
@@ -70,97 +73,84 @@ export default function CompanyDashboardPage() {
 
       {/* 통계 카드 그리드 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* 대기 중인 예약 */}
+        {/* 총 서비스 건수 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              대기 중인 예약
-            </CardTitle>
-            <Clock className="h-5 w-5 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats?.pendingReservations || 0}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              총 {stats?.totalReservations || 0}건 중
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 완료된 예약 */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              완료된 예약
+              총 서비스 건수
             </CardTitle>
             <CheckCircle className="h-5 w-5 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900">
-              {stats?.completedReservations || 0}
+              {stats?.totalServiceCount || 0}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              완료율{" "}
-              {stats?.totalReservations
-                ? Math.round(
-                    ((stats?.completedReservations || 0) /
-                      stats.totalReservations) *
-                      100
-                  )
-                : 0}
-              %
-            </p>
+            <p className="text-xs text-gray-500 mt-2">누적 서비스</p>
           </CardContent>
         </Card>
 
-        {/* 총 고객 수 */}
+        {/* 설치 건수 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              총 고객
+              설치
             </CardTitle>
-            <Users className="h-5 w-5 text-blue-600" />
+            <Wrench className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900">
-              {stats?.totalCustomers || 0}
+              {stats?.installationCount || 0}
             </div>
-            <p className="text-xs text-gray-500 mt-2">명</p>
+            <p className="text-xs text-gray-500 mt-2">건</p>
           </CardContent>
         </Card>
 
-        {/* 보유 장치 */}
+        {/* 검·교정 건수 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              보유 장치
+              검·교정
             </CardTitle>
-            <Wrench className="h-5 w-5 text-purple-600" />
+            <CheckCircle className="h-5 w-5 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900">
-              {stats?.totalDevices || 0}
+              {stats?.inspectionCount || 0}
             </div>
-            <p className="text-xs text-gray-500 mt-2">대</p>
+            <p className="text-xs text-gray-500 mt-2">건</p>
+          </CardContent>
+        </Card>
+
+        {/* 수리/유지보수 건수 */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              수리/유지보수
+            </CardTitle>
+            <Wrench className="h-5 w-5 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-gray-900">
+              {(stats?.repairCount || 0) + (stats?.maintenanceCount || 0)}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">건</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 평균 평점 및 월 매출 */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* 매출 및 평균 비용 */}
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              평균 평점
+              <TrendingUp className="h-5 w-5 text-green-600" />총 매출
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-gray-900">
-              {stats?.averageRating?.toFixed(1) || "0.0"}
+              {(stats?.totalRevenue || 0).toLocaleString()}원
             </div>
-            <p className="text-sm text-gray-500 mt-2">5.0점 만점</p>
+            <p className="text-sm text-gray-500 mt-2">누적 총 매출</p>
           </CardContent>
         </Card>
 
@@ -168,14 +158,31 @@ export default function CompanyDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
-              월 매출
+              이번 달 매출
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-gray-900">
-              {(stats?.monthlyRevenue || 0).toLocaleString()}원
+              {(stats?.thisMonthRevenue || 0).toLocaleString()}원
             </div>
-            <p className="text-sm text-gray-500 mt-2">이번 달 매출</p>
+            <p className="text-sm text-gray-500 mt-2">
+              서비스 {stats?.thisMonthServiceCount || 0}건
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              평균 서비스 비용
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-gray-900">
+              {(stats?.averageServiceCost || 0).toLocaleString()}원
+            </div>
+            <p className="text-sm text-gray-500 mt-2">평균 비용</p>
           </CardContent>
         </Card>
       </div>
@@ -209,7 +216,7 @@ export default function CompanyDashboardPage() {
             <div className="space-y-4">
               {todayReservations.slice(0, 5).map((reservation) => (
                 <div
-                  key={reservation.id}
+                  key={reservation.reservationId}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex-1">
@@ -221,20 +228,17 @@ export default function CompanyDashboardPage() {
                         {reservation.serviceType === "INSTALLATION"
                           ? "설치"
                           : reservation.serviceType === "REPAIR"
-                            ? "수리"
-                            : "점검"}
+                          ? "수리"
+                          : "점검"}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      {formatKoreanDate(reservation.preferredDate)} •{" "}
-                      {reservation.preferredTime}
+                      {formatKoreanDate(reservation.requestedDate)}
                     </p>
                   </div>
                   <Button
                     size="sm"
-                    onClick={() =>
-                      router.push("/company/reservations")
-                    }
+                    onClick={() => router.push("/company/reservations")}
                   >
                     상세 보기
                   </Button>
@@ -247,41 +251,6 @@ export default function CompanyDashboardPage() {
               <p className="text-gray-500">오늘 예정된 일정이 없습니다</p>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* 빠른 작업 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>빠른 작업</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col gap-2"
-              onClick={() => router.push("/company/reservations")}
-            >
-              <Calendar className="h-6 w-6" />
-              <span>예약 관리</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col gap-2"
-              onClick={() => router.push("/company/customers")}
-            >
-              <Users className="h-6 w-6" />
-              <span>고객 관리</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col gap-2"
-              onClick={() => router.push("/company/devices")}
-            >
-              <Wrench className="h-6 w-6" />
-              <span>장치 관리</span>
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -91,6 +91,11 @@ const menuItems = {
       url: "/company/devices",
       icon: Wrench,
     },
+    {
+      title: "서비스 이력",
+      url: "/company/service-records",
+      icon: ClipboardList,
+    },
   ],
   admin: [
     {

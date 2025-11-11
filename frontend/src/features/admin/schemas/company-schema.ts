@@ -48,13 +48,8 @@ export const createCompanySchema = z
       .max(50, "지역은 최대 50자까지 입력 가능합니다"),
     initialAccountId: z
       .string()
-      .min(1, "초기 계정 ID를 입력해주세요")
-      .min(4, "계정 ID는 최소 4자 이상이어야 합니다")
-      .max(50, "계정 ID는 최대 50자까지 입력 가능합니다")
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        "계정 ID는 영문, 숫자, 언더스코어(_)만 사용 가능합니다"
-      ),
+      .min(1, "초기 계정 이메일을 입력해주세요")
+      .email("올바른 이메일 형식이 아닙니다"),
     initialPassword: z
       .string()
       .min(1, "비밀번호를 입력해주세요")

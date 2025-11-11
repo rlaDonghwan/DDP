@@ -33,8 +33,6 @@ public class CompanyDetailDto {
     private String createdAt;
     private String updatedAt;
     private List<ServiceRecordDto> serviceHistory;
-    private List<ManagedDeviceDto> managedDevices;
-    private List<CustomerDto> customers;
 
     // Entity에서 DTO로 변환하는 정적 팩토리 메서드
     public static CompanyDetailDto fromEntity(Company company) {
@@ -54,12 +52,6 @@ public class CompanyDetailDto {
             .updatedAt(company.getUpdatedAt().toString())
             .serviceHistory(company.getServiceHistory().stream()
                 .map(ServiceRecordDto::fromEntity)
-                .collect(Collectors.toList()))
-            .managedDevices(company.getManagedDevices().stream()
-                .map(ManagedDeviceDto::fromEntity)
-                .collect(Collectors.toList()))
-            .customers(company.getCustomers().stream()
-                .map(CustomerDto::fromEntity)
                 .collect(Collectors.toList()))
             .build();
     }

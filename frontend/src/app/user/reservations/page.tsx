@@ -70,7 +70,8 @@ export default function ReservationsPage() {
    */
   const getServiceTypeLabel = (type: string): string => {
     switch (type) {
-      case "INSTALL":
+      case "MAINTENANCE":
+        return "유지보수";
       case "INSTALLATION":
         return "설치";
       case "REPAIR":

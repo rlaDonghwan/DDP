@@ -1,7 +1,9 @@
 package com.ddp.company.controller;
 
+import com.ddp.company.dto.response.CompanyNameResponse;
 import com.ddp.company.dto.response.OperatorDto;
 import com.ddp.company.dto.response.OperatorListResponse;
+import com.ddp.company.service.CompanyService;
 import com.ddp.company.service.OperatorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class PublicOperatorController {
 
     private final OperatorService operatorService;
+    private final CompanyService companyService;
 
     /**
      * 모든 업체 조회 (승인된 업체만)
@@ -69,5 +72,26 @@ public class PublicOperatorController {
         OperatorListResponse response = operatorService.searchOperators(keyword);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 업체명 조회 (공개, 서비스 간 통신용)
+     */
+    @GetMapping("/{id}/name")
+    @Operation(summary = "업체명 조회", description = "업체 ID로 업체명만 조회합니다 (인증 불필요, 서비스 간 통신용)")
+    public ResponseEntity<CompanyNameResponse> getCompanyName(@PathVariable Long id) {
+        log.debug("업체명 조회 요청 (공개) - ID: {}", id);
+
+        try {
+            String companyName = companyService.getCompanyNameById(id);
+            CompanyNameResponse response = CompanyNameResponse.builder()
+                    .companyId(id)
+                    .name(companyName)
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.warn("업체명 조회 실패 - ID: {}, 사유: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 }

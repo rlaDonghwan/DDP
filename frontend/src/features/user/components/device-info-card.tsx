@@ -11,7 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Wrench, Calendar, Building2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Wrench,
+  Calendar,
+  Building2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { formatKoreanDate } from "@/lib/date-utils";
 
 /**
@@ -19,7 +25,11 @@ import { formatKoreanDate } from "@/lib/date-utils";
  * 할당된 장치의 상세 정보를 표시합니다
  */
 export function DeviceInfoCard() {
-  const { data: device, isLoading, error } = useQuery({
+  const {
+    data: device,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["user", "device"],
     queryFn: userApi.getAssignedDevice,
   });
@@ -66,7 +76,8 @@ export function DeviceInfoCard() {
             장치 미할당
           </CardTitle>
           <CardDescription className="text-blue-700">
-            아직 장치가 할당되지 않았습니다. 업체 검색 페이지에서 예약을 신청하세요.
+            아직 장치가 할당되지 않았습니다. 업체 검색 페이지에서 예약을
+            신청하세요.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -122,12 +133,6 @@ export function DeviceInfoCard() {
               <p className="text-sm font-medium text-gray-500">모델명</p>
               <p className="text-base font-semibold text-gray-900">
                 {device.model}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">제조사</p>
-              <p className="text-base font-semibold text-gray-900">
-                {device.manufacturer}
               </p>
             </div>
           </div>
