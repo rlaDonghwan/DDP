@@ -42,6 +42,8 @@ import {
 } from "lucide-react";
 import { formatKoreanDate } from "@/lib/date-utils";
 import type { ReservationStatus } from "@/features/reservation/types/reservation";
+import type { CompleteReservationRequest } from "@/features/company/types/company";
+import { CompleteReservationDialog } from "./complete-reservation-dialog";
 
 /**
  * 업체 예약 관리 페이지
@@ -54,6 +56,8 @@ export default function CompanyReservationsPage() {
   const [selectedReservationId, setSelectedReservationId] = useState<
     string | null
   >(null);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<any>(null);
 
   const { data: reservations, isLoading } = useCompanyReservations(
     statusFilter === "ALL" ? undefined : statusFilter
@@ -83,10 +87,22 @@ export default function CompanyReservationsPage() {
   };
 
   /**
-   * 예약 완료 처리
+   * 예약 완료 다이얼로그 열기
    */
-  const handleComplete = async (reservationId: string) => {
-    await completeMutation.mutateAsync(reservationId);
+  const handleOpenCompleteDialog = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setCompleteDialogOpen(true);
+  };
+
+  /**
+   * 예약 완료 처리 제출
+   */
+  const handleCompleteSubmit = async (data: CompleteReservationRequest) => {
+    if (!selectedReservation) return;
+    await completeMutation.mutateAsync({
+      id: selectedReservation.reservationId,
+      data,
+    });
   };
 
   /**
@@ -353,9 +369,7 @@ export default function CompanyReservationsPage() {
                     {reservation.status === "CONFIRMED" && (
                       <Button
                         size="sm"
-                        onClick={() =>
-                          handleComplete(reservation.reservationId)
-                        }
+                        onClick={() => handleOpenCompleteDialog(reservation)}
                         disabled={completeMutation.isPending}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
@@ -368,6 +382,18 @@ export default function CompanyReservationsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* 예약 완료 다이얼로그 */}
+      {selectedReservation && (
+        <CompleteReservationDialog
+          open={completeDialogOpen}
+          onOpenChange={setCompleteDialogOpen}
+          reservationId={selectedReservation.reservationId}
+          serviceType={selectedReservation.serviceType}
+          onSubmit={handleCompleteSubmit}
+          isSubmitting={completeMutation.isPending}
+        />
       )}
     </div>
   );

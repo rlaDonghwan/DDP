@@ -44,6 +44,7 @@ export function useSession() {
           email: response.email || "",
           name: response.name || "",
           role: finalRole,
+          companyId: response.companyId, // 업체 사용자인 경우 업체 ID 포함
           createdAt: new Date(),
           updatedAt: new Date(),
         };

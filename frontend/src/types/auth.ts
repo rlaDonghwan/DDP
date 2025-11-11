@@ -18,6 +18,7 @@ export interface User {
   role: UserRole;
   phone?: string;
   address?: string;
+  companyId?: number; // 업체 사용자인 경우 업체 ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +55,7 @@ export interface LoginResponse {
   email?: string;
   name?: string;
   role?: string;
+  companyId?: number; // 업체 사용자인 경우 업체 ID
 }
 
 /**

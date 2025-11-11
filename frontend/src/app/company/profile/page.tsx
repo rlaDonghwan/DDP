@@ -1,6 +1,9 @@
 "use client";
 
-import { useCompanyProfile, useUpdateCompanyProfile } from "@/features/company/hooks/use-company";
+import {
+  useCompanyProfile,
+  useUpdateCompanyProfile,
+} from "@/features/company/hooks/use-company";
 import {
   Card,
   CardContent,
@@ -108,15 +111,15 @@ export default function CompanyProfilePage() {
             <Building2 className="h-5 w-5" />
             기본 정보
           </CardTitle>
-          <CardDescription>
-            업체의 기본 정보입니다 (수정 불가)
-          </CardDescription>
+          <CardDescription>업체의 기본 정보입니다 (수정 불가)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-gray-600">업체명</Label>
-              <p className="text-lg font-semibold text-gray-900">{profile.name}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {profile.name}
+              </p>
             </div>
             <div>
               <Label className="text-gray-600">사업자등록번호</Label>
@@ -177,7 +180,9 @@ export default function CompanyProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>연락처 및 주소</CardTitle>
-            <CardDescription>업체 연락처와 주소를 수정할 수 있습니다</CardDescription>
+            <CardDescription>
+              업체 연락처와 주소를 수정할 수 있습니다
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

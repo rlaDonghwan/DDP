@@ -1,5 +1,7 @@
 "use client";
 
+import { useSession } from "@/features/auth/hooks/use-session";
+import { useUserDevices } from "@/features/device/hooks/use-device";
 import { useUserProfile } from "@/features/user/hooks/use-user-profile";
 import {
   useUserStatus,
@@ -21,12 +23,20 @@ import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
  * 주요 기능 바로가기는 좌측 사이드바에서 제공됩니다
  */
 export default function UserMainPage() {
+  const { user } = useSession();
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: status, isLoading: statusLoading } = useUserStatus();
   const { data: notifications, isLoading: notificationsLoading } =
     useNotifications();
   const { data: announcements, isLoading: announcementsLoading } =
     useAnnouncements();
+
+  // 사용자 장치 정보 가져오기 (device-service)
+  const userId = user?.id ? parseInt(user.id) : 0;
+  const { data: devices, isLoading: devicesLoading } = useUserDevices(userId);
+
+  // 첫 번째 장치 정보 사용 (사용자는 보통 1개의 장치만 가짐)
+  const userDevice = devices && devices.length > 0 ? devices[0] : null;
 
   return (
     <div className="space-y-6">
@@ -44,7 +54,8 @@ export default function UserMainPage() {
       <UserStatusCard
         profile={profile}
         status={status}
-        isLoading={statusLoading || profileLoading}
+        device={userDevice}
+        isLoading={statusLoading || profileLoading || devicesLoading}
       />
 
       {/* 빠른 메뉴 */}

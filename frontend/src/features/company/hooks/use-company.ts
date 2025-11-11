@@ -5,6 +5,7 @@ import type {
   RegisterDeviceRequest,
   UpdateDeviceRequest,
   AssignDeviceRequest,
+  CompleteReservationRequest,
 } from "../types/company";
 import { toast } from "sonner";
 
@@ -104,8 +105,13 @@ export function useCompleteReservation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (reservationId: string) =>
-      companyApi.completeReservation(reservationId),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: CompleteReservationRequest;
+    }) => companyApi.completeReservation(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company", "reservations"] });
       queryClient.invalidateQueries({ queryKey: ["company", "stats"] });

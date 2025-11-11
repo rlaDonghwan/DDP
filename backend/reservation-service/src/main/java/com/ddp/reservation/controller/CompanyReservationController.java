@@ -1,5 +1,6 @@
 package com.ddp.reservation.controller;
 
+import com.ddp.reservation.dto.request.CompleteReservationRequest;
 import com.ddp.reservation.dto.request.RejectReservationRequest;
 import com.ddp.reservation.dto.response.ReservationResponse;
 import com.ddp.reservation.entity.Reservation;
@@ -143,12 +144,13 @@ public class CompanyReservationController {
 
     // 예약 완료
     @PostMapping("/{id}/complete")
-    @Operation(summary = "예약 완료", description = "업체가 서비스 완료 후 예약을 완료 처리합니다")
+    @Operation(summary = "예약 완료", description = "업체가 서비스 완료 후 예약을 완료 처리합니다 (서비스 타입별 상세 정보 포함)")
     public ResponseEntity<ReservationResponse> completeReservation(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role,
             @RequestHeader(value = "X-Company-Id", required = false) Long companyId,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @Valid @RequestBody CompleteReservationRequest request
     ) {
         log.info("예약 완료 요청 - 예약 ID: {}, 업체 ID: {}", id, companyId);
 
@@ -165,8 +167,8 @@ public class CompanyReservationController {
         }
 
         try {
-            // 예약 완료 (서비스에서 권한 검증 포함)
-            Reservation reservation = reservationService.completeReservation(id, companyId);
+            // 예약 완료 (서비스에서 권한 검증 포함, 상세 정보 전달)
+            Reservation reservation = reservationService.completeReservation(id, companyId, request);
 
             // 응답 변환
             ReservationResponse response = ReservationResponse.from(reservation);

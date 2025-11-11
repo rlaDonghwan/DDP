@@ -36,9 +36,7 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (data: ChangePasswordRequest) => userApi.changePassword(data),
     onSuccess: (response) => {
-      toast.success(
-        response.message || "비밀번호가 성공적으로 변경되었습니다"
-      );
+      toast.success(response.message || "비밀번호가 성공적으로 변경되었습니다");
     },
     onError: (error: any) => {
       const errorMessage =

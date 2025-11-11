@@ -1,13 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useCompanyDevices,
-  useRegisterDevice,
-  useUpdateDevice,
-  useDeleteDevice,
-} from "@/features/company/hooks/use-company";
-import { AssignDeviceDialog } from "@/features/company/components/assign-device-dialog";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { useCompanyDevices } from "@/features/device/hooks/use-device";
+import type { DeviceResponse } from "@/features/device/api/device-api";
 import {
   Card,
   CardContent,
@@ -25,97 +21,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Wrench, Plus, Calendar, User, Trash2, UserPlus } from "lucide-react";
+import { Wrench, Calendar, User, Building } from "lucide-react";
 import { formatKoreanDate } from "@/lib/date-utils";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { DeviceStatus, CompanyDevice } from "@/features/company/types/company";
-
-/**
- * 장치 등록 스키마
- */
-const registerDeviceSchema = z.object({
-  serialNumber: z.string().min(1, "시리얼 번호를 입력하세요"),
-  model: z.string().min(1, "모델명을 입력하세요"),
-  manufacturer: z.string().min(1, "제조사를 입력하세요"),
-  purchaseDate: z.string().min(1, "구매일을 입력하세요"),
-});
-
-type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
+import type { DeviceStatus } from "@/features/company/types/company";
 
 /**
  * 업체 장치 관리 페이지
  */
 export default function CompanyDevicesPage() {
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | "ALL">("ALL");
-  const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<CompanyDevice | null>(null);
+  const { user } = useSession();
 
-  const { data: devices, isLoading } = useCompanyDevices(
-    statusFilter === "ALL" ? undefined : statusFilter
-  );
-  const registerMutation = useRegisterDevice();
-  const updateMutation = useUpdateDevice();
-  const deleteMutation = useDeleteDevice();
+  // 업체 ID 가져오기
+  const companyId = user?.companyId;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<RegisterDeviceInput>({
-    resolver: zodResolver(registerDeviceSchema),
-  });
+  // 장치 목록 조회
+  const { data: devices, isLoading } = useCompanyDevices(companyId || 0);
+
+  // 상태별 필터링
+  const filteredDevices =
+    statusFilter === "ALL"
+      ? devices
+      : devices?.filter((device) => device.status === statusFilter);
 
   /**
-   * 장치 등록 처리
-   */
-  const onSubmit = async (data: RegisterDeviceInput) => {
-    await registerMutation.mutateAsync(data);
-    setIsRegisterDialogOpen(false);
-    reset();
-  };
-
-  /**
-   * 장치 삭제 처리
-   */
-  const handleDelete = async (deviceId: string) => {
-    await deleteMutation.mutateAsync(deviceId);
-  };
-
-  /**
-   * 상태 뱃지 스타일
+   * 상태 뱃지 스타일 (백엔드 DeviceStatus 열거형 기준)
    */
   const getStatusBadge = (status: DeviceStatus) => {
     const styles = {
       AVAILABLE: { variant: "default" as const, text: "사용 가능" },
       INSTALLED: { variant: "secondary" as const, text: "설치됨" },
-      MAINTENANCE: { variant: "outline" as const, text: "점검 중" },
-      RETIRED: { variant: "destructive" as const, text: "폐기" },
+      UNDER_MAINTENANCE: { variant: "outline" as const, text: "점검 중" },
+      DEACTIVATED: { variant: "destructive" as const, text: "비활성화" },
     };
     const config = styles[status];
     return <Badge variant={config.variant}>{config.text}</Badge>;
@@ -140,94 +77,9 @@ export default function CompanyDevicesPage() {
             장치 관리
           </h1>
           <p className="text-gray-600 mt-2">
-            보유한 음주운전 방지장치를 등록하고 관리합니다
+            설치 완료된 음주운전 방지장치 목록을 확인합니다
           </p>
         </div>
-        <Dialog open={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              장치 등록
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <DialogHeader>
-                <DialogTitle>새 장치 등록</DialogTitle>
-                <DialogDescription>
-                  새로운 장치 정보를 입력하여 등록하세요
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="serialNumber">시리얼 번호</Label>
-                  <Input
-                    id="serialNumber"
-                    {...register("serialNumber")}
-                    placeholder="예: DUI-2024-001"
-                  />
-                  {errors.serialNumber && (
-                    <p className="text-sm text-red-600">
-                      {errors.serialNumber.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="model">모델명</Label>
-                  <Input
-                    id="model"
-                    {...register("model")}
-                    placeholder="예: DUI-PRO-2024"
-                  />
-                  {errors.model && (
-                    <p className="text-sm text-red-600">{errors.model.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="manufacturer">제조사</Label>
-                  <Input
-                    id="manufacturer"
-                    {...register("manufacturer")}
-                    placeholder="예: 한국음주방지시스템"
-                  />
-                  {errors.manufacturer && (
-                    <p className="text-sm text-red-600">
-                      {errors.manufacturer.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="purchaseDate">구매일</Label>
-                  <Input
-                    id="purchaseDate"
-                    type="date"
-                    {...register("purchaseDate")}
-                  />
-                  {errors.purchaseDate && (
-                    <p className="text-sm text-red-600">
-                      {errors.purchaseDate.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsRegisterDialogOpen(false);
-                    reset();
-                  }}
-                >
-                  취소
-                </Button>
-                <Button type="submit" disabled={registerMutation.isPending}>
-                  등록
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* 필터 및 목록 */}
@@ -237,7 +89,7 @@ export default function CompanyDevicesPage() {
             <CardTitle>장치 목록</CardTitle>
             <div className="flex items-center gap-4">
               <div className="text-sm text-gray-600">
-                총 <span className="font-semibold">{devices?.length || 0}</span>대
+                총 <span className="font-semibold">{filteredDevices?.length || 0}</span>대
               </div>
               <Select
                 value={statusFilter}
@@ -252,30 +104,31 @@ export default function CompanyDevicesPage() {
                   <SelectItem value="ALL">전체</SelectItem>
                   <SelectItem value="AVAILABLE">사용 가능</SelectItem>
                   <SelectItem value="INSTALLED">설치됨</SelectItem>
-                  <SelectItem value="MAINTENANCE">점검 중</SelectItem>
-                  <SelectItem value="RETIRED">폐기</SelectItem>
+                  <SelectItem value="UNDER_MAINTENANCE">점검 중</SelectItem>
+                  <SelectItem value="DEACTIVATED">비활성화</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {!devices || devices.length === 0 ? (
+          {!filteredDevices || filteredDevices.length === 0 ? (
             <div className="text-center py-20">
               <Wrench className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 mb-2">등록된 장치가 없습니다</p>
-              <Button
-                variant="outline"
-                onClick={() => setIsRegisterDialogOpen(true)}
-              >
-                장치 등록하기
-              </Button>
+              <p className="text-gray-500 mb-2">
+                {statusFilter === "ALL"
+                  ? "등록된 장치가 없습니다"
+                  : "해당 상태의 장치가 없습니다"}
+              </p>
+              <p className="text-sm text-gray-400">
+                설치 예약 완료 시 자동으로 장치가 등록됩니다
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {devices.map((device) => (
+              {filteredDevices.map((device) => (
                 <Card
-                  key={device.id}
+                  key={device.deviceId}
                   className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow"
                 >
                   <CardHeader>
@@ -283,81 +136,37 @@ export default function CompanyDevicesPage() {
                       <div className="flex-1">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Wrench className="h-5 w-5" />
-                          {device.model}
+                          {device.modelName}
                           {getStatusBadge(device.status)}
                         </CardTitle>
                         <CardDescription className="mt-2">
-                          S/N: {device.serialNumber} • 제조사: {device.manufacturer}
+                          S/N: {device.serialNumber}
+                          {device.manufacturerId && ` • 제조업체 ID: ${device.manufacturerId}`}
                         </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {/* 고객 할당 버튼 (AVAILABLE 상태일 때만 표시) */}
-                        {device.status === "AVAILABLE" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedDevice(device);
-                              setIsAssignDialogOpen(true);
-                            }}
-                          >
-                            <UserPlus className="h-4 w-4 mr-1" />
-                            고객 할당
-                          </Button>
-                        )}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>장치 삭제</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              이 장치를 삭제하시겠습니까? 이 작업은 되돌릴 수
-                              없습니다.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>취소</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(device.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              삭제
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                        </AlertDialog>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {device.assignedTo && device.assignedToName && (
+                      {device.userId && (
                         <div>
                           <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
                             <User className="h-4 w-4" />
-                            설치 고객
+                            설치 사용자 ID
                           </p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {device.assignedToName}
+                            {device.userId}
                           </p>
                         </div>
                       )}
-                      {device.installationDate && (
+                      {device.installDate && (
                         <div>
                           <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
                             설치일
                           </p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {formatKoreanDate(device.installationDate)}
+                            {formatKoreanDate(device.installDate)}
                           </p>
                         </div>
                       )}
@@ -365,7 +174,7 @@ export default function CompanyDevicesPage() {
                         <div>
                           <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            최종 점검일
+                            최종 검·교정일
                           </p>
                           <p className="text-sm font-semibold text-gray-900">
                             {formatKoreanDate(device.lastInspectionDate)}
@@ -376,13 +185,33 @@ export default function CompanyDevicesPage() {
                         <div>
                           <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            다음 점검일
+                            다음 검·교정 예정일
                           </p>
                           <p className="text-sm font-semibold text-gray-900">
                             {formatKoreanDate(device.nextInspectionDate)}
                           </p>
                         </div>
                       )}
+                      {device.warrantyEndDate && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            보증 종료일
+                          </p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {formatKoreanDate(device.warrantyEndDate)}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                          <Building className="h-4 w-4" />
+                          업체 ID
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {device.companyId}
+                        </p>
+                      </div>
                     </div>
                     <div className="mt-4 pt-4 border-t text-sm text-gray-600">
                       등록일: {formatKoreanDate(device.createdAt)} • 최종 수정:{" "}
@@ -395,13 +224,6 @@ export default function CompanyDevicesPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* 장치 할당 다이얼로그 */}
-      <AssignDeviceDialog
-        device={selectedDevice}
-        open={isAssignDialogOpen}
-        onOpenChange={setIsAssignDialogOpen}
-      />
     </div>
   );
 }

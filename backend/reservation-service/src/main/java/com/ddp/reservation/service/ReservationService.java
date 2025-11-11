@@ -2,12 +2,17 @@ package com.ddp.reservation.service;
 
 import com.ddp.reservation.client.AuthServiceClient;
 import com.ddp.reservation.client.CompanyServiceClient;
+import com.ddp.reservation.client.DeviceServiceClient;
+import com.ddp.reservation.client.dto.DeviceResponse;
+import com.ddp.reservation.client.dto.RegisterDeviceRequest;
 import com.ddp.reservation.dto.CompanyDto;
 import com.ddp.reservation.dto.UserDto;
+import com.ddp.reservation.dto.request.CompleteReservationRequest;
 import com.ddp.reservation.dto.request.CreateReservationRequest;
 import com.ddp.reservation.dto.response.ReservationResponse;
 import com.ddp.reservation.entity.Reservation;
 import com.ddp.reservation.entity.ReservationStatus;
+import com.ddp.reservation.entity.ServiceType;
 import com.ddp.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +34,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final AuthServiceClient authServiceClient;
     private final CompanyServiceClient companyServiceClient;
+    private final DeviceServiceClient deviceServiceClient;
 
     // 예약 생성 (사용자)
     public Reservation createReservation(Long userId, CreateReservationRequest request) {
@@ -363,8 +369,8 @@ public class ReservationService {
     }
 
     // 예약 완료 (업체)
-    public Reservation completeReservation(Long reservationId, Long companyId) {
-        log.info("API 호출 시작: 예약 완료 - 예약 ID: {}, 업체 ID: {}", reservationId, companyId);
+    public Reservation completeReservation(Long reservationId, Long companyId, CompleteReservationRequest request) {
+        log.info("API 호출 시작: 예약 완료 - 예약 ID: {}, 업체 ID: {}, 서비스 타입별 정보 포함", reservationId, companyId);
 
         long startTime = System.currentTimeMillis();
 
@@ -387,16 +393,38 @@ public class ReservationService {
 
             // 예약 완료 처리
             reservation.setStatus(ReservationStatus.COMPLETED);
-            reservation.setCompletedDate(LocalDateTime.now());
+            reservation.setCompletedDate(request.getCompletedDate() != null ?
+                    request.getCompletedDate() : LocalDateTime.now());
 
             Reservation savedReservation = reservationRepository.save(reservation);
 
+            log.info("예약 완료 처리 완료 - 예약 ID: {}, 서비스 타입: {}", reservationId, reservation.getServiceType());
+
+            // 서비스 타입별 처리
+            try {
+                if (reservation.getServiceType() == ServiceType.INSTALLATION) {
+                    // INSTALLATION: device-service 호출하여 장치 등록
+                    handleInstallationCompletion(reservation, request, companyId);
+                } else if (reservation.getServiceType() == ServiceType.INSPECTION) {
+                    // INSPECTION: device-service 호출하여 검·교정 이력 등록 (추후 구현)
+                    log.info("검·교정 완료 처리 - 예약 ID: {}, 장치 ID: {}", reservationId, request.getDeviceId());
+                    // TODO: device-service에 검·교정 이력 등록 API 구현 후 호출
+                } else if (reservation.getServiceType() == ServiceType.REPAIR ||
+                           reservation.getServiceType() == ServiceType.MAINTENANCE) {
+                    // REPAIR/MAINTENANCE: device-service 호출하여 수리 이력 등록 (추후 구현)
+                    log.info("수리/유지보수 완료 처리 - 예약 ID: {}, 장치 ID: {}", reservationId, request.getRepairDeviceId());
+                    // TODO: device-service에 수리 이력 등록 API 구현 후 호출
+                }
+            } catch (Exception e) {
+                log.error("서비스 타입별 처리 중 오류 발생: {}", e.getMessage(), e);
+                // 예약 완료는 성공했지만 후속 처리 실패 - 경고 로그만 남기고 계속 진행
+            }
+
+            // TODO: 모든 경우 ServiceRecord 생성 (company-service 호출)
+            // TODO: 알림 발송 (notification-service 호출)
+
             log.info("API 호출 완료: 예약 완료 - 예약 ID: {} ({}ms)",
                     reservationId, System.currentTimeMillis() - startTime);
-
-            // TODO: 장치 등록 (device-service 호출) - 추후 구현
-            // TODO: 서비스 이력 등록 (company-service 호출) - 추후 구현
-            // TODO: 알림 발송 (notification-service 호출) - 추후 구현
 
             return savedReservation;
 
@@ -432,6 +460,35 @@ public class ReservationService {
         } catch (Exception e) {
             log.error("예약 삭제 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("예약 삭제에 실패했습니다.", e);
+        }
+    }
+
+    // 설치 완료 처리 - device-service 호출
+    private void handleInstallationCompletion(Reservation reservation, CompleteReservationRequest request, Long companyId) {
+        log.info("설치 완료 처리 시작 - 예약 ID: {}, 시리얼 번호: {}", reservation.getReservationId(), request.getDeviceSerialNumber());
+
+        try {
+            // 장치 등록 요청 DTO 생성
+            RegisterDeviceRequest deviceRequest = RegisterDeviceRequest.builder()
+                    .serialNumber(request.getDeviceSerialNumber())
+                    .modelName(request.getModelName())
+                    .manufacturerId(request.getManufacturerId())
+                    .userId(reservation.getUserId()) // 예약한 사용자에게 장치 할당
+                    .companyId(companyId) // 설치한 업체
+                    .installDate(request.getCompletedDate().toLocalDate()) // 완료일을 설치일로 사용
+                    .warrantyEndDate(request.getWarrantyEndDate())
+                    .build();
+
+            // device-service 호출
+            DeviceResponse deviceResponse = deviceServiceClient.registerDevice(deviceRequest);
+
+            log.info("장치 등록 완료 - 장치 ID: {}, 시리얼 번호: {}, 사용자 ID: {}",
+                    deviceResponse.getDeviceId(), deviceResponse.getSerialNumber(), deviceResponse.getUserId());
+
+        } catch (Exception e) {
+            log.error("장치 등록 실패 - 예약 ID: {}, 시리얼 번호: {}, 오류: {}",
+                    reservation.getReservationId(), request.getDeviceSerialNumber(), e.getMessage(), e);
+            throw new RuntimeException("장치 등록에 실패했습니다: " + e.getMessage(), e);
         }
     }
 }

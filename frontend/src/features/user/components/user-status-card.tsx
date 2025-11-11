@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserStatus, UserProfile } from "../types/user";
+import type { DeviceResponse } from "@/features/device/api/device-api";
 import {
   calculateDday,
   formatKoreanDate,
@@ -19,6 +20,7 @@ import {
 interface UserStatusCardProps {
   profile: UserProfile | undefined;
   status: UserStatus | undefined;
+  device: DeviceResponse | null | undefined;
   isLoading: boolean;
 }
 
@@ -28,6 +30,7 @@ interface UserStatusCardProps {
 export function UserStatusCard({
   profile,
   status,
+  device,
   isLoading,
 }: UserStatusCardProps) {
   // 로딩 상태
@@ -76,20 +79,22 @@ export function UserStatusCard({
   };
 
   /**
-   * 장치 상태 뱃지 반환
+   * 장치 상태 뱃지 반환 (device-service 데이터 우선 사용)
    */
   const getDeviceStatusBadge = () => {
-    if (!displayStatus.deviceInstalled) {
+    if (!device) {
       return <Badge variant="secondary">미설치</Badge>;
     }
 
-    switch (displayStatus.deviceStatus) {
-      case "normal":
-        return <Badge variant="default">정상</Badge>;
-      case "maintenance":
-        return <Badge variant="secondary">점검 필요</Badge>;
-      case "warning":
-        return <Badge variant="destructive">경고</Badge>;
+    switch (device.status) {
+      case "INSTALLED":
+        return <Badge variant="default">정상 설치됨</Badge>;
+      case "AVAILABLE":
+        return <Badge variant="secondary">사용 가능</Badge>;
+      case "UNDER_MAINTENANCE":
+        return <Badge variant="outline">점검 중</Badge>;
+      case "DEACTIVATED":
+        return <Badge variant="destructive">비활성화</Badge>;
       default:
         return <Badge variant="secondary">알 수 없음</Badge>;
     }
@@ -152,7 +157,7 @@ export function UserStatusCard({
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-600 mb-2">모델명</p>
               <p className="text-base font-semibold text-gray-900">
-                {displayStatus.deviceModel || "정보 없음"}
+                {device?.modelName || displayStatus.deviceModel || "정보 없음"}
               </p>
             </div>
 
@@ -160,17 +165,19 @@ export function UserStatusCard({
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-600 mb-2">S/N</p>
               <p className="text-base font-semibold text-gray-900">
-                {displayStatus.deviceSerialNumber || "정보 없음"}
+                {device?.serialNumber ||
+                  displayStatus.deviceSerialNumber ||
+                  "정보 없음"}
               </p>
             </div>
 
-            {/* 차량 정보 */}
+            {/* 설치일 */}
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-600 mb-2">
-                장착 차량
-              </p>
+              <p className="text-sm font-medium text-gray-600 mb-2">설치일</p>
               <p className="text-base font-semibold text-gray-900">
-                {displayStatus.vehicleInfo || "정보 없음"}
+                {device?.installDate
+                  ? formatKoreanDate(device.installDate)
+                  : "정보 없음"}
               </p>
             </div>
           </div>
@@ -202,22 +209,31 @@ export function UserStatusCard({
               </div>
             </div>
 
-            {/* 정기 검교정 예정일 */}
+            {/* 정기 검·교정 예정일 */}
             <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
               <p className="text-sm font-medium text-gray-600 mb-2">
-                정기 검교정 예정일
+                정기 검·교정 예정일
               </p>
               <div className="flex items-center gap-2">
                 <Badge
                   variant={getDdayBadgeVariant(
-                    getDdayVariant(displayStatus.nextInspectionDate)
+                    getDdayVariant(
+                      device?.nextInspectionDate ||
+                        displayStatus.nextInspectionDate
+                    )
                   )}
                   className="text-base"
                 >
-                  {calculateDday(displayStatus.nextInspectionDate)}
+                  {calculateDday(
+                    device?.nextInspectionDate ||
+                      displayStatus.nextInspectionDate
+                  )}
                 </Badge>
                 <p className="text-base font-semibold text-gray-900">
-                  {formatKoreanDate(displayStatus.nextInspectionDate)}
+                  {formatKoreanDate(
+                    device?.nextInspectionDate ||
+                      displayStatus.nextInspectionDate
+                  )}
                 </p>
               </div>
             </div>

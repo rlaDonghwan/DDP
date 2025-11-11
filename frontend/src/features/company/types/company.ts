@@ -109,9 +109,9 @@ export interface CompanyDevice {
 }
 
 /**
- * 장치 상태
+ * 장치 상태 (백엔드 DeviceStatus 열거형과 일치)
  */
-export type DeviceStatus = "AVAILABLE" | "INSTALLED" | "MAINTENANCE" | "RETIRED";
+export type DeviceStatus = "AVAILABLE" | "INSTALLED" | "UNDER_MAINTENANCE" | "DEACTIVATED";
 
 /**
  * 장치 등록 요청
@@ -141,4 +141,35 @@ export interface AssignDeviceRequest {
   customerId: string; // 고객 ID
   installationDate: string; // 설치일 (ISO 날짜)
   installationNote?: string; // 설치 메모
+}
+
+/**
+ * 검사 결과 타입
+ */
+export type InspectionResult = "PASS" | "FAIL" | "CONDITIONAL_PASS";
+
+/**
+ * 예약 완료 요청 (서비스 타입별 필드 포함)
+ */
+export interface CompleteReservationRequest {
+  // 공통 필드
+  completedDate: string; // ISO 날짜 시간
+  cost?: number; // 비용 (원)
+  notes?: string; // 특이사항
+
+  // INSTALLATION (신규 설치) 전용
+  deviceSerialNumber?: string; // 장치 S/N
+  modelName?: string; // 장치 모델명
+  manufacturerId?: number; // 제조업체 ID
+  warrantyEndDate?: string; // 보증 종료일 (ISO 날짜)
+
+  // INSPECTION (검·교정) 전용
+  inspectionResult?: InspectionResult; // 검사 결과
+  nextInspectionDate?: string; // 다음 검사일 (ISO 날짜)
+  deviceId?: number; // 검사 대상 장치 ID
+
+  // REPAIR/MAINTENANCE (수리/유지보수) 전용
+  workDescription?: string; // 작업 내용
+  replacedParts?: string; // 교체 부품
+  repairDeviceId?: number; // 수리 대상 장치 ID
 }

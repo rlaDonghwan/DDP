@@ -8,6 +8,7 @@ import type {
   RegisterDeviceRequest,
   UpdateDeviceRequest,
   AssignDeviceRequest,
+  CompleteReservationRequest,
 } from "../types/company";
 import type { Reservation } from "@/features/reservation/types/reservation";
 
@@ -180,13 +181,17 @@ export const companyApi = {
   /**
    * 예약 완료 처리
    */
-  completeReservation: async (reservationId: string): Promise<Reservation> => {
+  completeReservation: async (
+    reservationId: string,
+    data: CompleteReservationRequest
+  ): Promise<Reservation> => {
     const startTime = performance.now();
     console.log("API 호출 시작: 예약 완료 처리");
 
     try {
       const response = await apiClient.post<Reservation>(
-        `/api/v1/reservations/company/${reservationId}/complete`
+        `/api/v1/reservations/company/${reservationId}/complete`,
+        data
       );
 
       const endTime = performance.now();
