@@ -53,6 +53,18 @@ spring:
           predicates:
             - Path=/api/v1/company/reservations/**
 
+        # Device Service API (장치 관리)
+        - id: device-service
+          uri: lb://device-service
+          predicates:
+            - Path=/api/v1/devices/**
+
+        # Device Service API (로그 관리)
+        - id: device-service-logs
+          uri: lb://device-service
+          predicates:
+            - Path=/api/v1/logs/**
+
 # JWT 설정 (auth-service와 동일한 시크릿 사용)
 jwt:
   secret: ${JWT_SECRET:myDevelopmentSecretKeyForDDPProject32Chars}
