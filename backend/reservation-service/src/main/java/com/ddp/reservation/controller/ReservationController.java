@@ -2,6 +2,7 @@ package com.ddp.reservation.controller;
 
 import com.ddp.reservation.dto.request.CancelReservationRequest;
 import com.ddp.reservation.dto.request.CreateReservationRequest;
+import com.ddp.reservation.dto.response.CancelReservationResponse;
 import com.ddp.reservation.dto.response.ReservationResponse;
 import com.ddp.reservation.entity.Reservation;
 import com.ddp.reservation.service.ReservationService;
@@ -143,10 +144,7 @@ public class ReservationController {
             String reason = (request != null && request.getReason() != null) ? request.getReason() : "사용자 취소";
 
             // 예약 취소 (서비스에서 권한 검증 포함)
-            Reservation reservation = reservationService.cancelReservation(id, userId, reason);
-
-            // 응답 변환
-            ReservationResponse response = ReservationResponse.from(reservation);
+            CancelReservationResponse response = reservationService.cancelReservation(id, userId, reason);
 
             return ResponseEntity.ok(response);
 

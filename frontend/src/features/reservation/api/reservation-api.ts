@@ -4,6 +4,7 @@ import type {
   CreateReservationRequest,
   CreateReservationResponse,
   CancelReservationRequest,
+  CancelReservationResponse,
   ConfirmReservationRequest,
   RejectReservationRequest,
 } from "../types/reservation";
@@ -104,17 +105,22 @@ export const reservationApi = {
   cancelReservation: async (
     id: string,
     data?: CancelReservationRequest
-  ): Promise<void> => {
+  ): Promise<CancelReservationResponse> => {
     const startTime = performance.now();
     console.log("API 호출 시작: 예약 취소");
 
     try {
-      await api.patch(`/api/v1/reservations/${id}/cancel`, data);
+      const response = await api.delete<CancelReservationResponse>(
+        `/api/v1/reservations/${id}`,
+        { data }
+      );
 
       const endTime = performance.now();
       console.log(
         `API 호출 완료: 예약 취소 (${(endTime - startTime).toFixed(2)}ms)`
       );
+
+      return response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(

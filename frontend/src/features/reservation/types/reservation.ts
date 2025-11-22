@@ -87,6 +87,16 @@ export interface CancelReservationRequest {
 }
 
 /**
+ * 예약 취소 응답
+ */
+export interface CancelReservationResponse {
+  reservationId: string; // 예약 ID
+  cancellationFee: number; // 취소 수수료
+  cancellationPolicy: string; // 취소 정책 (24H_BEFORE 또는 24H_WITHIN)
+  message: string; // 안내 메시지
+}
+
+/**
  * 예약 확정 요청 (업체용)
  */
 export interface ConfirmReservationRequest {

@@ -9,6 +9,7 @@ import com.ddp.reservation.dto.CompanyDto;
 import com.ddp.reservation.dto.UserDto;
 import com.ddp.reservation.dto.request.CompleteReservationRequest;
 import com.ddp.reservation.dto.request.CreateReservationRequest;
+import com.ddp.reservation.dto.response.CancelReservationResponse;
 import com.ddp.reservation.dto.response.ReservationResponse;
 import com.ddp.reservation.entity.Reservation;
 import com.ddp.reservation.entity.ReservationStatus;
@@ -19,8 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,6 +47,9 @@ public class ReservationService {
         long startTime = System.currentTimeMillis();
 
         try {
+            // 중복 예약 검증
+            validateReservationTime(request.getCompanyId(), request.getRequestedDate());
+
             // 예약 엔티티 생성
             Reservation reservation = Reservation.builder()
                     .userId(userId) // Gateway 헤더에서 추출된 사용자 ID
@@ -310,13 +317,13 @@ public class ReservationService {
     }
 
     // 예약 취소 (사용자)
-    public Reservation cancelReservation(Long reservationId, Long userId, String reason) {
+    public CancelReservationResponse cancelReservation(Long reservationId, Long userId, String reason) {
         log.info("API 호출 시작: 예약 취소 - 예약 ID: {}, 사용자 ID: {}", reservationId, userId);
 
         long startTime = System.currentTimeMillis();
 
         try {
-            // 예약 조회
+            // 1. 예약 조회 및 권한 확인
             Reservation reservation = reservationRepository.findById(reservationId)
                     .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다: " + reservationId));
 
@@ -327,37 +334,65 @@ public class ReservationService {
                 throw new IllegalArgumentException("권한이 없습니다");
             }
 
-            // 상태 검증: PENDING 또는 CONFIRMED 상태만 취소 가능
+            // 2. 상태 확인
+            if (reservation.getStatus() == ReservationStatus.COMPLETED) {
+                throw new IllegalStateException("완료된 예약은 취소할 수 없습니다");
+            }
+
+            if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+                throw new IllegalStateException("이미 취소된 예약입니다");
+            }
+
             if (reservation.getStatus() != ReservationStatus.PENDING &&
                 reservation.getStatus() != ReservationStatus.CONFIRMED) {
                 throw new IllegalStateException("대기 중이거나 확정된 예약만 취소할 수 있습니다");
             }
 
-            // 24시간 취소 정책 확인 (CONFIRMED 상태인 경우에만)
-            if (reservation.getStatus() == ReservationStatus.CONFIRMED &&
-                reservation.getConfirmedDate() != null) {
+            // 3. 24시간 전/후 계산
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime reservationTime = reservation.getRequestedDate(); // 희망 예약 일시 기준
+            long hoursUntilReservation = ChronoUnit.HOURS.between(now, reservationTime);
 
-                long hoursSinceConfirmation = Duration.between(
-                        reservation.getConfirmedDate(),
-                        LocalDateTime.now()
-                ).toHours();
+            BigDecimal fee = BigDecimal.ZERO;
+            String policy = "24H_BEFORE";
 
-                if (hoursSinceConfirmation >= 24) {
-                    throw new IllegalStateException("예약 확정 후 24시간이 지나 취소할 수 없습니다");
-                }
+            // 4. 취소 수수료 계산
+            if (hoursUntilReservation < 24) {
+                // 24시간 이내 취소 - 취소 수수료 50%
+                // 예상 비용이 없으면 기본 금액 (예: 100,000원)
+                BigDecimal estimatedCost = reservation.getEstimatedCost() != null
+                        ? reservation.getEstimatedCost()
+                        : new BigDecimal("100000"); // 기본 설치 비용
+
+                fee = estimatedCost.multiply(new BigDecimal("0.5"));
+                policy = "24H_WITHIN";
+
+                log.warn("24시간 이내 취소 - 취소 수수료 부과: {} 원", fee);
+            } else {
+                log.info("24시간 이전 취소 - 취소 수수료 없음");
             }
 
-            // 예약 취소 처리
+            // 5. 예약 취소 처리
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservation.setCancelledReason(reason);
-            reservation.setCancelledAt(LocalDateTime.now());
+            reservation.setCancelledAt(now);
+            reservation.setCancellationFee(fee);
+            reservation.setCancellationPolicy(policy);
 
-            Reservation savedReservation = reservationRepository.save(reservation);
+            reservationRepository.save(reservation);
 
-            log.info("API 호출 완료: 예약 취소 - 예약 ID: {} ({}ms)",
-                    reservationId, System.currentTimeMillis() - startTime);
+            log.info("API 호출 완료: 예약 취소 - 예약 ID: {}, 취소 수수료: {} ({}ms)",
+                    reservationId, fee, System.currentTimeMillis() - startTime);
 
-            return savedReservation;
+            // 6. 응답 생성
+            return CancelReservationResponse.builder()
+                    .reservationId(reservationId)
+                    .cancellationFee(fee)
+                    .cancellationPolicy(policy)
+                    .message(policy.equals("24H_BEFORE")
+                            ? "취소 수수료 없이 예약이 취소되었습니다."
+                            : String.format("취소 수수료 %,d원이 부과됩니다.", fee.intValue()))
+                    .build();
 
         } catch (IllegalArgumentException | IllegalStateException e) {
             log.error("예약 취소 실패: {}", e.getMessage());
@@ -406,12 +441,8 @@ public class ReservationService {
                     // INSTALLATION: device-service 호출하여 장치 등록
                     handleInstallationCompletion(reservation, request, companyId);
                 } else if (reservation.getServiceType() == ServiceType.INSPECTION) {
-                    // INSPECTION: device-service 호출하여 검·교정 이력 등록
-                    handleInspectionCompletion(reservation, request, companyId);
                 } else if (reservation.getServiceType() == ServiceType.REPAIR ||
                            reservation.getServiceType() == ServiceType.MAINTENANCE) {
-                    // REPAIR/MAINTENANCE: device-service 호출하여 수리 이력 등록
-                    handleRepairCompletion(reservation, request, companyId);
                 }
             } catch (Exception e) {
                 log.error("서비스 타입별 처리 중 오류 발생: {}", e.getMessage(), e);
@@ -425,8 +456,6 @@ public class ReservationService {
                 log.error("ServiceRecord 생성 실패: {}", e.getMessage(), e);
                 // ServiceRecord 생성 실패해도 예약 완료는 성공으로 처리
             }
-
-            // TODO: 알림 발송 (notification-service 호출)
 
             log.info("API 호출 완료: 예약 완료 - 예약 ID: {} ({}ms)",
                     reservationId, System.currentTimeMillis() - startTime);
@@ -497,67 +526,7 @@ public class ReservationService {
         }
     }
 
-    // 검·교정 완료 처리
-    private void handleInspectionCompletion(Reservation reservation, CompleteReservationRequest request, Long companyId) {
-        log.info("검·교정 완료 처리 시작 - 예약 ID: {}, 장치 ID: {}", reservation.getReservationId(), request.getDeviceId());
 
-        try {
-            // 검·교정 이력 등록 요청 DTO 생성
-            com.ddp.reservation.client.dto.RegisterInspectionRequest inspectionRequest =
-                    com.ddp.reservation.client.dto.RegisterInspectionRequest.builder()
-                            .deviceId(request.getDeviceId())
-                            .inspectionDate(request.getCompletedDate().toLocalDate()) // 완료일을 검사일로 사용
-                            .inspectorId(companyId) // 검사 업체
-                            .result(request.getInspectionResult() != null ? request.getInspectionResult().name() : "PASS")
-                            .notes(request.getNotes())
-                            .nextInspectionDate(request.getNextInspectionDate())
-                            .cost(request.getCost() != null ? request.getCost().longValue() : null)
-                            .build();
-
-            // device-service 호출
-            com.ddp.reservation.client.dto.InspectionRecordResponse inspectionResponse =
-                    deviceServiceClient.registerInspection(request.getDeviceId(), inspectionRequest);
-
-            log.info("검·교정 이력 등록 완료 - 이력 ID: {}, 장치 ID: {}, 결과: {}",
-                    inspectionResponse.getId(), inspectionResponse.getDeviceId(), inspectionResponse.getResult());
-
-        } catch (Exception e) {
-            log.error("검·교정 이력 등록 실패 - 예약 ID: {}, 장치 ID: {}, 오류: {}",
-                    reservation.getReservationId(), request.getDeviceId(), e.getMessage(), e);
-            throw new RuntimeException("검·교정 이력 등록에 실패했습니다: " + e.getMessage(), e);
-        }
-    }
-
-    // 수리/유지보수 완료 처리
-    private void handleRepairCompletion(Reservation reservation, CompleteReservationRequest request, Long companyId) {
-        log.info("수리/유지보수 완료 처리 시작 - 예약 ID: {}, 장치 ID: {}", reservation.getReservationId(), request.getRepairDeviceId());
-
-        try {
-            // 수리 이력 등록 요청 DTO 생성
-            com.ddp.reservation.client.dto.RegisterRepairRequest repairRequest =
-                    com.ddp.reservation.client.dto.RegisterRepairRequest.builder()
-                            .deviceId(request.getRepairDeviceId())
-                            .repairDate(request.getCompletedDate().toLocalDate()) // 완료일을 수리일로 사용
-                            .repairerId(companyId) // 수리 업체
-                            .workDescription(request.getWorkDescription())
-                            .replacedParts(request.getReplacedParts())
-                            .cost(request.getCost() != null ? request.getCost().longValue() : null)
-                            .notes(request.getNotes())
-                            .build();
-
-            // device-service 호출
-            com.ddp.reservation.client.dto.RepairRecordResponse repairResponse =
-                    deviceServiceClient.registerRepair(request.getRepairDeviceId(), repairRequest);
-
-            log.info("수리 이력 등록 완료 - 이력 ID: {}, 장치 ID: {}, 작업 내용: {}",
-                    repairResponse.getId(), repairResponse.getDeviceId(), repairResponse.getWorkDescription());
-
-        } catch (Exception e) {
-            log.error("수리 이력 등록 실패 - 예약 ID: {}, 장치 ID: {}, 오류: {}",
-                    reservation.getReservationId(), request.getRepairDeviceId(), e.getMessage(), e);
-            throw new RuntimeException("수리 이력 등록에 실패했습니다: " + e.getMessage(), e);
-        }
-    }
 
     // ServiceRecord 생성 - company-service 호출
     private void createServiceRecord(Reservation reservation, CompleteReservationRequest request, Long companyId) {
@@ -627,5 +596,35 @@ public class ReservationService {
             return request.getDeviceSerialNumber();
         }
         return "N/A";
+    }
+
+    // 중복 예약 검증 (업체의 동일 시간대 예약 확인)
+    private void validateReservationTime(Long companyId, LocalDateTime requestedDate) {
+        // ±2시간 범위 내에 다른 예약이 있는지 확인
+        LocalDateTime startWindow = requestedDate.minusHours(2);
+        LocalDateTime endWindow = requestedDate.plusHours(2);
+
+        List<Reservation> conflicts = reservationRepository.findConflictingReservations(
+                companyId,
+                startWindow,
+                endWindow
+        );
+
+        if (!conflicts.isEmpty()) {
+            // 충돌하는 예약이 있으면 예외 발생
+            Reservation conflictReservation = conflicts.get(0);
+
+            throw new IllegalStateException(
+                    String.format(
+                            "해당 시간대(%s)에 이미 예약이 존재합니다. " +
+                            "다른 시간을 선택해주세요. (기존 예약: %s)",
+                            requestedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                            conflictReservation.getRequestedDate()
+                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                    )
+            );
+        }
+
+        log.info("중복 예약 검증 완료 - 업체 ID: {}, 예약일: {}", companyId, requestedDate);
     }
 }

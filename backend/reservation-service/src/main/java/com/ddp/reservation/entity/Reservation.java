@@ -77,6 +77,18 @@ public class Reservation {
     @Column(name = "rejected_at")
     private LocalDateTime rejectedAt;
 
+    // 취소 수수료
+    @Column(name = "cancellation_fee")
+    private java.math.BigDecimal cancellationFee;
+
+    // 취소 정책 (24H_BEFORE: 24시간 이전, 24H_WITHIN: 24시간 이내)
+    @Column(name = "cancellation_policy", length = 20)
+    private String cancellationPolicy;
+
+    // 예상 비용 (예약 시 업체가 제시한 금액)
+    @Column(name = "estimated_cost")
+    private java.math.BigDecimal estimatedCost;
+
     // 생성 일시
     @CreatedBy
     @Column(name = "created_at", nullable = false, updatable = false)
