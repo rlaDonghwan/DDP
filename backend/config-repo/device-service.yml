@@ -27,10 +27,10 @@ spring:
   # MongoDB 데이터베이스 설정 (운행기록 로그용)
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb://localhost:27017/ddp_log}
+      # Docker MongoDB with root user authentication
+      # authSource=admin: admin 데이터베이스에서 인증
+      uri: ${MONGO_URI:mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:1234}@localhost:27017/ddp_log?authSource=admin}
       database: ${MONGO_DATABASE:ddp_log}
-      username: ${MONGO_USERNAME:}
-      password: ${MONGO_PASSWORD:}
 
 # MongoDB 컬렉션 설정 (커스텀 프로퍼티)
 mongodb:
