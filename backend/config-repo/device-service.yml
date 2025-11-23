@@ -29,10 +29,8 @@ spring:
     mongodb:
       uri: ${MONGO_URI:mongodb://localhost:27017/ddp_log}
       database: ${MONGO_DATABASE:ddp_log}
-      # 개발 환경에서는 인증 비활성화
-      # 프로덕션 환경에서는 환경변수로 인증 정보 설정
-      # username: ${MONGO_USERNAME:}
-      # password: ${MONGO_PASSWORD:}
+      username: ${MONGO_USERNAME:}
+      password: ${MONGO_PASSWORD:}
 
 # MongoDB 컬렉션 설정 (커스텀 프로퍼티)
 mongodb:
