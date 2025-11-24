@@ -10,15 +10,18 @@ import type {
  * 운행기록(Log) API 함수 모음
  */
 export const logApi = {
-  /**
-   * 로그 제출 (파일 업로드)
-   */
   submitLog: async (
     request: SubmitLogRequest,
     file: File
   ): Promise<DrivingLogResponse> => {
     const startTime = performance.now();
-    console.log("API 호출 시작: 로그 제출");
+    console.log("=== API 호출 시작: 로그 제출 ===");
+    console.log("Request:", request);
+    console.log("File:", { 
+      name: file.name, 
+      size: file.size, 
+      type: file.type 
+    });
 
     try {
       // FormData 생성
@@ -28,6 +31,8 @@ export const logApi = {
         "request",
         new Blob([JSON.stringify(request)], { type: "application/json" })
       );
+
+      console.log("FormData created, sending to /api/v1/logs/submit");
 
       const response = await apiClient.post<DrivingLogResponse>(
         "/api/v1/logs/submit",
@@ -43,13 +48,20 @@ export const logApi = {
       console.log(
         `API 호출 완료: 로그 제출 (${(endTime - startTime).toFixed(2)}ms)`
       );
+      console.log("Response:", response.data);
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       const endTime = performance.now();
-      console.log(
+      console.error(
         `API 호출 실패: 로그 제출 (${(endTime - startTime).toFixed(2)}ms)`
       );
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
       throw error;
     }
   },
@@ -126,7 +138,7 @@ export const logApi = {
     userId: number,
     page: number = 0,
     size: number = 20
-  ): Promise<{ content: DrivingLogResponse[]; totalElements: number }> => {
+  ): Promise<DrivingLogResponse[]> => {
     const startTime = performance.now();
     console.log("API 호출 시작: 사용자별 로그 목록 조회");
 
@@ -142,7 +154,8 @@ export const logApi = {
         )}ms)`
       );
 
-      return response.data;
+      // Spring Data의 Page<T> 응답에서 content 배열 반환
+      return response.data.content || response.data;
     } catch (error) {
       const endTime = performance.now();
       console.log(
@@ -324,6 +337,52 @@ export const logApi = {
       const endTime = performance.now();
       console.log(
         `API 호출 실패: 로그 검토 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * 로그 파일 다운로드
+   */
+  downloadLogFile: async (logId: string): Promise<void> => {
+    const startTime = performance.now();
+    console.log("API 호출 시작: 로그 파일 다운로드");
+
+    try {
+      const response = await apiClient.get(`/api/v1/logs/${logId}/download`, {
+        responseType: "blob",
+      });
+
+      // Blob에서 파일명 추출
+      const contentDisposition = response.headers["content-disposition"];
+      let fileName = "driving_log.csv";
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      // 파일 다운로드
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      const endTime = performance.now();
+      console.log(
+        `API 호출 완료: 로그 파일 다운로드 (${(endTime - startTime).toFixed(2)}ms)`
+      );
+    } catch (error) {
+      const endTime = performance.now();
+      console.log(
+        `API 호출 실패: 로그 파일 다운로드 (${(endTime - startTime).toFixed(2)}ms)`
       );
       throw error;
     }

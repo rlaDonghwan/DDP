@@ -22,9 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { FileText, Upload, Info } from "lucide-react";
-import type { LogStatus } from "@/features/log/types/log";
+import { FileText, Upload, Info, Download, AlertCircle, CheckCircle } from "lucide-react";
+import type { LogStatus, AnomalyType } from "@/features/log/types/log";
 import { formatKoreanDate } from "@/lib/date-utils";
+import { logApi } from "@/features/log/api/log-api";
+import { toast } from "sonner";
 
 /**
  * 운행기록 제출 이력 페이지
@@ -45,15 +47,36 @@ export default function LogHistoryPage() {
     ) || [];
 
   /**
+   * 파일 다운로드 핸들러
+   */
+  const handleDownload = async (logId: string, fileName: string) => {
+    try {
+      await logApi.downloadLogFile(logId);
+      
+      toast.success("다운로드 완료", {
+        description: `${fileName} 파일이 다운로드되었습니다.`,
+      });
+    } catch (error) {
+      toast.error("다운로드 실패", {
+        description: "파일 다운로드 중 오류가 발생했습니다.",
+      });
+    }
+  };
+
+  /**
    * 상태 뱃지 스타일
    */
   const getStatusBadge = (status: LogStatus) => {
-    const styles = {
-      PENDING: { variant: "secondary" as const, text: "검토 중" },
-      APPROVED: { variant: "default" as const, text: "승인" },
-      REJECTED: { variant: "destructive" as const, text: "반려" },
+    const styles: Record<LogStatus, { variant: "default" | "secondary" | "destructive" | "outline", text: string }> = {
+      SUBMITTED: { variant: "secondary", text: "제출됨" },
+      UNDER_REVIEW: { variant: "outline", text: "검토 중" },
+      APPROVED: { variant: "default", text: "승인" },
+      REJECTED: { variant: "destructive", text: "반려" },
+      FLAGGED: { variant: "destructive", text: "이상 징후" },
     };
-    const config = styles[status];
+    
+    const config = styles[status] || { variant: "secondary" as const, text: status };
+    
     return (
       <Badge variant={config.variant} className="ml-2">
         {config.text}
@@ -65,13 +88,39 @@ export default function LogHistoryPage() {
    * 상태 텍스트
    */
   const getStatusFilterText = (status: LogStatus | "ALL") => {
-    const statusMap = {
+    const statusMap: Record<LogStatus | "ALL", string> = {
       ALL: "전체",
-      PENDING: "검토 중",
+      SUBMITTED: "제출됨",
+      UNDER_REVIEW: "검토 중",
       APPROVED: "승인",
       REJECTED: "반려",
+      FLAGGED: "이상 징후",
     };
     return statusMap[status];
+  };
+
+  /**
+   * 이상 유형 레이블
+   */
+  const getAnomalyTypeLabel = (type: AnomalyType): string => {
+    const labels: Record<AnomalyType, string> = {
+      NORMAL: "정상",
+      TAMPERING_ATTEMPT: "조작 시도 감지",
+      BYPASS_ATTEMPT: "우회 시도 감지",
+      EXCESSIVE_FAILURES: "과도한 실패율",
+      DATA_INCONSISTENCY: "데이터 불일치",
+      DEVICE_MALFUNCTION: "장치 오작동",
+    };
+    return labels[type] || type;
+  };
+
+  /**
+   * 파일 크기 포맷
+   */
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
   // 로딩 상태
@@ -163,7 +212,7 @@ export default function LogHistoryPage() {
           ) : (
             <div className="space-y-4">
               {filteredLogs.map((log) => (
-                <Card key={log.id} className="border-l-4 border-l-blue-500">
+                <Card key={log.logId} className="border-l-4 border-l-blue-500">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
@@ -172,11 +221,11 @@ export default function LogHistoryPage() {
                           {getStatusBadge(log.status)}
                         </CardTitle>
                         <CardDescription className="mt-2">
-                          제출일: {formatKoreanDate(log.uploadDate)}
+                          제출일: {formatKoreanDate(log.submitDate)}
                         </CardDescription>
                       </div>
                       <div className="text-right text-sm text-gray-600">
-                        <p>파일 크기: {(log.fileSize / 1024).toFixed(2)} KB</p>
+                        <p>파일 크기: {formatFileSize(log.fileSize)}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -195,7 +244,7 @@ export default function LogHistoryPage() {
                           기록 시작일
                         </p>
                         <p className="text-sm font-semibold text-gray-900">
-                          {formatKoreanDate(log.recordStartDate)}
+                          {formatKoreanDate(log.periodStart)}
                         </p>
                       </div>
                       <div>
@@ -203,10 +252,81 @@ export default function LogHistoryPage() {
                           기록 종료일
                         </p>
                         <p className="text-sm font-semibold text-gray-900">
-                          {formatKoreanDate(log.recordEndDate)}
+                          {formatKoreanDate(log.periodEnd)}
                         </p>
                       </div>
                     </div>
+
+                    {/* 상세 통계 */}
+                    {(log as any).statistics && (
+                      <div className="mt-4 border-t pt-4">
+                        <h4 className="font-medium mb-2">측정 통계</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500">총 측정 횟수:</span>{" "}
+                            <span className="font-medium">{(log as any).statistics.totalTests}회</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">통과:</span>{" "}
+                            <span className="font-medium text-green-600">
+                              {(log as any).statistics.passedTests}회
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">실패:</span>{" "}
+                            <span className="font-medium text-red-600">
+                              {(log as any).statistics.failedTests}회
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">건너뜀:</span>{" "}
+                            <span className="font-medium text-yellow-600">
+                              {(log as any).statistics.skippedTests}회
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">평균 BAC:</span>{" "}
+                            <span className="font-medium">
+                              {(log as any).statistics.averageBAC?.toFixed(4) || "0.0000"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">최대 BAC:</span>{" "}
+                            <span className="font-medium">
+                              {(log as any).statistics.maxBAC?.toFixed(4) || "0.0000"}
+                            </span>
+                          </div>
+                          {(log as any).statistics.tamperingAttempts > 0 && (
+                            <div className="col-span-2">
+                              <span className="text-gray-500">조작 시도:</span>{" "}
+                              <span className="font-medium text-red-600">
+                                {(log as any).statistics.tamperingAttempts}회 ⚠️
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 이상 징후 경고 */}
+                    {(log as any).anomalyType && (log as any).anomalyType !== "NORMAL" && (
+                      <Alert variant="destructive" className="mt-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>이상 징후 발견:</strong> {getAnomalyTypeLabel((log as any).anomalyType)}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* 분석 결과 */}
+                    {(log as any).analysisResult && (
+                      <div className="mt-4 border-t pt-4">
+                        <h4 className="font-medium mb-2">자동 분석 결과</h4>
+                        <pre className="text-sm bg-gray-50 p-3 rounded whitespace-pre-wrap">
+                          {(log as any).analysisResult}
+                        </pre>
+                      </div>
+                    )}
 
                     {log.status === "APPROVED" && log.reviewedAt && (
                       <div className="mt-4 p-3 bg-green-50 rounded-lg">
@@ -223,13 +343,13 @@ export default function LogHistoryPage() {
                       </div>
                     )}
 
-                    {log.status === "REJECTED" && log.rejectionReason && (
+                    {log.status === "REJECTED" && log.reviewNotes && (
                       <div className="mt-4 p-3 bg-red-50 rounded-lg">
                         <p className="text-sm font-medium text-red-800 mb-1">
                           반려 사유:
                         </p>
                         <p className="text-sm text-red-700">
-                          {log.rejectionReason}
+                          {log.reviewNotes}
                         </p>
                         {log.reviewedAt && (
                           <p className="text-xs text-red-600 mt-2">
@@ -239,7 +359,7 @@ export default function LogHistoryPage() {
                       </div>
                     )}
 
-                    {log.status === "PENDING" && (
+                    {log.status === "SUBMITTED" && (
                       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                         <p className="text-sm text-blue-800">
                           관리자 검토 중입니다. 승인까지 영업일 기준 1-2일이
@@ -247,6 +367,18 @@ export default function LogHistoryPage() {
                         </p>
                       </div>
                     )}
+
+                    {/* 파일 다운로드 버튼 */}
+                    <div className="mt-4 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(log.logId, log.fileName)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        파일 다운로드
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

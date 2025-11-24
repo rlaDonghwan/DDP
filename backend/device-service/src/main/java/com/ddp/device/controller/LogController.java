@@ -4,15 +4,18 @@ import com.ddp.device.dto.log.DrivingLogResponse;
 import com.ddp.device.dto.log.ReviewLogRequest;
 import com.ddp.device.dto.log.SubmitLogRequest;
 import com.ddp.device.service.DrivingLogService;
+import com.ddp.device.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class LogController {
 
     private final DrivingLogService drivingLogService;
+    private final FileStorageService fileStorageService;
 
     /**
      * 로그 제출 (사용자)
@@ -143,5 +147,50 @@ public class LogController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 로그 파일 다운로드
+     */
+    @GetMapping("/{logId}/download")
+    @Operation(summary = "로그 파일 다운로드", description = "로그 파일을 다운로드합니다")
+    public ResponseEntity<Resource> downloadLogFile(
+            @PathVariable String logId,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+
+        long startTime = System.currentTimeMillis();
+        log.info("API 호출 시작: 로그 파일 다운로드 - logId: {}", logId);
+
+        try {
+            // 로그 조회
+            DrivingLogResponse drivingLog = drivingLogService.getLog(logId);
+
+            // 권한 검증 (본인 또는 관리자)
+            if (userId != null && !drivingLog.getUserId().equals(userId) && !"ADMIN".equals(userRole)) {
+                log.warn("로그 파일 다운로드 권한 없음 - userId: {}, logUserId: {}, role: {}",
+                        userId, drivingLog.getUserId(), userRole);
+                return ResponseEntity.status(403).build();
+            }
+
+            // 파일 로드
+            Resource resource = fileStorageService.loadFileAsResource(drivingLog.getFilePath());
+
+            // Content-Disposition 헤더 설정
+            String contentDisposition = "attachment; filename=\"" + drivingLog.getFileName() + "\"";
+
+            long endTime = System.currentTimeMillis();
+            log.info("API 호출 완료: 로그 파일 다운로드 ({}ms)", endTime - startTime);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                    .body(resource);
+
+        } catch (Exception e) {
+            long endTime = System.currentTimeMillis();
+            log.error("API 호출 실패: 로그 파일 다운로드 ({}ms) - {}", endTime - startTime, e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
     }
 }

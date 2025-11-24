@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, Info } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * 운행기록 제출 페이지
@@ -44,7 +45,6 @@ export default function LogSubmitPage() {
   } = useForm<UploadLogInput>({
     resolver: zodResolver(uploadLogSchema),
     defaultValues: {
-      deviceId: "",
       recordStartDate: "",
       recordEndDate: "",
     },
@@ -70,22 +70,58 @@ export default function LogSubmitPage() {
    * 폼 제출 핸들러
    */
   const onSubmit = async (data: UploadLogInput) => {
+    console.log("=== ✅ onSubmit 호출됨 (폼 검증 통과!) ===");
+    console.log("Form data:", data);
+    console.log("User:", user);
+    console.log("Status:", status);
+
     if (!data.file) {
+      console.error("파일이 선택되지 않았습니다");
+      toast.error("파일을 선택해주세요");
       return;
     }
 
-    try {
-      await uploadLogMutation.mutateAsync({
-        deviceId: data.deviceId,
-        recordStartDate: `${data.recordStartDate}T00:00:00`,
-        recordEndDate: `${data.recordEndDate}T23:59:59`,
-        file: data.file,
-      });
+    if (!user) {
+      console.error("사용자 정보가 없습니다");
+      toast.error("로그인이 필요합니다");
+      return;
+    }
 
+    if (!status?.deviceId) {
+      console.error("장치 ID가 없습니다. Status:", status);
+      toast.error("장치 정보를 불러올 수 없습니다");
+      return;
+    }
+
+    const submitData = {
+      request: {
+        deviceId: status.deviceId,
+        userId: parseInt(user.id),
+        periodStart: data.recordStartDate, // "YYYY-MM-DD" 형식
+        periodEnd: data.recordEndDate, // "YYYY-MM-DD" 형식
+        notes: undefined,
+      },
+      file: data.file,
+    };
+
+    console.log("Submit data:", submitData);
+
+    try {
+      console.log("Calling uploadLogMutation...");
+      const result = await uploadLogMutation.mutateAsync(submitData);
+      console.log("Upload success:", result);
+      
       // 성공 시 제출 이력 페이지로 이동
-      router.push("/user/logs");
-    } catch (error) {
-      // 에러는 훅에서 처리됨
+      router.push("/user/log");
+    } catch (error: any) {
+      console.error("Upload failed:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error message:", error.message);
+      
+      // 명시적으로 에러 토스트 표시 (hook에서 처리하지만 확실하게)
+      toast.error("제출 실패", {
+        description: error.response?.data?.message || error.message || "로그 제출에 실패했습니다",
+      });
     }
   };
 
@@ -174,11 +210,6 @@ export default function LogSubmitPage() {
                   {status.deviceSerialNumber || "정보 없음"}
                 </p>
               </div>
-              <input
-                type="hidden"
-                {...register("deviceId")}
-                value={status?.deviceSerialNumber || ""}
-              />
             </div>
 
             {/* 기록 시작 날짜 */}
@@ -270,13 +301,19 @@ export default function LogSubmitPage() {
                 type="submit"
                 disabled={uploadLogMutation.isPending}
                 className="flex-1"
+                onClick={(e) => {
+                  console.log("=== 제출 버튼 클릭 ===");
+                  console.log("Form errors:", errors);
+                  console.log("Selected file:", selectedFile);
+                  console.log("Is mutation pending:", uploadLogMutation.isPending);
+                }}
               >
                 {uploadLogMutation.isPending ? "제출 중..." : "제출하기"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/user/logs")}
+                onClick={() => router.push("/user/log")}
               >
                 제출 이력 보기
               </Button>

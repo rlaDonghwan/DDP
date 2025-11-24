@@ -58,6 +58,7 @@ export interface QuickMenuItem {
  */
 export interface UserStatus {
   deviceInstalled: boolean; // 장치 설치 여부
+  deviceId?: number; // 장치 ID (DB primary key)
   deviceStatus: "normal" | "maintenance" | "warning"; // 장치 상태
   deviceModel?: string; // 장치 모델명
   deviceSerialNumber?: string; // 장치 시리얼 번호

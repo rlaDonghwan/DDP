@@ -42,6 +42,9 @@ dependencies {
     // Feign Client (다른 마이크로서비스 연동용)
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+    // CSV 파일 처리
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+
     // Swagger/OpenAPI 문서화
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 

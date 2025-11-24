@@ -2,9 +2,9 @@ import { z } from "zod";
 
 /**
  * 로그 업로드 스키마
+ * deviceId는 자동으로 status에서 가져오므로 스키마에서 제외
  */
 export const uploadLogSchema = z.object({
-  deviceId: z.string().min(1, "장치를 선택해주세요"),
   recordStartDate: z.string().min(1, "기록 시작 날짜를 선택해주세요"),
   recordEndDate: z.string().min(1, "기록 종료 날짜를 선택해주세요"),
   file: z

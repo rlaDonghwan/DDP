@@ -2,17 +2,20 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logApi } from "../api/log-api";
-import type { UploadLogRequest, LogFilter } from "../types/log";
+import type { SubmitLogRequest } from "../types/log";
 import { toast } from "sonner";
 
 /**
- * 사용자 로그 목록 조회 훅
+ * 사용자별 로그 조회 훅
  */
-export function useUserLogs(userId: string | undefined, filter?: LogFilter) {
+export function useUserLogs(userId?: string) {
   return useQuery({
-    queryKey: ["userLogs", userId, filter],
-    queryFn: () => logApi.getUserLogs(userId!, filter),
-    enabled: !!userId, // userId가 있을 때만 쿼리 실행
+    queryKey: ["userLogs", userId],
+    queryFn: () => {
+      if (!userId) throw new Error("사용자 ID가 필요합니다");
+      return logApi.getLogsByUser(parseInt(userId));
+    },
+    enabled: !!userId,
     staleTime: 1000 * 60 * 2, // 2분 동안 fresh 상태 유지
     gcTime: 1000 * 60 * 5, // 5분 동안 캐시 보관
     retry: 1,
@@ -40,7 +43,8 @@ export function useUploadLog() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UploadLogRequest) => logApi.uploadLog(data),
+    mutationFn: async (data: { request: SubmitLogRequest; file: File }) =>
+      logApi.submitLog(data.request, data.file),
     onSuccess: () => {
       // 로그 목록 캐시 무효화 (재조회)
       queryClient.invalidateQueries({ queryKey: ["userLogs"] });
@@ -61,10 +65,10 @@ export function useUploadLog() {
 /**
  * 전체 로그 목록 조회 훅 (관리자용)
  */
-export function useAllLogs(filter?: LogFilter) {
+export function useAllLogs() {
   return useQuery({
-    queryKey: ["allLogs", filter],
-    queryFn: () => logApi.getAllLogs(filter),
+    queryKey: ["allLogs"],
+    queryFn: () => logApi.getAllLogs(),
     staleTime: 1000 * 60 * 2, // 2분 동안 fresh 상태 유지
     gcTime: 1000 * 60 * 5, // 5분 동안 캐시 보관
     retry: 1,

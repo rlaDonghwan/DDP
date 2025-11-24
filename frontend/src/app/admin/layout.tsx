@@ -29,8 +29,8 @@ export default function AdminLayout({
             <AppSidebar />
 
             {/* 메인 콘텐츠 영역 */}
-            <main className="flex-1">
-              <div className="flex flex-col gap-4 bg-gray-50 p-6 pt-8 md:pt-10">
+            <main className="flex-1 bg-gray-50">
+              <div className="mx-auto w-full max-w-7xl flex flex-col gap-4 p-6 pt-8 md:pt-10">
                 {children}
               </div>
             </main>

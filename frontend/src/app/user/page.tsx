@@ -64,20 +64,7 @@ export default function UserMainPage() {
       {/* 사용자 정보 카드 */}
       <ProfileInfoCard profile={profile} isLoading={profileLoading} />
 
-      {/* 알림 및 공지사항 섹션 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 최근 알림 */}
-        <NotificationsCard
-          notifications={notifications}
-          isLoading={notificationsLoading}
-        />
-
-        {/* 공지사항 */}
-        <AnnouncementsCard
-          announcements={announcements}
-          isLoading={announcementsLoading}
-        />
-      </div>
+      
     </div>
   );
 }

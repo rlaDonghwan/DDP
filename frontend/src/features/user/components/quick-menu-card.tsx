@@ -24,7 +24,7 @@ export function QuickMenuCard() {
       title: "운행기록 제출하기",
       description: "음주운전 방지장치 운행기록을 제출합니다",
       icon: FileText,
-      href: "/user/logs/submit",
+      href: "/user/log/submit",
       color: "bg-blue-50 hover:bg-blue-100 border-blue-200",
       iconColor: "text-blue-600",
     },

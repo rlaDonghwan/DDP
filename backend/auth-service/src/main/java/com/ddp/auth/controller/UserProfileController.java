@@ -8,6 +8,7 @@ import com.ddp.auth.dto.request.UpdateProfileRequest;
 import com.ddp.auth.dto.response.AssignedDeviceResponse;
 import com.ddp.auth.dto.response.UpdateProfileResponse;
 import com.ddp.auth.dto.response.UserProfileResponse;
+import com.ddp.auth.dto.response.UserStatusResponse;
 import com.ddp.auth.service.CookieService;
 import com.ddp.auth.service.JwtService;
 import com.ddp.auth.service.UserProfileService;
@@ -197,10 +198,57 @@ public class UserProfileController {
     }
 
     /**
+     * 사용자 현황 정보 조회
+     * GET /api/v1/users/status
+     */
+    @GetMapping("/status")
+    public ResponseEntity<UserStatusResponse> getUserStatus(HttpServletRequest request) {
+        log.debug("사용자 현황 조회 요청");
+
+        try {
+            // JWT 토큰에서 사용자 ID 추출
+            Long userId = getUserIdFromToken(request);
+            if (userId == null) {
+                log.warn("토큰에서 사용자 ID를 추출할 수 없습니다");
+                return ResponseEntity.status(401).build();
+            }
+
+            // device-service로부터 사용자의 장치 목록 조회
+            List<DeviceResponse> devices = deviceServiceClient.getUserDevices(userId);
+
+            // 장치가 없으면 미설치 상태 반환
+            if (devices == null || devices.isEmpty()) {
+                log.info("사용자 ID {}에게 할당된 장치가 없습니다", userId);
+                return ResponseEntity.ok(UserStatusResponse.noDevice());
+            }
+
+            // 첫 번째 장치 정보로 응답 생성
+            DeviceResponse device = devices.get(0);
+            UserStatusResponse response = UserStatusResponse.withDevice(
+                    device.getDeviceId(),
+                    device.getModelName(),
+                    device.getSerialNumber(),
+                    device.getStatus() != null ? device.getStatus().toString() : null,
+                    null, // vehicleInfo는 DeviceResponse에 없음, 향후 추가 필요
+                    device.getNextInspectionDate()
+            );
+
+            log.info("사용자 ID {}의 현황 정보 조회 완료: 장치 설치 여부 = {}", userId, response.getDeviceInstalled());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("현황 정보 조회 중 오류 발생: {}", e.getMessage(), e);
+            // 오류 발생 시에도 기본 응답 반환 (장치 미설치로 처리)
+            return ResponseEntity.ok(UserStatusResponse.noDevice());
+        }
+    }
+
+    /**
      * Request에서 JWT 토큰을 추출하여 사용자 ID 반환
      * 쿠키에서 Access Token을 추출하고 JWT에서 userId를 가져옵니다
      */
     private Long getUserIdFromToken(HttpServletRequest request) {
+
         try {
             // 쿠키에서 Access Token 추출
             String token = cookieService.extractAccessToken(request);

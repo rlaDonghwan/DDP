@@ -53,6 +53,38 @@ public class DrivingLogService {
             // 파일 저장
             String filePath = fileStorageService.storeFile(file, request.getDeviceId(), request.getUserId());
 
+            // CSV 파일 파싱 및 통계 계산
+            DrivingLog.LogStatistics statistics;
+            try {
+                statistics = logAnalysisService.parseLogFile(filePath);
+            } catch (Exception e) {
+                log.warn("CSV 파일 파싱 실패, 기본 통계 사용: {}", e.getMessage());
+                statistics = DrivingLog.LogStatistics.builder()
+                        .totalTests(0)
+                        .passedTests(0)
+                        .failedTests(0)
+                        .skippedTests(0)
+                        .averageBAC(0.0)
+                        .maxBAC(0.0)
+                        .tamperingAttempts(0)
+                        .build();
+            }
+
+            // 이상 징후 탐지
+            AnomalyType anomalyType = logAnalysisService.detectAnomalies(
+                    statistics,
+                    request.getPeriodStart(),
+                    request.getPeriodEnd(),
+                    file.getSize()
+            );
+
+            // 분석 결과 텍스트 생성
+            String analysisResult = logAnalysisService.generateAnalysisResult(statistics, anomalyType);
+
+            // 상태 결정 (이상 징후 있으면 FLAGGED)
+            LogStatus status = (anomalyType != AnomalyType.NORMAL) ?
+                    LogStatus.FLAGGED : LogStatus.SUBMITTED;
+
             // DrivingLog 엔티티 생성
             DrivingLog drivingLog = DrivingLog.builder()
                     .deviceId(request.getDeviceId())
@@ -64,14 +96,13 @@ public class DrivingLogService {
                     .fileSize(file.getSize())
                     .fileName(file.getOriginalFilename())
                     .fileType(file.getContentType())
-                    .status(LogStatus.SUBMITTED)
-                    .anomalyType(AnomalyType.NORMAL)
+                    .status(status)
+                    .anomalyType(anomalyType)
+                    .statistics(statistics)
+                    .analysisResult(analysisResult)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
-
-            // 로그 분석 수행
-            logAnalysisService.analyzeLog(drivingLog, file.getSize());
 
             // MongoDB에 저장
             DrivingLog savedLog = drivingLogRepository.save(drivingLog);

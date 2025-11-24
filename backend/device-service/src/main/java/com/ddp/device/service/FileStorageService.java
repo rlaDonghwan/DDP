@@ -2,10 +2,13 @@ package com.ddp.device.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -125,5 +128,46 @@ public class FileStorageService {
      */
     public Path getFilePath(String filePath) {
         return Paths.get(uploadDir, filePath);
+    }
+
+    /**
+     * 파일 다운로드를 위한 Resource 로드
+     * @param filePath 상대 파일 경로
+     * @return 파일 Resource
+     * @throws IOException 파일을 찾을 수 없거나 읽을 수 없는 경우
+     */
+    public Resource loadFileAsResource(String filePath) throws IOException {
+        long startTime = System.currentTimeMillis();
+        log.info("API 호출 시작: 파일 다운로드 - {}", filePath);
+
+        try {
+            Path file = Paths.get(uploadDir).resolve(filePath).normalize();
+
+            if (!Files.exists(file)) {
+                log.error("파일을 찾을 수 없습니다: {}", file);
+                throw new IOException("파일을 찾을 수 없습니다: " + filePath);
+            }
+
+            Resource resource = new UrlResource(file.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.error("파일을 읽을 수 없습니다: {}", file);
+                throw new IOException("파일을 읽을 수 없습니다: " + filePath);
+            }
+
+            long endTime = System.currentTimeMillis();
+            log.info("API 호출 완료: 파일 다운로드 ({}ms)", endTime - startTime);
+
+            return resource;
+
+        } catch (MalformedURLException e) {
+            long endTime = System.currentTimeMillis();
+            log.error("API 호출 실패: 파일 다운로드 ({}ms) - {}", endTime - startTime, e.getMessage());
+            throw new IOException("파일 경로가 잘못되었습니다: " + e.getMessage(), e);
+        } catch (Exception e) {
+            long endTime = System.currentTimeMillis();
+            log.error("API 호출 실패: 파일 다운로드 ({}ms) - {}", endTime - startTime, e.getMessage());
+            throw new IOException("파일 다운로드 중 오류 발생: " + e.getMessage(), e);
+        }
     }
 }

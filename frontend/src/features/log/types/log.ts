@@ -54,13 +54,14 @@ export interface DrivingLogResponse {
 
   // 상태 및 분석
   status: LogStatus;
-  anomalyType: AnomalyType;
-  anomalyDetails?: string;
+  anomalyType?: AnomalyType; // 이상 징후 유형 (옵셔널)
+  analysisResult?: string;
 
   // 통계 정보
   statistics?: LogStatistics;
 
   // 검토 정보
+  reviewNotes?: string; // 검토 메모 추가
   reviewedBy?: number;
   reviewedAt?: string;
 

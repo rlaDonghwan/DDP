@@ -125,7 +125,7 @@ public class ReservationController {
     // 예약 취소 (PATCH - 권장)
     @PatchMapping("/{id}/cancel")
     @Operation(summary = "예약 취소", description = "사용자가 예약을 취소합니다 (상태 변경)")
-    public ResponseEntity<ReservationResponse> cancelReservation(
+    public ResponseEntity<CancelReservationResponse> cancelReservation(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role,
             @PathVariable Long id,

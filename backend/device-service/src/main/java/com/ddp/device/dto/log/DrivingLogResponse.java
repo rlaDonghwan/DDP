@@ -31,11 +31,13 @@ public class DrivingLogResponse {
     private String fileName;
     private Long fileSize;
     private String fileType;
+    private String filePath;
 
     // 상태 및 분석
     private LogStatus status;
     private AnomalyType anomalyType;
     private String anomalyDetails;
+    private String analysisResult;
 
     // 통계 정보
     private LogStatisticsResponse statistics;
@@ -61,9 +63,11 @@ public class DrivingLogResponse {
                 .fileName(log.getFileName())
                 .fileSize(log.getFileSize())
                 .fileType(log.getFileType())
+                .filePath(log.getFilePath())
                 .status(log.getStatus())
                 .anomalyType(log.getAnomalyType())
                 .anomalyDetails(log.getAnomalyDetails())
+                .analysisResult(log.getAnalysisResult())
                 .reviewedBy(log.getReviewedBy())
                 .reviewedAt(log.getReviewedAt())
                 .createdAt(log.getCreatedAt())
