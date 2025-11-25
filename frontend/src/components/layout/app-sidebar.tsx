@@ -81,11 +81,7 @@ const menuItems = {
       url: "/company/reservations",
       icon: Calendar,
     },
-    {
-      title: "고객 관리",
-      url: "/company/customers",
-      icon: Users,
-    },
+  
     {
       title: "장치 관리",
       url: "/company/devices",

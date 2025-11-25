@@ -145,7 +145,7 @@ export default function LogHistoryPage() {
             운행기록 제출 이력을 확인하고 관리합니다
           </p>
         </div>
-        <Button onClick={() => router.push("/user/logs/submit")}>
+        <Button onClick={() => router.push("/user/log/submit")}>
           <Upload className="h-4 w-4 mr-2" />새 기록 제출
         </Button>
       </div>
@@ -204,7 +204,7 @@ export default function LogHistoryPage() {
               </p>
               <Button
                 variant="outline"
-                onClick={() => router.push("/user/logs/submit")}
+                onClick={() => router.push("/user/log/submit")}
               >
                 운행기록 제출하기
               </Button>
