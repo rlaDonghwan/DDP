@@ -13,6 +13,10 @@ import { QuickMenuCard } from "@/features/user/components/quick-menu-card";
 import { NotificationsCard } from "@/features/user/components/notifications-card";
 import { AnnouncementsCard } from "@/features/user/components/announcements-card";
 import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { actionApi } from "@/features/admin/api/action-api";
+import { scheduleApi } from "@/features/admin/api/schedule-api";
+import { toast } from "sonner";
 
 /**
  * 사용자 포털 메인 페이지 (마이페이지)
@@ -24,6 +28,8 @@ import { ProfileInfoCard } from "@/features/user/components/profile-info-card";
  */
 export default function UserMainPage() {
   const { user } = useSession();
+  const queryClient = useQueryClient();
+
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: status, isLoading: statusLoading } = useUserStatus();
   const { data: notifications, isLoading: notificationsLoading } =
@@ -37,6 +43,39 @@ export default function UserMainPage() {
 
   // 첫 번째 장치 정보 사용 (사용자는 보통 1개의 장치만 가짐)
   const userDevice = devices && devices.length > 0 ? devices[0] : null;
+
+  // 로그 제출 일정 및 D-day 조회
+  const { data: ddayData } = useQuery({
+    queryKey: ["user", "dday", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      return scheduleApi.calculateDday(userId);
+    },
+    enabled: !!userId,
+  });
+
+  // 관리자 조치 목록 조회
+  const { data: adminActions } = useQuery({
+    queryKey: ["user", "actions", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      return actionApi.getUserActions(userId);
+    },
+    enabled: !!userId,
+  });
+
+  // 조치 확인 처리
+  const markAsReadMutation = useMutation({
+    mutationFn: (actionId: string) => actionApi.markAsRead(actionId, { userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user", "actions"] });
+      toast.success("조치를 확인했습니다.");
+    },
+  });
+
+  const handleMarkAsRead = (actionId: string) => {
+    markAsReadMutation.mutate(actionId);
+  };
 
   return (
     <div className="space-y-6">
@@ -55,7 +94,10 @@ export default function UserMainPage() {
         profile={profile}
         status={status}
         device={userDevice}
+        ddayData={ddayData}
+        adminActions={adminActions}
         isLoading={statusLoading || profileLoading || devicesLoading}
+        onMarkAsRead={handleMarkAsRead}
       />
 
       {/* 빠른 메뉴 */}

@@ -78,6 +78,12 @@ public class DrivingLogService {
                     file.getSize()
             );
 
+            // 위험도 평가
+            com.ddp.device.document.RiskLevel riskLevel = logAnalysisService.assessRiskLevel(
+                    anomalyType,
+                    statistics
+            );
+
             // 분석 결과 텍스트 생성
             String analysisResult = logAnalysisService.generateAnalysisResult(statistics, anomalyType);
 
@@ -98,6 +104,7 @@ public class DrivingLogService {
                     .fileType(file.getContentType())
                     .status(status)
                     .anomalyType(anomalyType)
+                    .riskLevel(riskLevel) // 위험도 추가
                     .statistics(statistics)
                     .analysisResult(analysisResult)
                     .createdAt(LocalDateTime.now())

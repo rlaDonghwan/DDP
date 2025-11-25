@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserStatus, UserProfile } from "../types/user";
 import type { DeviceResponse } from "@/features/device/api/device-api";
+import type { AdminAction } from "@/features/admin/types/action";
+import type { DdayResponse } from "@/features/admin/types/schedule";
+import { ACTION_TYPE_LABELS } from "@/features/admin/types/action";
 import {
   calculateDday,
   formatKoreanDate,
@@ -21,7 +24,10 @@ interface UserStatusCardProps {
   profile: UserProfile | undefined;
   status: UserStatus | undefined;
   device: DeviceResponse | null | undefined;
+  ddayData?: DdayResponse | null;
+  adminActions?: AdminAction[];
   isLoading: boolean;
+  onMarkAsRead?: (actionId: string) => void;
 }
 
 /**
@@ -31,7 +37,10 @@ export function UserStatusCard({
   profile,
   status,
   device,
+  ddayData,
+  adminActions,
   isLoading,
+  onMarkAsRead,
 }: UserStatusCardProps) {
   // 로딩 상태
   if (isLoading) {
@@ -118,6 +127,17 @@ export function UserStatusCard({
     }
   };
 
+  /**
+   * D-day 색상 반환
+   */
+  const getDdayColor = (dday: number | null | undefined): string => {
+    if (dday === null || dday === undefined) return "text-gray-600";
+    if (dday < 0) return "text-red-600"; // 초과
+    if (dday <= 2) return "text-orange-600"; // D-0 ~ D-2
+    if (dday <= 6) return "text-yellow-600"; // D-3 ~ D-6
+    return "text-green-600"; // D-7 이상
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -189,24 +209,37 @@ export function UserStatusCard({
             예정 일정
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 다음 로그 제출 예정일 */}
+            {/* 다음 로그 제출 예정일 (D-day 표시) */}
             <div className="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100">
               <p className="text-sm font-medium text-gray-600 mb-2">
                 다음 로그 제출 예정일
               </p>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={getDdayBadgeVariant(
-                    getDdayVariant(displayStatus.nextLogSubmitDate)
-                  )}
-                  className="text-base"
-                >
-                  {calculateDday(displayStatus.nextLogSubmitDate)}
-                </Badge>
-                <p className="text-base font-semibold text-gray-900">
-                  {formatKoreanDate(displayStatus.nextLogSubmitDate)}
-                </p>
-              </div>
+              {ddayData ? (
+                <div className="space-y-2">
+                  <div className={`text-3xl font-bold ${getDdayColor(ddayData.dday)}`}>
+                    {ddayData.dday !== null && ddayData.dday < 0
+                      ? `D+${Math.abs(ddayData.dday)}`
+                      : ddayData.dday !== null
+                      ? `D-${ddayData.dday}`
+                      : "일정 없음"}
+                  </div>
+                  <p className="text-sm text-gray-600">{ddayData.message}</p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={getDdayBadgeVariant(
+                      getDdayVariant(displayStatus.nextLogSubmitDate)
+                    )}
+                    className="text-base"
+                  >
+                    {calculateDday(displayStatus.nextLogSubmitDate)}
+                  </Badge>
+                  <p className="text-base font-semibold text-gray-900">
+                    {formatKoreanDate(displayStatus.nextLogSubmitDate)}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 정기 검·교정 예정일 */}
@@ -239,6 +272,58 @@ export function UserStatusCard({
             </div>
           </div>
         </div>
+
+        {/* 관리자 조치 내역 섹션 */}
+        {adminActions && adminActions.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              관리자 조치 내역
+            </h3>
+            <div className="space-y-2">
+              {adminActions.slice(0, 3).map((action) => (
+                <div
+                  key={action.actionId}
+                  className={`p-4 border rounded-lg transition-colors cursor-pointer ${
+                    !action.isRead
+                      ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                  onClick={() => {
+                    if (!action.isRead && onMarkAsRead) {
+                      onMarkAsRead(action.actionId);
+                    }
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-gray-900">
+                          {ACTION_TYPE_LABELS[action.actionType]}
+                        </p>
+                        {!action.isRead && (
+                          <Badge variant="destructive" className="text-xs">
+                            NEW
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {action.actionDetail}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formatKoreanDate(action.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {adminActions.length > 3 && (
+                <p className="text-sm text-gray-500 text-center pt-2">
+                  외 {adminActions.length - 3}건의 조치가 더 있습니다
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 미확인 알림 */}
         {displayStatus.pendingNotifications > 0 && (

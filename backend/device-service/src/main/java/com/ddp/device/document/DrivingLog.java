@@ -50,12 +50,20 @@ public class DrivingLog {
     @Indexed
     private AnomalyType anomalyType; // 이상 징후 유형
 
+    @Indexed
+    private RiskLevel riskLevel; // 위험도 등급 (HIGH/MEDIUM/LOW)
+
     private String anomalyDetails; // 이상 징후 상세 설명
 
     // 검토 정보
     private Long reviewedBy; // 검토자 ID (관리자)
     private LocalDateTime reviewedAt; // 검토일시
     private String reviewNotes; // 검토 메모
+    
+    // 조치 정보
+    private Boolean actionTaken; // 조치 취해짐 여부
+    private String actionId; // 관련 조치 ID
+
 
     // 메타데이터
     private LocalDateTime createdAt; // 생성일시

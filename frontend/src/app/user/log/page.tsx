@@ -23,7 +23,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { FileText, Upload, Info, Download, AlertCircle, CheckCircle } from "lucide-react";
-import type { LogStatus, AnomalyType } from "@/features/log/types/log";
+import type { LogStatus, AnomalyType, AnomalyTypeKey } from "@/features/log/types/log";
 import { formatKoreanDate } from "@/lib/date-utils";
 import { logApi } from "@/features/log/api/log-api";
 import { toast } from "sonner";
@@ -102,8 +102,10 @@ export default function LogHistoryPage() {
   /**
    * 이상 유형 레이블
    */
-  const getAnomalyTypeLabel = (type: AnomalyType): string => {
-    const labels: Record<AnomalyType, string> = {
+  const getAnomalyTypeLabel = (type?: AnomalyType): string => {
+    if (!type) return "정보 없음";
+
+    const labels: Record<AnomalyTypeKey, string> = {
       NORMAL: "정상",
       TAMPERING_ATTEMPT: "조작 시도 감지",
       BYPASS_ATTEMPT: "우회 시도 감지",
@@ -111,7 +113,7 @@ export default function LogHistoryPage() {
       DATA_INCONSISTENCY: "데이터 불일치",
       DEVICE_MALFUNCTION: "장치 오작동",
     };
-    return labels[type] || type;
+    return labels[type] || "알 수 없음";
   };
 
   /**

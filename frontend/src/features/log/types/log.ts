@@ -21,7 +21,18 @@ export type AnomalyType =
   | "BYPASS_ATTEMPT" // 우회 시도
   | "EXCESSIVE_FAILURES" // 과도한 측정 실패
   | "DEVICE_MALFUNCTION" // 장치 오작동
-  | "DATA_INCONSISTENCY"; // 데이터 불일치
+  | "DATA_INCONSISTENCY" // 데이터 불일치
+  | undefined; // 분석 전 또는 정보 없음
+
+/**
+ * 이상 징후 유형 키 (undefined 제외, Record 키로 사용 가능)
+ */
+export type AnomalyTypeKey = Exclude<AnomalyType, undefined>;
+
+/**
+ * 위험도 등급
+ */
+export type RiskLevel = "HIGH" | "MEDIUM" | "LOW";
 
 /**
  * 로그 통계 정보
@@ -55,6 +66,7 @@ export interface DrivingLogResponse {
   // 상태 및 분석
   status: LogStatus;
   anomalyType?: AnomalyType; // 이상 징후 유형 (옵셔널)
+  riskLevel?: RiskLevel; // 위험도 등급 (옵셔널)
   analysisResult?: string;
 
   // 통계 정보
@@ -64,6 +76,10 @@ export interface DrivingLogResponse {
   reviewNotes?: string; // 검토 메모 추가
   reviewedBy?: number;
   reviewedAt?: string;
+
+  // 조치 정보
+  actionTaken?: boolean;
+  actionId?: string;
 
   createdAt: string;
   updatedAt: string;

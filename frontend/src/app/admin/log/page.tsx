@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { logApi } from "@/features/log/api/log-api";
-import type { DrivingLogResponse, LogStatus, AnomalyType } from "@/features/log/types/log";
-import { useSession } from "@/features/auth/hooks/use-session";
+import type { DrivingLogResponse, LogStatus, AnomalyType, AnomalyTypeKey, RiskLevel } from "@/features/log/types/log";
 import {
   Card,
   CardContent,
@@ -23,8 +22,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -33,20 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Download, FileText, AlertCircle } from "lucide-react";
+import { Download, FileText, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatKoreanDate } from "@/lib/date-utils";
+import { AdminActionDialog } from "@/features/admin/components/admin-action-dialog";
 
 /**
  * 로그 관리 페이지
@@ -56,10 +43,9 @@ export default function AdminLogsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<LogStatus | "ALL">("ALL");
   const [anomalyFilter, setAnomalyFilter] = useState<AnomalyType | "ALL">("ALL");
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [riskFilter, setRiskFilter] = useState<RiskLevel | "ALL">("ALL");
+  const [selectedLogForAction, setSelectedLogForAction] = useState<DrivingLogResponse | null>(null);
 
-  const { user } = useSession();
   const queryClient = useQueryClient();
 
   // 로그 목록 조회
@@ -68,35 +54,6 @@ export default function AdminLogsPage() {
     queryFn: async () => {
       const response = await logApi.getAllLogs(0, 100);
       return response;
-    },
-  });
-
-  // 로그 검토 뮤테이션
-  const reviewMutation = useMutation({
-    mutationFn: async ({ logId, status, reviewNotes }: {
-      logId: string;
-      status: LogStatus;
-      reviewNotes?: string;
-    }) => {
-      if (!user?.id) throw new Error("사용자 정보가 없습니다");
-      return logApi.reviewLog(logId, {
-        status,
-        reviewNotes,
-        reviewerId: user.id,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "logs"] });
-      toast.success("검토 완료", {
-        description: "로그 검토가 완료되었습니다.",
-      });
-      setRejectionReason("");
-      setSelectedLogId(null);
-    },
-    onError: (error: any) => {
-      toast.error("검토 실패", {
-        description: error?.message || "로그 검토 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -121,9 +78,12 @@ export default function AdminLogsPage() {
       // 이상 징후 필터
       const matchesAnomaly = anomalyFilter === "ALL" || log.anomalyType === anomalyFilter;
 
-      return matchesSearch && matchesStatus && matchesAnomaly;
+      // 위험도 필터
+      const matchesRisk = riskFilter === "ALL" || log.riskLevel === riskFilter;
+
+      return matchesSearch && matchesStatus && matchesAnomaly && matchesRisk;
     });
-  }, [logs, searchQuery, statusFilter, anomalyFilter]);
+  }, [logs, searchQuery, statusFilter, anomalyFilter, riskFilter]);
 
   // 통계 계산
   const statistics = useMemo(() => {
@@ -131,7 +91,12 @@ export default function AdminLogsPage() {
     const flaggedLogs = logs.filter((l) => l.status === "FLAGGED").length;
     const flaggedRate = totalCount > 0 ? ((flaggedLogs / totalCount) * 100).toFixed(1) : "0";
 
-    return { normalLogs, flaggedLogs, flaggedRate };
+    // 위험도별 통계
+    const highRisk = logs.filter((l) => l.riskLevel === "HIGH").length;
+    const mediumRisk = logs.filter((l) => l.riskLevel === "MEDIUM").length;
+    const lowRisk = logs.filter((l) => l.riskLevel === "LOW").length;
+
+    return { normalLogs, flaggedLogs, flaggedRate, highRisk, mediumRisk, lowRisk };
   }, [logs, totalCount]);
 
   // CSV 내보내기 함수
@@ -221,8 +186,10 @@ export default function AdminLogsPage() {
   };
 
   // 이상 유형 레이블
-  const getAnomalyTypeLabel = (type: AnomalyType): string => {
-    const labels: Record<AnomalyType, string> = {
+  const getAnomalyTypeLabel = (type?: AnomalyType): string => {
+    if (!type) return "정보 없음";
+
+    const labels: Record<AnomalyTypeKey, string> = {
       NORMAL: "정상",
       TAMPERING_ATTEMPT: "조작 시도",
       BYPASS_ATTEMPT: "우회 시도",
@@ -230,7 +197,23 @@ export default function AdminLogsPage() {
       DATA_INCONSISTENCY: "데이터 불일치",
       DEVICE_MALFUNCTION: "장치 오작동",
     };
-    return labels[type] || type;
+    return labels[type] || "알 수 없음";
+  };
+
+  // 위험도 뱃지 스타일
+  const getRiskBadge = (risk?: RiskLevel) => {
+    if (!risk) return null;
+    const styles = {
+      HIGH: { variant: "destructive" as const, text: "긴급", icon: "🔴" },
+      MEDIUM: { variant: "secondary" as const, text: "경고", icon: "🟡" },
+      LOW: { variant: "outline" as const, text: "정상", icon: "🟢" },
+    };
+    const config = styles[risk];
+    return (
+      <Badge variant={config.variant}>
+        {config.icon} {config.text}
+      </Badge>
+    );
   };
 
   return (
@@ -295,6 +278,41 @@ export default function AdminLogsPage() {
         </Card>
       </div>
 
+      {/* 위험도별 현황 카드 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>위험도별 현황</CardTitle>
+          <CardDescription>
+            로그 분석 결과에 따른 위험도 분류
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-red-50">
+              <div>
+                <p className="text-sm font-medium text-red-900">🔴 긴급 (HIGH)</p>
+                <p className="text-xs text-red-600 mt-1">즉시 조치 필요</p>
+              </div>
+              <div className="text-3xl font-bold text-red-600">{statistics.highRisk}</div>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50">
+              <div>
+                <p className="text-sm font-medium text-yellow-900">🟡 경고 (MEDIUM)</p>
+                <p className="text-xs text-yellow-600 mt-1">주의 관찰</p>
+              </div>
+              <div className="text-3xl font-bold text-yellow-600">{statistics.mediumRisk}</div>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
+              <div>
+                <p className="text-sm font-medium text-green-900">🟢 정상 (LOW)</p>
+                <p className="text-xs text-green-600 mt-1">모니터링 지속</p>
+              </div>
+              <div className="text-3xl font-bold text-green-600">{statistics.lowRisk}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 검색 및 목록 */}
       <Card>
         <CardHeader>
@@ -339,6 +357,17 @@ export default function AdminLogsPage() {
                 <SelectItem value="DEVICE_MALFUNCTION">장치 오작동</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={riskFilter} onValueChange={(value) => setRiskFilter(value as RiskLevel | "ALL")}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="위험도" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">전체 위험도</SelectItem>
+                <SelectItem value="HIGH">🔴 긴급</SelectItem>
+                <SelectItem value="MEDIUM">🟡 경고</SelectItem>
+                <SelectItem value="LOW">🟢 정상</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="outline" onClick={handleExportCSV} className="ml-auto">
               <Download className="h-4 w-4 mr-2" />
               CSV 내보내기
@@ -368,6 +397,7 @@ export default function AdminLogsPage() {
                     <TableHead>사용자 ID</TableHead>
                     <TableHead>기간</TableHead>
                     <TableHead>상태</TableHead>
+                    <TableHead>위험도</TableHead>
                     <TableHead>이상 유형</TableHead>
                     <TableHead className="text-right">작업</TableHead>
                   </TableRow>
@@ -375,7 +405,7 @@ export default function AdminLogsPage() {
                 <TableBody>
                   {filteredLogs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                      <TableCell colSpan={9} className="text-center text-gray-500 py-8">
                         <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                         <p>
                           {searchQuery || statusFilter !== "ALL" || anomalyFilter !== "ALL"
@@ -406,6 +436,9 @@ export default function AdminLogsPage() {
                           {getStatusBadge(log.status)}
                         </TableCell>
                         <TableCell>
+                          {getRiskBadge(log.riskLevel)}
+                        </TableCell>
+                        <TableCell>
                           {log.anomalyType !== "NORMAL" && (
                             <div className="flex items-center gap-1 text-red-600">
                               <AlertCircle className="h-4 w-4" />
@@ -417,85 +450,24 @@ export default function AdminLogsPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {log.status !== "APPROVED" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => reviewMutation.mutate({
-                                  logId: log.logId,
-                                  status: "APPROVED",
-                                })}
-                                disabled={reviewMutation.isPending}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                승인
-                              </Button>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => setSelectedLogForAction(log)}
+                            disabled={!log.riskLevel || log.riskLevel === "LOW" || log.actionTaken}
+                          >
+                            {log.actionTaken ? (
+                              <>
+                                <AlertCircle className="h-4 w-4 mr-1" />
+                                조치 완료
+                              </>
+                            ) : (
+                              <>
+                                <AlertCircle className="h-4 w-4 mr-1" />
+                                조치 생성
+                              </>
                             )}
-                            {log.status !== "REJECTED" && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => setSelectedLogId(log.logId)}
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    반려
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>로그 반려</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      이 로그를 반려하시겠습니까? 반려 사유를 입력해주세요.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <div className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="reason">반려 사유</Label>
-                                      <Textarea
-                                        id="reason"
-                                        value={rejectionReason}
-                                        onChange={(e) =>
-                                          setRejectionReason(e.target.value)
-                                        }
-                                        placeholder="반려 사유를 입력하세요"
-                                        className="min-h-[100px]"
-                                      />
-                                    </div>
-                                  </div>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel
-                                      onClick={() => {
-                                        setRejectionReason("");
-                                        setSelectedLogId(null);
-                                      }}
-                                    >
-                                      취소
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => {
-                                        if (selectedLogId && rejectionReason.trim()) {
-                                          reviewMutation.mutate({
-                                            logId: selectedLogId,
-                                            status: "REJECTED",
-                                            reviewNotes: rejectionReason,
-                                          });
-                                        }
-                                      }}
-                                      disabled={
-                                        !rejectionReason.trim() ||
-                                        reviewMutation.isPending
-                                      }
-                                    >
-                                      반려 확인
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </div>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -506,6 +478,20 @@ export default function AdminLogsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* 조치 생성 다이얼로그 */}
+      <AdminActionDialog
+        log={selectedLogForAction}
+        open={!!selectedLogForAction}
+        onOpenChange={(open) => !open && setSelectedLogForAction(null)}
+        onActionCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin", "logs"] });
+          setSelectedLogForAction(null);
+          toast.success("조치 생성 완료", {
+            description: "관리자 조치가 생성되었습니다.",
+          });
+        }}
+      />
     </div>
   );
 }

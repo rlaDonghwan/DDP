@@ -233,4 +233,60 @@ public class LogAnalysisService {
 
         return sb.toString();
     }
+
+    /**
+     * 위험도 평가
+     * 이상 징후 유형과 통계를 기반으로 위험도 등급 판단
+     */
+    public com.ddp.device.document.RiskLevel assessRiskLevel(
+            AnomalyType anomalyType,
+            DrivingLog.LogStatistics statistics
+    ) {
+        log.info("위험도 평가 시작: anomalyType={}", anomalyType);
+
+        // 정상인 경우
+        if (anomalyType == AnomalyType.NORMAL) {
+            return com.ddp.device.document.RiskLevel.LOW;
+        }
+
+        // HIGH (긴급) - 즉시 조치 필요
+        if (anomalyType == AnomalyType.TAMPERING_ATTEMPT || 
+            anomalyType == AnomalyType.BYPASS_ATTEMPT) {
+            log.warn("[HIGH] 조작/우회 시도 감지");
+            return com.ddp.device.document.RiskLevel.HIGH;
+        }
+
+        // 조작 시도 횟수가 3회 이상인 경우 HIGH
+        if (statistics.getTamperingAttempts() != null && statistics.getTamperingAttempts() >= 3) {
+            log.warn("[HIGH] 조작 시도 {}회", statistics.getTamperingAttempts());
+            return com.ddp.device.document.RiskLevel.HIGH;
+        }
+
+        // MEDIUM (경고) - 주의 관찰
+        if (anomalyType == AnomalyType.EXCESSIVE_FAILURES || 
+            anomalyType == AnomalyType.DEVICE_MALFUNCTION) {
+            
+            // 실패율이 70% 이상이면 HIGH
+            if (statistics.getTotalTests() != null && statistics.getTotalTests() > 0) {
+                double failureRate = (double) statistics.getFailedTests() / statistics.getTotalTests();
+                if (failureRate >= 0.7) {
+                    log.warn("[HIGH] 과도한 실패율: {}", String.format("%.2f%%", failureRate * 100));
+                    return com.ddp.device.document.RiskLevel.HIGH;
+                }
+            }
+            
+            log.warn("[MEDIUM] 과도한 실패 또는 장치 오작동");
+            return com.ddp.device.document.RiskLevel.MEDIUM;
+        }
+
+        // DATA_INCONSISTENCY는 기본적으로 MEDIUM
+        if (anomalyType == AnomalyType.DATA_INCONSISTENCY) {
+            log.warn("[MEDIUM] 데이터 불일치");
+            return com.ddp.device.document.RiskLevel.MEDIUM;
+        }
+
+        // 기타 이상 징후는 MEDIUM
+        log.warn("[MEDIUM] 기타 이상 징후: {}", anomalyType);
+        return com.ddp.device.document.RiskLevel.MEDIUM;
+    }
 }

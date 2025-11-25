@@ -3,6 +3,7 @@ package com.ddp.device.dto.log;
 import com.ddp.device.document.AnomalyType;
 import com.ddp.device.document.DrivingLog;
 import com.ddp.device.document.LogStatus;
+import com.ddp.device.document.RiskLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class DrivingLogResponse {
     // 상태 및 분석
     private LogStatus status;
     private AnomalyType anomalyType;
+    private RiskLevel riskLevel;
     private String anomalyDetails;
     private String analysisResult;
 
@@ -45,6 +47,10 @@ public class DrivingLogResponse {
     // 검토 정보
     private Long reviewedBy;
     private LocalDateTime reviewedAt;
+    
+    // 조치 정보
+    private Boolean actionTaken;
+    private String actionId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -66,10 +72,15 @@ public class DrivingLogResponse {
                 .filePath(log.getFilePath())
                 .status(log.getStatus())
                 .anomalyType(log.getAnomalyType())
+                .riskLevel(log.getRiskLevel())
                 .anomalyDetails(log.getAnomalyDetails())
                 .analysisResult(log.getAnalysisResult())
                 .reviewedBy(log.getReviewedBy())
+                .analysisResult(log.getAnalysisResult())
+                .reviewedBy(log.getReviewedBy())
                 .reviewedAt(log.getReviewedAt())
+                .actionTaken(log.getActionTaken())
+                .actionId(log.getActionId())
                 .createdAt(log.getCreatedAt())
                 .updatedAt(log.getUpdatedAt());
 

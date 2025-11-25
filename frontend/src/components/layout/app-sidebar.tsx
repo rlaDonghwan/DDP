@@ -12,6 +12,7 @@ import {
   Wrench,
   UserCircle,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -113,6 +114,16 @@ const menuItems = {
       title: "로그 관리",
       url: "/admin/log",
       icon: FileText,
+    },
+    {
+      title: "조치 관리",
+      url: "/admin/actions",
+      icon: AlertCircle,
+    },
+    {
+      title: "일정 관리",
+      url: "/admin/schedules",
+      icon: Calendar,
     },
     {
       title: "업체 관리",
