@@ -11,6 +11,13 @@ spring:
   cloud:
     gateway:
       routes:
+      # ==================== Device Service (Specific Routes) ====================
+      # Device Service 사용자 조치 라우팅 (Auth Service보다 우선순위 높아야 함)
+      - id: device-service-user-actions
+        uri: lb://device-service
+        predicates:
+        - Path=/api/v1/users/*/actions
+
       # ==================== Auth Service ====================
       # Auth Service 사용자 라우팅
       - id: auth-service-users
@@ -93,6 +100,18 @@ spring:
         uri: lb://device-service
         predicates:
         - Path=/api/v1/logs/**
+
+      # Device Service API (관리자 조치)
+      - id: device-service-admin-actions
+        uri: lb://device-service
+        predicates:
+        - Path=/api/v1/admin/actions/**, /api/v1/admin/*/actions, /api/v1/admin/logs/*/actions
+
+      # Device Service API (조치 확인)
+      - id: device-service-actions-read
+        uri: lb://device-service
+        predicates:
+        - Path=/api/v1/actions/**
 
 # JWT 설정 (auth-service와 동일한 시크릿 사용)
 jwt:
